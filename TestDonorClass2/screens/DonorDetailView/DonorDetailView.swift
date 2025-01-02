@@ -63,3 +63,27 @@ struct DonorDetailView: View {
         }
     }
 }
+
+    // MARK: - Preview
+    #Preview {
+        // Create a sample donor with all fields populated
+        let sampleDonor = Donor(
+            uuid: "123",
+            salutation: "Mr.",
+            firstName: "John",
+            lastName: "Doe",
+            jewishName: "Yaakov",
+            address: "123 Main Street",
+            city: "New York",
+            state: "NY",
+            zip: "10001",
+            email: "john@example.com",
+            phone: "(555) 123-4567",
+            notes: "Regular donor"
+        )
+        
+        return NavigationView {
+            DonorDetailView(donor: sampleDonor)
+                .environmentObject(DonorObjectClass())
+        }
+    }

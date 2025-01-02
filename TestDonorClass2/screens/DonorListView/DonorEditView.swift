@@ -30,6 +30,42 @@ struct DonorEditView: View {
     @State private var zip: String = ""
     @State private var notes: String = ""
     
+        // Add validation state
+        @State private var isPhoneValid = true
+
+        // Add phone validation function
+        private func isValidPhone(_ phone: String) -> Bool {
+            let phoneRegex = #"^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$"#
+            let phonePredicate = NSPredicate(format: "SELF MATCHES %@", phoneRegex)
+            return phone.isEmpty || phonePredicate.evaluate(with: phone)
+        }
+    
+        // Add phone formatting function
+        private func formatPhoneNumber(_ phoneNumber: String) -> String {
+            // Remove all non-numeric characters
+            let numbersOnly = phoneNumber.filter { "0123456789".contains($0) }
+            // Limit to 10 digits
+            let truncated = String(numbersOnly.prefix(10))
+            
+            // Format based on number length
+            var formatted = ""
+            if truncated.count > 6 {
+                let areaCode = truncated.prefix(3)
+                let prefix = truncated[truncated.index(truncated.startIndex, offsetBy: 3)..<truncated.index(truncated.startIndex, offsetBy: 6)]
+                let remaining = truncated[truncated.index(truncated.startIndex, offsetBy: 6)...]
+                formatted = "(\(areaCode)) \(prefix)-\(remaining)"
+            } else if truncated.count > 3 {
+                let areaCode = truncated.prefix(3)
+                let remaining = truncated[truncated.index(truncated.startIndex, offsetBy: 3)...]
+                formatted = "(\(areaCode)) \(remaining)"
+            } else {
+                formatted = truncated.isEmpty ? "" : "(\(truncated)"
+            }
+            
+            return formatted
+        }
+
+    
     var body: some View {
         NavigationView {
             Form {
@@ -46,6 +82,20 @@ struct DonorEditView: View {
                         .autocapitalization(.none)
                     TextField("Phone", text: $phone)
                         .keyboardType(.phonePad)
+                        // Update phone formatting
+                        .onChange(of: phone) { newValue in
+                            let formatted = formatPhoneNumber(newValue)
+                            if formatted != newValue {
+                                phone = formatted
+                            }
+                            isPhoneValid = isValidPhone(formatted)
+                        }
+                        .foregroundColor(isPhoneValid ? .primary : .red)
+                    if !isPhoneValid {
+                        Text("Please enter a valid phone number")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
                 }
                 
                 Section(header: Text("Address")) {
@@ -72,7 +122,8 @@ struct DonorEditView: View {
                     Button("Save") {
                         save()
                     }
-                    .disabled(firstName.isEmpty || lastName.isEmpty)
+                        // Update save button disabled condition
+                    .disabled(firstName.isEmpty || lastName.isEmpty || !isPhoneValid)
                 }
             }
             .onAppear {
@@ -83,12 +134,15 @@ struct DonorEditView: View {
                     lastName = donor.lastName
                     jewishName = donor.jewishName ?? ""
                     email = donor.email ?? ""
-                    phone = donor.phone ?? ""
+                    phone = formatPhoneNumber(donor.phone ?? "")
                     address = donor.address ?? ""
                     city = donor.city ?? ""
                     state = donor.state ?? ""
                     zip = donor.zip ?? ""
                     notes = donor.notes ?? ""
+                        // Validate phone on load
+                    isPhoneValid = isValidPhone(phone)
+
                 }
             }
         }
@@ -151,3 +205,46 @@ struct DonorEditView: View {
         }
     }
 }
+    // MARK: - Preview
+    #Preview {
+        Group {
+//            // Preview Add Mode
+//            NavigationView {
+//                DonorEditView(mode: .add)
+//                    .environmentObject(DonorObjectClass())
+//            }
+//            .previewDisplayName("Add Mode")
+            
+            // Preview Edit Mode with Sample Data
+            NavigationView {
+                DonorEditView(mode: .edit(Donor(
+                    uuid: "sample-id",
+                    salutation: "Mr.",
+                    firstName: "John",
+                    lastName: "Doe",
+                    jewishName: "Yaakov",
+                    address: "123 Main Street",
+                    city: "New York",
+                    state: "NY",
+                    zip: "10001",
+                    email: "john@example.com",
+                    phone: "(555) 123-4567",
+                    notes: "Sample donor for preview"
+                )))
+                .environmentObject(DonorObjectClass())
+            }
+            .previewDisplayName("Edit Mode")
+            
+//            // Preview with Invalid Phone Number
+//            NavigationView {
+//                DonorEditView(mode: .edit(Donor(
+//                    uuid: "sample-id-2",
+//                    firstName: "Jane",
+//                    lastName: "Smith",
+//                    phone: "123" // Invalid phone number to demonstrate validation
+//                )))
+//                .environmentObject(DonorObjectClass())
+//            }
+//            .previewDisplayName("Invalid Phone")
+        }
+    }

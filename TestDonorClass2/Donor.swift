@@ -40,101 +40,60 @@ enum LoadingState: Equatable {
 }
 
 
-class DonorObjectClasx: ObservableObject {
-    @Published var donors: [Donor] = []
-    @Published var loadingState: LoadingState = .notLoaded
-    
-    init() {
-        // Initialize with not loaded state
-    }
-    
-    @MainActor
-    func updateLoadingState(_ newState: LoadingState) {
-        loadingState = newState
-    }
-    
-    @MainActor
-    func updateDonorsWith(_ donorArray: Array<Donor>) {
-        donors = donorArray
-    }
-    
-    func loadDonors() async throws {
-        // Check if we should proceed with loading
-        guard loadingState == .notLoaded else { return }
-        
-        await updateLoadingState(.loading)
-        
-        do {
-            let donors = try await getAll()
-            await updateDonorsWith(donors)
-            await updateLoadingState(.loaded)
-            print("Loaded \(donors.count) donors")
-        } catch {
-            await updateLoadingState(.error(error.localizedDescription))
-            throw error
-        }
-    }
-    
-    func getAll() async throws -> [Donor] {
-        try await Task.sleep(for: .seconds(1))
-        let donors: [Donor] = [
-            Donor(firstName: "Donor 1", lastName: "Last Name 1"),
-            Donor(firstName: "Donor 2", lastName: "Last Name 2"),
-            Donor(firstName: "Donor 3", lastName: "Last Name 3")]
-        return donors
-    }
-    
-    func loadMockDonors() {
-        // Only proceed if not loaded
-        guard loadingState == .notLoaded else { return }
-        
-        print("Loading mock donors...")
-        loadingState = .loading
-        donors = []
-        loadingState = .loaded
-        print("Mock donors loaded: \(donors.count) donors")
-    }
-}
+//class DonorObjectClasx: ObservableObject {
+//    @Published var donors: [Donor] = []
+//    @Published var loadingState: LoadingState = .notLoaded
+//    
+//    init() {
+//        // Initialize with not loaded state
+//    }
+//    
+//    @MainActor
+//    func updateLoadingState(_ newState: LoadingState) {
+//        loadingState = newState
+//    }
+//    
+//    @MainActor
+//    func updateDonorsWith(_ donorArray: Array<Donor>) {
+//        donors = donorArray
+//    }
+//    
+//    func loadDonors() async throws {
+//        // Check if we should proceed with loading
+//        guard loadingState == .notLoaded else { return }
+//        
+//        await updateLoadingState(.loading)
+//        
+//        do {
+//            let donors = try await getAll()
+//            await updateDonorsWith(donors)
+//            await updateLoadingState(.loaded)
+//            print("Loaded \(donors.count) donors")
+//        } catch {
+//            await updateLoadingState(.error(error.localizedDescription))
+//            throw error
+//        }
+//    }
+//    
+//    func getAll() async throws -> [Donor] {
+//        try await Task.sleep(for: .seconds(1))
+//        let donors: [Donor] = [
+//            Donor(firstName: "Donor 1", lastName: "Last Name 1"),
+//            Donor(firstName: "Donor 2", lastName: "Last Name 2"),
+//            Donor(firstName: "Donor 3", lastName: "Last Name 3")]
+//        return donors
+//    }
+//    
+//    func loadMockDonors() {
+//        // Only proceed if not loaded
+//        guard loadingState == .notLoaded else { return }
+//        
+//        print("Loading mock donors...")
+//        loadingState = .loading
+//        donors = []
+//        loadingState = .loaded
+//        print("Mock donors loaded: \(donors.count) donors")
+//    }
+//}
 
-// Example view to show loading states
-struct DonorSelectionView: View {
-    @EnvironmentObject var donorObject: DonorObjectClass
-    
-    var body: some View {
-        Group {
-            
-            switch donorObject.loadingState {
-                
-            case .notLoaded:
-                ProgressView("Not yet loaded")
-                
-            case .loading:
-                ProgressView("Loading donors...")
-                    .progressViewStyle(CircularProgressViewStyle())
-                
-            case .loaded:
-                if donorObject.donors.isEmpty {
-                    Text("No donors available")
-                } else {
-                    List(donorObject.donors) { donor in
-                        Text("\(donor.firstName) \(donor.lastName)")
-                    }
-                }
-                
-            case .error(let message):
-                VStack {
-                    Text("Error loading donors")
-                        .foregroundColor(.red)
-                    Text(message)
-                        .font(.caption)
-                    Button("Retry") {
-                        Task {
-                            try? await donorObject.loadDonors()
-                        }
-                    }
-                }
-            }
-        }
-        .navigationTitle("Donors")
-    }
-}
+
