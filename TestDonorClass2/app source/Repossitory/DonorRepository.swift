@@ -24,69 +24,72 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
             // - Displaying user-friendly messages
             // - Retrying the operation if applicable
     }
+
         // MARK: - Read Operations
     func getOne(_ id: Int) async throws -> Donor? {
         do {
                 // attemp to read from database asyncronously
-            let donors = try await dbPool.read { db in
+            let donor = try await dbPool.read { db in
                 try Donor.fetchOne(db, id: id)
             }
-            return donors
+            return donor
         } catch {
-            handleError(error, context: "Failed to fetch all donors")
-            throw error
+            handleError(error, context: "Fetching donor with id: \(id)")
+            throw RepositoryError.fetchFailed(error.localizedDescription)
         }
     }
     func getAll() async throws -> [Donor] {
         do {
-                // attemp to read from database asyncronously
             let donors = try await dbPool.read { db in
                 try Donor.fetchAll(db)
             }
             return donors
         } catch {
             handleError(error, context: "Failed to fetch all donors")
-            throw error
+            throw RepositoryError.fetchFailed(error.localizedDescription)
         }
     }
+
         // MARK: - CRUD
     func insert(_ donor: Donor) async throws  {
         do {
             try await dbPool.write { db in
                 try donor.insert(db) }
         } catch {
-            handleError(error, context: "-----")
-            throw error
-        }
+            handleError(error, context: "Inserting donor: \(donor.firstName) \(donor.lastName)")
+            throw RepositoryError.insertFailed(error.localizedDescription)        }
     }
+    
     func delete(_ donor: Donor) async throws  {
         do {
             try await dbPool.write { db in
                 try donor.delete(db)
             }
         } catch {
-            handleError(error, context: "-----")
-            throw error
+            handleError(error, context: "Deleting donor: \(donor.firstName) \(donor.lastName)")
+            throw RepositoryError.deleteFailed(error.localizedDescription)
         }
     }
+    
     func update(_ donor: Donor) async throws  {
         do {
             try await dbPool.write { db in
                 try donor.update(db)
             }
         } catch {
-            handleError(error, context: "-----")
-            throw error
+            handleError(error, context: "Updating donor: \(donor.firstName) \(donor.lastName)")
+            throw RepositoryError.updateFailed(error.localizedDescription)
         }
     }
+    
     func deleteOne(_ id: Int) async throws  {
         do {
             try await dbPool.write { db in
                 try Donor.deleteOne(db, id: id)
             }
         } catch {
-            handleError(error, context: "-----")
-            throw error
+            handleError(error, context: "Deleting donor with id: \(id)")
+            throw RepositoryError.deleteFailed(error.localizedDescription)
         }
     }
         // MARK: - Search

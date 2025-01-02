@@ -1,0 +1,51 @@
+//
+//  RepositoryProtocol.swift
+//  TestDonorClass2
+//
+//  Created by Steven Hertz on 12/25/24.
+//
+
+
+    import GRDB
+    import Foundation
+    /// A generic repository protocol for basic CRUD operations.
+    /// This is the minimal set of methods for any entity type.
+    protocol RepositoryProtocol {
+        associatedtype Model
+        // Create
+        func insert(_ item: Model) async throws
+        // Read
+        func getAll() async throws -> [Model]
+        func getOne(_ id: Int) async throws -> Model?
+        // Update
+        func update(_ item: Model) async throws
+        // Delete
+        func delete(_ item: Model) async throws
+        //DeleteOne
+        func deleteOne(_ id: Int) async throws
+    }
+    /// A donor-specific repository protocol that extends `RepositoryProtocol`,
+    /// but restricts the `Model` to be `Donor`.
+    protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Donor {
+        /// Find donors by a name or partial name match
+        func findByName(_ searchText: String) async throws -> [Donor]
+        /// A domain-specific method:
+        /// e.g. total donation amount for a particular donor.
+//        func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
+    }
+//    protocol DonationSpecificRepositoryProtocol: RepositoryProtocol where Model == Donation {
+//    //    /// Find donors by a name or partial name match
+//    //    func findByName(_ searchText: String) async throws -> [Donor]
+//    //    /// A domain-specific method:
+//    //    /// e.g. total donation amount for a particular donor.
+//    //    func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
+//        func getMaxId() async throws -> Int?
+//    }
+//    protocol CampaignSpecificRepositoryProtocol: RepositoryProtocol where Model == Campaign {
+//    //    /// Find donors by a name or partial name match
+//    //    func findByName(_ searchText: String) async throws -> [Donor]
+//    //    /// A domain-specific method:
+//    //    /// e.g. total donation amount for a particular donor.
+//    //    func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
+//    }
+    //

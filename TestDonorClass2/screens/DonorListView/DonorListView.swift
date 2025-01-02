@@ -8,8 +8,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 // MARK: - Main List View
 struct DonorListView: View {
     @EnvironmentObject var donorObject: DonorObjectClass
@@ -27,21 +25,27 @@ struct DonorListView: View {
         Group {
             switch donorObject.loadingState {
             case .notLoaded:
+                let _ = print("Not loaded yet")
                 LoadingView(message: "Initializing...")
                     .task {
                         await donorObject.loadDonors()
                     }
                 
             case .loading:
+                let _ = print("loading")
                 LoadingView(message: "Loading donors...")
                 
             case .loaded:
+                let _ = print("loaded")
                 donorList
                 
             case .error(let message):
+                let _ = print("in error")
                 ErrorView(message: message) {
                     Task {
+                        print("Retrying...")
                         await donorObject.loadDonors()
+                        print("Retry complete")
                     }
                 }
             }
@@ -91,237 +95,9 @@ struct DonorListView: View {
     }
 }
 
-// MARK: - Row View
-struct DonorRowView: View {
-    let donor: Donor
-    @State private var totalDonations: Double = 0
-    @EnvironmentObject var donorObject: DonorObjectClass
-    
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text(donor.fullName)
-                .font(.headline)
-            if let email = donor.email {
-                Text(email)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            Text("Total Donations: $\(totalDonations, specifier: "%.2f")")
-                .font(.caption)
-                .foregroundColor(.blue)
-        }
-        .task {
-            do {
-//                totalDonations = try await donorObject.getTotalDonations(for: donor)
-            } catch {
-                // Handle error if needed
-            }
-        }
-    }
-}
 
-// MARK: - Detail View
-struct DonorDetailView: View {
-    let donor: Donor
-    @State private var showingEditSheet = false
-    @EnvironmentObject var donorObject: DonorObjectClass
-    @Environment(\.presentationMode) var presentationMode
-    
-    var body: some View {
-        Form {
-            Section(header: Text("Personal Information")) {
-                if let salutation = donor.salutation {
-                    LabeledContent("Salutation", value: salutation)
-                }
-                LabeledContent("First Name", value: donor.firstName)
-                LabeledContent("Last Name", value: donor.lastName)
-                if let jewishName = donor.jewishName {
-                    LabeledContent("Jewish Name", value: jewishName)
-                }
-            }
-            
-            Section(header: Text("Contact Information")) {
-                if let email = donor.email {
-                    LabeledContent("Email", value: email)
-                }
-                if let phone = donor.phone {
-                    LabeledContent("Phone", value: phone)
-                }
-            }
-            
-            Section(header: Text("Address")) {
-                if let address = donor.address {
-                    LabeledContent("Street", value: address)
-                }
-                if let city = donor.city {
-                    LabeledContent("City", value: city)
-                }
-                if let state = donor.state {
-                    LabeledContent("State", value: state)
-                }
-                if let zip = donor.zip {
-                    LabeledContent("ZIP", value: zip)
-                }
-            }
-        }
-        .navigationTitle("Donor Details")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Edit") {
-                    showingEditSheet = true
-                }
-            }
-        }
-        .sheet(isPresented: $showingEditSheet) {
-            DonorEditView(mode: .edit(donor))
-        }
-    }
-}
 
-// MARK: - Edit View
-struct DonorEditView: View {
-    enum Mode {
-        case add
-//        case isAdd
-        case edit(Donor)
-    }
-    
-    let mode: Mode
-    @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject var donorObject: DonorObjectClass
-    
-    @State private var salutation: String = ""
-    @State private var firstName: String = ""
-    @State private var lastName: String = ""
-    @State private var jewishName: String = ""
-    @State private var email: String = ""
-    @State private var phone: String = ""
-    @State private var address: String = ""
-    @State private var city: String = ""
-    @State private var state: String = ""
-    @State private var zip: String = ""
-    @State private var notes: String = ""
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Personal Information")) {
-                    TextField("Salutation", text: $salutation)
-                    TextField("First Name", text: $firstName)
-                    TextField("Last Name", text: $lastName)
-                    TextField("Jewish Name", text: $jewishName)
-                }
-                
-                Section(header: Text("Contact Information")) {
-                    TextField("Email", text: $email)
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
-                    TextField("Phone", text: $phone)
-                        .keyboardType(.phonePad)
-                }
-                
-                Section(header: Text("Address")) {
-                    TextField("Street Address", text: $address)
-                    TextField("City", text: $city)
-                    TextField("State", text: $state)
-                    TextField("ZIP", text: $zip)
-                        .keyboardType(.numberPad)
-                }
-                
-                Section(header: Text("Additional Information")) {
-                    TextEditor(text: $notes)
-                        .frame(height: 100)
-                }
-            }
-            .navigationTitle("Edit Donor")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        save()
-                    }
-                    .disabled(firstName.isEmpty || lastName.isEmpty)
-                }
-            }
-            .onAppear {
-                if case .edit(let donor) = mode {
-                    // Populate fields with existing donor data
-                    salutation = donor.salutation ?? ""
-                    firstName = donor.firstName
-                    lastName = donor.lastName
-                    jewishName = donor.jewishName ?? ""
-                    email = donor.email ?? ""
-                    phone = donor.phone ?? ""
-                    address = donor.address ?? ""
-                    city = donor.city ?? ""
-                    state = donor.state ?? ""
-                    zip = donor.zip ?? ""
-                    notes = donor.notes ?? ""
-                }
-            }
-        }
-    }
-    
-    private var isAdd: Bool {
-        if case .add = mode {
-            return true
-        }
-        return false
-    }
-    
-    private func save() {
-        let donor: Donor
-        if case .edit(var existingDonor) = mode {
-            // Update existing donor
-            existingDonor.salutation = salutation.isEmpty ? nil : salutation
-            existingDonor.firstName = firstName
-            existingDonor.lastName = lastName
-            existingDonor.jewishName = jewishName.isEmpty ? nil : jewishName
-            existingDonor.email = email.isEmpty ? nil : email
-            existingDonor.phone = phone.isEmpty ? nil : phone
-            existingDonor.address = address.isEmpty ? nil : address
-            existingDonor.city = city.isEmpty ? nil : city
-            existingDonor.state = state.isEmpty ? nil : state
-            existingDonor.zip = zip.isEmpty ? nil : zip
-            existingDonor.notes = notes.isEmpty ? nil : notes
-            donor = existingDonor
-        } else {
-            // Create new donor
-            donor = Donor(
-                salutation: salutation.isEmpty ? nil : salutation,
-                firstName: firstName,
-                lastName: lastName,
-                jewishName: jewishName.isEmpty ? nil : jewishName,
-                address: address.isEmpty ? nil : address,
-                city: city.isEmpty ? nil : city,
-                state: state.isEmpty ? nil : state,
-                zip: zip.isEmpty ? nil : zip,
-                email: email.isEmpty ? nil : email,
-                phone: phone.isEmpty ? nil : phone,
-                notes: notes.isEmpty ? nil : notes
-            )
-        }
-        
-        Task {
-            do {
-                if isAdd {
-                    try await donorObject.addDonor(donor)
-                } else {
-                    try await donorObject.updateDonor(donor)
-                }
-                await MainActor.run {
-                    presentationMode.wrappedValue.dismiss()
-                }
-            } catch {
-                // Handle error if needed
-            }
-        }
-    }
-}
+
 
 // MARK: - Support Views
 struct LoadingView: View {
@@ -354,7 +130,7 @@ struct ErrorView: View {
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
             
-            Button("Retry") {
+            Button("Retry It") {
                 retryAction()
             }
             .buttonStyle(.bordered)
@@ -407,7 +183,7 @@ import SwiftUI
 struct DonorViews_Previews: PreviewProvider {
     // Sample data
     static let sampleDonor = Donor(
-        id: 1,
+//        id: 1,
         firstName: "John",
         lastName: "Doe",
         jewishName: "Yaakov",

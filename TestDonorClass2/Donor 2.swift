@@ -11,8 +11,8 @@ import GRDB
 
 // MARK: - Donor Model
 struct Donor: Identifiable, Codable, FetchableRecord, PersistableRecord {
-    var id: Int
-    let uuid: UUID
+    var id: Int?
+    let uuid: String
     var salutation: String?
     var firstName: String
     var lastName: String
@@ -67,8 +67,8 @@ struct Donor: Identifiable, Codable, FetchableRecord, PersistableRecord {
     }
     
     // MARK: - Initialization
-    init(id: Int = 0,
-         uuid: UUID = UUID(),
+    init(// id: Int = 0,
+         uuid: String = UUID().uuidString,
          salutation: String? = nil,
          firstName: String,
          lastName: String,
@@ -83,7 +83,7 @@ struct Donor: Identifiable, Codable, FetchableRecord, PersistableRecord {
          notes: String? = nil,
          createdAt: Date = Date(),
          updatedAt: Date = Date()) {
-        self.id = id
+//        self.id = id
         self.uuid = uuid
         self.salutation = salutation
         self.firstName = firstName

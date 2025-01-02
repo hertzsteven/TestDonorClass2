@@ -46,7 +46,10 @@ class DonorObjectClass: ObservableObject {
     // MARK: - CRUD Operations
     func addDonor(_ donor: Donor) async throws {
         try await repository.insert(donor)
-        await loadDonors()
+        let fetchedDonors = try await repository.getAll()
+        await MainActor.run {
+            self.donors = fetchedDonors
+        }
     }
     
     func updateDonor(_ donor: Donor) async throws {
