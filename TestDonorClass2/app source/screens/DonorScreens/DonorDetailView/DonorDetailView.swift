@@ -1,12 +1,12 @@
-//
-//  DonorDetailView.swift
-//  TestDonorClass2
-//
-//  Created by Steven Hertz on 1/1/25.
-//
+    //
+    //  DonorDetailView.swift
+    //  TestDonorClass2
+    //
+    //  Created by Steven Hertz on 1/1/25.
+    //
 
-import SwiftUI
-// MARK: - Detail View
+    import SwiftUI
+    // MARK: - Detail View
 struct DonorDetailView: View {
     let donor: Donor
     @State private var showingEditSheet = false
@@ -59,31 +59,32 @@ struct DonorDetailView: View {
             }
         }
         .sheet(isPresented: $showingEditSheet) {
-            DonorEditView(mode: .edit(donor))
+//            NavigationView {
+                DonorEditView(mode: .edit(donor))
+//            }
         }
     }
 }
-
-    // MARK: - Preview
-    #Preview {
-        // Create a sample donor with all fields populated
-        let sampleDonor = Donor(
-            uuid: "123",
-            salutation: "Mr.",
-            firstName: "John",
-            lastName: "Doe",
-            jewishName: "Yaakov",
-            address: "123 Main Street",
-            city: "New York",
-            state: "NY",
-            zip: "10001",
-            email: "john@example.com",
-            phone: "(555) 123-4567",
-            notes: "Regular donor"
-        )
-        
-        return NavigationView {
-            DonorDetailView(donor: sampleDonor)
-                .environmentObject(DonorObjectClass())
+        // MARK: - Preview
+        #Preview {
+            // Create a sample donor with all fields populated
+            let sampleDonor = Donor(
+                uuid: "123",
+                salutation: "Mr.",
+                firstName: "John",
+                lastName: "Doe",
+                jewishName: "Yaakov",
+                address: "123 Main Street",
+                city: "New York",
+                state: "NY",
+                zip: "10001",
+                email: "john@example.com",
+                phone: "(555) 123-4567",
+                notes: "Regular donor"
+            )
+            
+            return NavigationView {
+                DonorDetailView(donor: sampleDonor)
+                    .environmentObject(DonorObjectClass())
+            }
         }
-    }

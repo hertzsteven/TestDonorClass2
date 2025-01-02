@@ -8,7 +8,6 @@
     import Foundation
     import GRDB
 
-    @MainActor
     class DonorObjectClass: ObservableObject {
         // MARK: - Published Properties
         @Published var donors: [Donor] = []
@@ -26,13 +25,14 @@
         // MARK: - Data Loading
         func loadDonors() async {
             print("Starting to load donors")
-            guard loadingState == .notLoaded else { 
+            guard loadingState == .notLoaded else {
                 print("Skipping load - current state: \(loadingState)")
-                return 
+                return
             }
             
-            loadingState = .loading
+            await MainActor.run { loadingState = .loading }
             
+            try? await Task.sleep(for: .seconds(3))
             do {
                 let fetchedDonors = try await repository.getAll()
                 print("Fetched donors count: \(fetchedDonors.count)")
@@ -61,14 +61,18 @@
         
         func updateDonor(_ donor: Donor) async throws {
             try await repository.update(donor)
-            if let index = donors.firstIndex(where: { $0.id == donor.id }) {
-                donors[index] = donor
+            await MainActor.run {
+                if let index = donors.firstIndex(where: { $0.id == donor.id }) {
+                    donors[index] = donor
+                }
             }
         }
         
         func deleteDonor(_ donor: Donor) async throws {
             try await repository.delete(donor)
-            donors.removeAll { $0.id == donor.id }
+            await MainActor.run {
+                donors.removeAll { $0.id == donor.id }
+            }
         }
         
         // MARK: - Search Operations
@@ -90,6 +94,7 @@
     //    }
         
         // MARK: - Error Handling
+        @MainActor
         func clearError() {
             errorMessage = nil
         }
