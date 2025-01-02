@@ -96,9 +96,8 @@ class CampaignRepository: CampaignSpecificRepositoryProtocol {
     func findByName(_ searchText: String) async throws -> [Campaign] {
         do {
             let campaigns = try await dbPool.read { db in
-                try Campaign.filter(Column("first_name").like("%\(searchText)%") ||
-                                 Column("last_name").like("%\(searchText)%"))
-                .order(Column("last_name"), Column("first_name"))
+                try Campaign.filter(Column("name").like("%\(searchText)%") )
+                .order(Column("name"))
                 .fetchAll(db)
             }
             return campaigns

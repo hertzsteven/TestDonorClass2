@@ -108,7 +108,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord {
     }
     
     // MARK: - Initialization
-    init(id: Int? = nil,
+    init(// id: Int? = nil,
          uuid: String = UUID().uuidString,
          donorId: Int? = nil,
          campaignId: Int? = nil,
@@ -125,7 +125,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord {
          donationDate: Date = Date(),
          createdAt: Date = Date(),
          updatedAt: Date = Date()) {
-        self.id = id
+//        self.id = id
         self.uuid = uuid
         self.donorId = donorId
         self.campaignId = campaignId
