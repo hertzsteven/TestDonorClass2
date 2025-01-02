@@ -335,6 +335,33 @@ extension DatabaseManager {
             } else {
                 print("Donation table already exists")
             }
+            
+            let campaignTableExists = try db.tableExists("campaign")
+            if !campaignTableExists {
+                    // Create campaigns table
+                try db.create(table: "campaign") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("uuid", .text).notNull().unique()
+                    t.column("campaign_code", .text).notNull().unique()
+                    t.column("name", .text).notNull()
+                    t.column("description", .text)
+                    t.column("start_date", .date)
+                    t.column("end_date", .date)
+                    t.column("status", .text).notNull().defaults(to: "DRAFT")
+                    t.column("goal", .double)
+                    t.column("created_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                    t.column("updated_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                }
+                
+                    // Create campaign indexes
+                try db.create(index: "idx_campaign_code", on: "campaign", columns: ["campaign_code"])
+                try db.create(index: "idx_campaign_status", on: "campaign", columns: ["status"])
+                try db.create(index: "idx_campaign_dates", on: "campaign", columns: ["start_date", "end_date"])
+            } else {
+                print("Campaign table already exists")
+            }
+
+
         }
     }
 }
