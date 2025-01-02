@@ -49,11 +49,11 @@ protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Dono
         func getDonationsForDonor(donorId: Int) async throws -> [Donation]
 
     }
-//    protocol CampaignSpecificRepositoryProtocol: RepositoryProtocol where Model == Campaign {
+    protocol CampaignSpecificRepositoryProtocol: RepositoryProtocol where Model == Campaign {
 //    //    /// Find donors by a name or partial name match
 //    //    func findByName(_ searchText: String) async throws -> [Donor]
 //    //    /// A domain-specific method:
 //    //    /// e.g. total donation amount for a particular donor.
 //    //    func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
-//    }
+    }
 //
