@@ -33,33 +33,9 @@
 		46FD886E2D1AFB1E0070DA16 /* TestDonorClass2UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestDonorClass2UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		46FD88AE2D1C4D000070DA16 /* Exceptions for "TestDonorClass2" folder in "TestDonorClass2" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				RepositoryProtocol,
-			);
-			target = 46FD88532D1AFB1D0070DA16 /* TestDonorClass2 */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		46FD88AF2D1C4D000070DA16 /* Exceptions for "TestDonorClass2" folder in "Compile Sources" phase from "TestDonorClass2" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 46FD88502D1AFB1D0070DA16 /* Sources */;
-			membershipExceptions = (
-				RepositoryProtocol,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		46FD88562D1AFB1D0070DA16 /* TestDonorClass2 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				46FD88AE2D1C4D000070DA16 /* Exceptions for "TestDonorClass2" folder in "TestDonorClass2" target */,
-				46FD88AF2D1C4D000070DA16 /* Exceptions for "TestDonorClass2" folder in "Compile Sources" phase from "TestDonorClass2" target */,
-			);
 			path = TestDonorClass2;
 			sourceTree = "<group>";
 		};
