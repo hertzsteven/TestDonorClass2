@@ -24,12 +24,10 @@ struct DonorListView: View {
     var body: some View {
         Group {
             switch donorObject.loadingState {
+                
             case .notLoaded:
                 let _ = print("Not loaded yet")
                 LoadingView(message: "Initializing...")
-                    .task {
-                        await donorObject.loadDonors()
-                    }
                 
             case .loading:
                 let _ = print("loading")

@@ -17,6 +17,9 @@ struct DonorDemoApp: App {
             NavigationView {
                 DonorListView(donorObject: donorObject)
                     .environmentObject(donorObject)
+                    .task {
+                        await donorObject.loadDonors()
+                    }
             }
         }
     }
