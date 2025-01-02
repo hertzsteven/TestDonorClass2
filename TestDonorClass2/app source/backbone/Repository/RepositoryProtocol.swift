@@ -23,8 +23,8 @@ protocol RepositoryProtocol {
         //DeleteOne
     func deleteOne(_ id: Int) async throws
 }
-    /// A donor-specific repository protocol that extends `RepositoryProtocol`,
-    /// but restricts the `Model` to be `Donor`.
+
+
 protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Donor {
         /// Find donors by a name or partial name match
     func findByName(_ searchText: String) async throws -> [Donor]
@@ -32,14 +32,23 @@ protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Dono
         /// e.g. total donation amount for a particular donor.
         //        func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
 }
-//    protocol DonationSpecificRepositoryProtocol: RepositoryProtocol where Model == Donation {
-//    //    /// Find donors by a name or partial name match
-//    //    func findByName(_ searchText: String) async throws -> [Donor]
-//    //    /// A domain-specific method:
-//    //    /// e.g. total donation amount for a particular donor.
-//    //    func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
+
+    protocol DonationSpecificRepositoryProtocol: RepositoryProtocol where Model == Donation {
+    //    /// Find donors by a name or partial name match
+    //    func findByName(_ searchText: String) async throws -> [Donor]
+    //    /// A domain-specific method:
+    //    /// e.g. total donation amount for a particular donor.
+    //    func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
+        
 //        func getMaxId() async throws -> Int?
-//    }
+        
+        func getTotalDonationsAmount(forDonorId donorId: Int) async throws -> Double
+
+        func getDonationsForCampaign(campaignId: Int) async throws -> [Donation]
+
+        func getDonationsForDonor(donorId: Int) async throws -> [Donation]
+
+    }
 //    protocol CampaignSpecificRepositoryProtocol: RepositoryProtocol where Model == Campaign {
 //    //    /// Find donors by a name or partial name match
 //    //    func findByName(_ searchText: String) async throws -> [Donor]

@@ -15,7 +15,8 @@
         @Published var loadingState: LoadingState = .notLoaded
         
         // MARK: - Private Properties
-        private let repository: DonorRepository
+        private let repository: any DonorSpecificRepositoryProtocol
+
         
         // MARK: - Initialization
         init(repository: DonorRepository = DonorRepository()) {

@@ -8,7 +8,7 @@
 import Foundation
 import GRDB
 
-class DonationRepository: RepositoryProtocol {
+class DonationRepository: DonationSpecificRepositoryProtocol {
 
     
     typealias Model = Donation

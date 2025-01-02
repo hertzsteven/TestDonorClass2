@@ -11,10 +11,12 @@
     struct DonorDemoApp: App {
         // Replace direct initialization with @StateObject property wrapper
         @StateObject private var donorObject: DonorObjectClass
+        @StateObject private var donationObject: DonationObjectClass
         
         // Add initializer
         init() {
             _donorObject = StateObject(wrappedValue: DonorObjectClass())
+            _donationObject = StateObject(wrappedValue: DonationObjectClass())
         }
         
         var body: some Scene {
@@ -26,6 +28,7 @@
                         }
                 }
                 .environmentObject(donorObject)
+                .environmentObject(donationObject)
             }
         }
     }
