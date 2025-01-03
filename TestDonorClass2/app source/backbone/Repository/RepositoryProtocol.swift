@@ -56,4 +56,10 @@ protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Dono
 //    //    /// e.g. total donation amount for a particular donor.
 //    //    func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
     }
+
+protocol DonationIncentiveSpecificRepositoryProtocol: RepositoryProtocol where Model == DonationIncentive {
+    // Add any specific methods for DonationIncentive here if needed
+    func findByName(_ searchText: String) async throws -> [DonationIncentive]
+}
+
 //
