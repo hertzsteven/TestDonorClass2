@@ -48,12 +48,15 @@
                 }
             }
             .navigationTitle("Donors")
+            
             .searchable(text: $viewModel.searchText)
-            .onChange(of: viewModel.searchText) { _ in
+            
+            .onChange(of: viewModel.searchText, initial: false) { oldValue, newValue in
                 Task {
                     await viewModel.performSearch()
                 }
             }
+
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddDonor = true }) {

@@ -33,7 +33,15 @@ class DonorListViewModel: ObservableObject {
     func performSearch() async {
         isLoading = true
         do {
-            try await donorObject.searchDonors(searchText)
+            donorObject.loadingState = .notLoaded
+            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                print("Loading all donors in search...")
+                try await donorObject.loadDonors()
+            } else {
+                print("Loading donors matching search...")
+                try await donorObject.searchDonors(searchText)
+            }
+            donorObject.loadingState = .loaded
         } catch {
             // Handle error if needed
         }
