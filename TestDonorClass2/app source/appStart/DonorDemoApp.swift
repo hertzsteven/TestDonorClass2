@@ -12,6 +12,7 @@
         // Replace direct initialization with @StateObject property wrapper
         @StateObject private var donorObject: DonorObjectClass
         @StateObject private var donationObject: DonationObjectClass
+        @StateObject private var campaignObject = CampaignObjectClass()
         
         // Add initializer
         init() {
@@ -21,14 +22,30 @@
         
         var body: some Scene {
             WindowGroup {
-                NavigationView {
-                    DonorListView(donorObject: donorObject)
-                        .task {
-                            await donorObject.loadDonors()
-                        }
+                TabView {
+                    NavigationView {
+                        DonorListView(donorObject: donorObject)
+                            .task {
+                                await donorObject.loadDonors()
+                            }
+                    }
+                    .tabItem {
+                        Label("Donors", systemImage: "person.3")
+                    }
+                    
+                    NavigationView {
+                        CampaignListView(campaignObject: campaignObject)
+                            .task {
+                                await campaignObject.loadCampaigns()
+                            }
+                    }
+                    .tabItem {
+                        Label("Campaigns", systemImage: "flag")
+                    }
                 }
                 .environmentObject(donorObject)
                 .environmentObject(donationObject)
+                .environmentObject(campaignObject)
             }
         }
     }

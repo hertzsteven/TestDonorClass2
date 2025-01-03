@@ -10,6 +10,7 @@ import GRDB
 
 // MARK: - Donation Types
 enum CampaignStatus: String, Codable {
+    
     case draft = "DRAFT"
     case active = "ACTIVE"
     case completed = "COMPLETED"
