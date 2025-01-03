@@ -13,6 +13,7 @@
         @StateObject private var donorObject: DonorObjectClass
         @StateObject private var donationObject: DonationObjectClass
         @StateObject private var campaignObject = CampaignObjectClass()
+        @StateObject private var incentiveObject = DonationIncentiveObjectClass()
         
         // Add initializer
         init() {
@@ -34,6 +35,16 @@
                     }
                     
                     NavigationView {
+                        DonationListView()
+                            .task {
+                                await donationObject.loadDonations()
+                            }
+                    }
+                    .tabItem {
+                        Label("Donations", systemImage: "dollarsign.circle")
+                    }
+                    
+                    NavigationView {
                         CampaignListView(campaignObject: campaignObject)
                             .task {
                                 await campaignObject.loadCampaigns()
@@ -42,10 +53,21 @@
                     .tabItem {
                         Label("Campaigns", systemImage: "flag")
                     }
+                    
+                    NavigationView {
+                        DonationIncentiveListView(incentiveObject: incentiveObject)
+                            .task {
+                                await incentiveObject.loadIncentives()
+                            }
+                    }
+                    .tabItem {
+                        Label("Incentives", systemImage: "gift")
+                    }
                 }
                 .environmentObject(donorObject)
                 .environmentObject(donationObject)
                 .environmentObject(campaignObject)
+                .environmentObject(incentiveObject)
             }
         }
     }

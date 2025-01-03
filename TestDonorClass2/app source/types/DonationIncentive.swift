@@ -28,7 +28,7 @@ enum DonationIncentiveStatus: String, Codable {
 }
 
 // MARK: - DonationIncentive Model
-struct DonationIncentive: Identifiable, Codable, FetchableRecord, PersistableRecord {
+struct DonationIncentive: Identifiable, Codable, FetchableRecord, PersistableRecord, Hashable {
     var id: Int?
     var uuid: String
     var name: String

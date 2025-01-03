@@ -19,9 +19,9 @@
         
         // MARK: - Initialization
         init(repository: DonationRepository = DonationRepository()) {
-            self.repository = repository
+                self.repository = repository
         }
-        
+            
         // MARK: - Data Loading
         func loadDonations() async {
             print("Starting to load donations")
@@ -29,9 +29,9 @@
                 print("Skipping load - current state: \(loadingState)")
                 return
             }
-            
+                
             await MainActor.run { loadingState = .loading }
-            
+                
             do {
                 let fetchedDonations = try await repository.getAll()
                 print("Fetched donations count: \(fetchedDonations.count)")
@@ -48,16 +48,21 @@
                 }
             }
         }
-        
+            
         // MARK: - CRUD Operations
         func addDonation(_ donation: Donation) async throws {
             try await repository.insert(donation)
-            let fetchedDonations = try await repository.getAll()
             await MainActor.run {
-                self.donations = fetchedDonations
+                self.donations.append(donation)
             }
+            // Notify any listeners that totals need to be updated
+            NotificationCenter.default.post(
+                name: NSNotification.Name("DonationAdded"),
+                object: nil,
+                userInfo: ["donorId": donation.donorId]
+            )
         }
-        
+            
         func updateDonation(_ donation: Donation) async throws {
             try await repository.update(donation)
             await MainActor.run {
@@ -66,14 +71,14 @@
                 }
             }
         }
-        
+            
         func deleteDonation(_ donation: Donation) async throws {
             try await repository.delete(donation)
             await MainActor.run {
                 donations.removeAll { $0.id == donation.id }
             }
         }
-        
+            
         // MARK: - Specialized Queries
         func loadDonationsForDonor(donorId: Int) async throws {
             let donorDonations = try await repository.getDonationsForDonor(donorId: donorId)
@@ -81,20 +86,20 @@
                 self.donations = donorDonations
             }
         }
-        
+            
         func loadDonationsForCampaign(campaignId: Int) async throws {
             let campaignDonations = try await repository.getDonationsForCampaign(campaignId: campaignId)
             await MainActor.run {
                 self.donations = campaignDonations
             }
         }
-        
+            
         // MARK: - Error Handling
         @MainActor
         func clearError() {
             errorMessage = nil
         }
-        
+            
         // Add total donations calculation method
         func getTotalDonationsAmount(forDonorId donorId: Int) async throws -> Double {
             let totalAmount = try await repository.getTotalDonationsAmount(forDonorId: donorId)

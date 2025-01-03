@@ -76,6 +76,11 @@
             }
         }
         
+        func getDonor(_ id: Int) async throws -> Donor? {
+            let donor = try await repository.getOne(id)
+            return donor
+        }
+        
         // MARK: - Search Operations
         func searchDonors(_ searchText: String) async throws {
             if searchText.isEmpty {

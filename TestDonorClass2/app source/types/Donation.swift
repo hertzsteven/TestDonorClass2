@@ -53,6 +53,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord {
     let uuid: String
     var donorId: Int?
     var campaignId: Int?
+    var donationIncentiveId: Int?  // Add this field
     var amount: Double
     var donationType: DonationType
     var paymentStatus: PaymentStatus
@@ -73,6 +74,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord {
         static let uuid = Column("uuid")
         static let donorId = Column("donor_id")
         static let campaignId = Column("campaign_id")
+        static let donationIncentiveId = Column("donation_incentive_id")  // Add this column
         static let amount = Column("amount")
         static let donationType = Column("donation_type")
         static let paymentStatus = Column("payment_status")
@@ -93,6 +95,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord {
         case id, uuid
         case donorId = "donor_id"
         case campaignId = "campaign_id"
+        case donationIncentiveId = "donation_incentive_id"  // Add this case
         case amount
         case donationType = "donation_type"
         case paymentStatus = "payment_status"
@@ -113,6 +116,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord {
          uuid: String = UUID().uuidString,
          donorId: Int? = nil,
          campaignId: Int? = nil,
+         donationIncentiveId: Int? = nil,  // Add this parameter
          amount: Double,
          donationType: DonationType,
          paymentStatus: PaymentStatus = .pending,
@@ -130,6 +134,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord {
         self.uuid = uuid
         self.donorId = donorId
         self.campaignId = campaignId
+        self.donationIncentiveId = donationIncentiveId  // Add this assignment
         self.amount = amount
         self.donationType = donationType
         self.paymentStatus = paymentStatus

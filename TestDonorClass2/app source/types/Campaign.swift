@@ -26,7 +26,7 @@
     }
 
     // MARK: - Campaign Model
-    struct Campaign: Identifiable, Codable, FetchableRecord, PersistableRecord {
+    struct Campaign: Identifiable, Codable, FetchableRecord, PersistableRecord, Hashable {
         var id: Int?
         var uuid: String
         var campaignCode: String
