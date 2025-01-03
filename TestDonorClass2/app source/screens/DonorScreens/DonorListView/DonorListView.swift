@@ -12,6 +12,7 @@
         @EnvironmentObject var donorObject: DonorObjectClass
         @StateObject private var viewModel: DonorListViewModel
         @State private var showingAddDonor = false
+        @State private var showingDefaults = false
         
     //    init(donorObject: DonorObjectClass) {
     //        _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject))
@@ -63,11 +64,17 @@
                         Label("Add Donor", systemImage: "plus")
                     }
                 }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { showingDefaults = true }) {
+                        Label("Defaults", systemImage: "gear")
+                    }
+                }
             }
             .sheet(isPresented: $showingAddDonor) {
-//            NavigationView {
                     DonorEditView(mode: .add)
-//            }
+            }
+            .sheet(isPresented: $showingDefaults) {
+                    DefaultDonationSettingsView()
             }
         }
         

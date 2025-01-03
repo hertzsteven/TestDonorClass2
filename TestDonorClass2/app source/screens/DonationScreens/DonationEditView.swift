@@ -45,6 +45,9 @@
         @EnvironmentObject var donationObject: DonationObjectClass
         @EnvironmentObject var campaignObject: CampaignObjectClass
         @EnvironmentObject var incentiveObject: DonationIncentiveObjectClass
+            // Add defaultSettings property
+            @State private var defaultSettings: DefaultDonationSettings?
+
 
 
             
@@ -118,11 +121,42 @@
                     Task {
                         await campaignObject.loadCampaigns()
                         await incentiveObject.loadIncentives()
+                        
+                            // Load and apply default settings
+                            await loadAndApplyDefaultSettings()
+
                     }
                 }
 
             }
-            
+            // Add function to load and apply default settings
+            private func loadAndApplyDefaultSettings() async {
+                // TODO: Load default settings from your repository
+                // For now, we'll create a sample default settings
+                let settings = DefaultDonationSettings(
+                    amount: 100,
+                    donationType: .creditCard,
+                    requestEmailReceipt: true,
+                    requestPrintedReceipt: false
+                )
+                
+                await MainActor.run {
+                    // Apply the settings to our form
+                    self.amount = String(settings.amount ?? 0)
+                    self.donationType = settings.donationType ?? .creditCard
+                    self.requestEmailReceipt = settings.requestEmailReceipt
+                    self.requestPrintedReceipt = settings.requestPrintedReceipt
+                    if let campaignId = settings.campaignId {
+                        self.selectedCampaign = campaignObject.campaigns.first(where: { $0.id == campaignId })
+                    }
+                    if let incentiveId = settings.donationIncentiveId {
+                        self.selectedIncentive = incentiveObject.incentives.first(where: { $0.id == incentiveId })
+                    }
+                    self.notes = settings.notes ?? ""
+                    self.isAnonymous = settings.isAnonymous
+                }
+            }
+        
             private func saveDonation() {
                 guard let amountValue = Double(amount) else {
                     alertMessage = "Please enter a valid amount"
