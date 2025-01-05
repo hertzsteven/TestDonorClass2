@@ -14,6 +14,8 @@
         @StateObject private var donationObject: DonationObjectClass
         @StateObject private var campaignObject = CampaignObjectClass()
         @StateObject private var incentiveObject = DonationIncentiveObjectClass()
+        @StateObject private var defaultDonationSettingsViewModel = DefaultDonationSettingsViewModel()
+
         
         // Add initializer
         init() {
@@ -25,7 +27,7 @@
             WindowGroup {
                 TabView {
                     NavigationView {
-                        DonorListView(donorObject: donorObject)
+                        DonorListView(donorObject: donorObject, maintenanceMode: false)
                             .task {
                                 await donorObject.loadDonors()
                             }
@@ -63,11 +65,19 @@
                     .tabItem {
                         Label("Incentives", systemImage: "gift")
                     }
+                    NavigationView {
+                        MaintenanceView(campaignObject: campaignObject, incentiveObject: incentiveObject, donorObject: donorObject, donationObject: donationObject)
+                   }
+                    .tabItem {
+                        Label("Maintenance", systemImage: "gift")
+                    }
+
                 }
                 .environmentObject(donorObject)
                 .environmentObject(donationObject)
                 .environmentObject(campaignObject)
                 .environmentObject(incentiveObject)
+                .environmentObject(defaultDonationSettingsViewModel)
             }
         }
     }

@@ -17,8 +17,8 @@
     //    init(donorObject: DonorObjectClass) {
     //        _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject))
     //    }
-        init(donorObject: DonorObjectClass) {
-            _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject))
+        init(donorObject: DonorObjectClass, maintenanceMode: Bool) {
+            _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject, maintenanceMode: maintenanceMode))
         }
 
         var body: some View {
@@ -89,7 +89,7 @@
                 } else {
                     ForEach(donorObject.donors) { donor in
                         NavigationLink(destination: DonorDetailView(donor: donor)) {
-                            DonorRowView(donor: donor)
+                            DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
                         }
                     }
                     .onDelete { indexSet in
@@ -185,127 +185,127 @@
 
     #Preview {
         NavigationView {
-            DonorListView(donorObject: DonorObjectClass())
+            DonorListView(donorObject: DonorObjectClass(), maintenanceMode: false)
                 .environmentObject(DonorObjectClass())
         }
     }
 
-    struct DonorViews_Previews: PreviewProvider {
-        // Sample data
-        static let sampleDonor = Donor(
-    //        id: 1,
-            firstName: "John",
-            lastName: "Doe",
-            jewishName: "Yaakov",
-            address: "123 Main St",
-            city: "New York",
-            state: "NY",
-            zip: "10001",
-            email: "john@example.com",
-            phone: "555-555-5555",
-            notes: "Important donor"
-        )
-        
-        // Sample donor object with different states
-        static var loadedDonorObject: DonorObjectClass = {
-            let object = DonorObjectClass()
-            object.donors = [sampleDonor]
-            object.loadingState = .loaded
-            return object
-        }()
-        
-        static var emptyDonorObject: DonorObjectClass = {
-            let object = DonorObjectClass()
-            object.donors = []
-            object.loadingState = .loaded
-            return object
-        }()
-        
-        static var loadingDonorObject: DonorObjectClass = {
-            let object = DonorObjectClass()
-            object.loadingState = .loading
-            return object
-        }()
-        
-        static var errorDonorObject: DonorObjectClass = {
-            let object = DonorObjectClass()
-            object.loadingState = .error("Failed to load donors")
-            return object
-        }()
-        
-        static var previews: some View {
-            Group {
-                // Main List View - Different States
-                NavigationView {
-                    DonorListView(donorObject: loadedDonorObject)
-                        .environmentObject(loadedDonorObject)
-                }
-                .previewDisplayName("List View - Loaded")
-                
-                NavigationView {
-                    DonorListView(donorObject: emptyDonorObject)
-                        .environmentObject(emptyDonorObject)
-                }
-                .previewDisplayName("List View - Empty")
-                
-                NavigationView {
-                    DonorListView(donorObject: loadingDonorObject)
-                        .environmentObject(loadingDonorObject)
-                }
-                .previewDisplayName("List View - Loading")
-                
-                NavigationView {
-                    DonorListView(donorObject: errorDonorObject)
-                        .environmentObject(errorDonorObject)
-                }
-                .previewDisplayName("List View - Error")
-                
-                // Detail View
-                NavigationView {
-                    DonorDetailView(donor: sampleDonor)
-                        .environmentObject(loadedDonorObject)
-                }
-                .previewDisplayName("Detail View")
-                
-                // Row View
-                DonorRowView(donor: sampleDonor)
-                    .environmentObject(loadedDonorObject)
-                    .previewLayout(.sizeThatFits)
-                    .padding()
-                    .previewDisplayName("Row View")
-                
-                // Edit Views
-                NavigationView {
-                    DonorEditView(mode: .add)
-                        .environmentObject(loadedDonorObject)
-                }
-                .previewDisplayName("Add Donor View")
-                
-                NavigationView {
-                    DonorEditView(mode: .edit(sampleDonor))
-                        .environmentObject(loadedDonorObject)
-                }
-                .previewDisplayName("Edit Donor View")
-                
-                // Support Views
-                LoadingView(message: "Loading donors...")
-                    .previewLayout(.sizeThatFits)
-                    .padding()
-                    .previewDisplayName("Loading View")
-                
-                ErrorView(message: "Failed to load donors") {}
-                    .previewLayout(.sizeThatFits)
-                    .padding()
-                    .previewDisplayName("Error View")
-                
-                EmptyStateView(
-                    message: "No donors found",
-                    action: {},
-                    actionTitle: "Add Donor"
-                )
-                    .previewLayout(.sizeThatFits)
-                    .padding()
-                    .previewDisplayName("Empty State View")
-            }
-        }
-    }
+//    struct DonorViews_Previews: PreviewProvider {
+//        // Sample data
+//        static let sampleDonor = Donor(
+//    //        id: 1,
+//            firstName: "John",
+//            lastName: "Doe",
+//            jewishName: "Yaakov",
+//            address: "123 Main St",
+//            city: "New York",
+//            state: "NY",
+//            zip: "10001",
+//            email: "john@example.com",
+//            phone: "555-555-5555",
+//            notes: "Important donor"
+//        )
+//        
+//        // Sample donor object with different states
+//        static var loadedDonorObject: DonorObjectClass = {
+//            let object = DonorObjectClass()
+//            object.donors = [sampleDonor]
+//            object.loadingState = .loaded
+//            return object
+//        }()
+//        
+//        static var emptyDonorObject: DonorObjectClass = {
+//            let object = DonorObjectClass()
+//            object.donors = []
+//            object.loadingState = .loaded
+//            return object
+//        }()
+//        
+//        static var loadingDonorObject: DonorObjectClass = {
+//            let object = DonorObjectClass()
+//            object.loadingState = .loading
+//            return object
+//        }()
+//        
+//        static var errorDonorObject: DonorObjectClass = {
+//            let object = DonorObjectClass()
+//            object.loadingState = .error("Failed to load donors")
+//            return object
+//        }()
+//        
+////        static var previews: some View {
+////            Group {
+////                // Main List View - Different States
+////                NavigationView {
+////                    DonorListView(donorObject: loadedDonorObject, maintenanceMode: false)
+////                        .environmentObject(loadedDonorObject)
+////                }
+////                .previewDisplayName("List View - Loaded")
+////                
+////                NavigationView {
+////                    DonorListView(donorObject: emptyDonorObject,  maintenanceMode: false)
+////                        .environmentObject(emptyDonorObject)
+////                }
+////                .previewDisplayName("List View - Empty")
+////                
+////                NavigationView {
+////                    DonorListView(donorObject: loadingDonorObject, maintenanceMode: false)
+////                        .environmentObject(loadingDonorObject)
+////                }
+////                .previewDisplayName("List View - Loading")
+////                
+////                NavigationView {
+////                    DonorListView(donorObject: errorDonorObject, maintenanceMode: false)
+////                        .environmentObject(errorDonorObject)
+////                }
+////                .previewDisplayName("List View - Error")
+////                
+////                // Detail View
+////                NavigationView {
+////                    DonorDetailView(donor: sampleDonor)
+////                        .environmentObject(loadedDonorObject)
+////                }
+////                .previewDisplayName("Detail View")
+////                
+////                // Row View
+////                DonorRowView(donor: sampleDonor)
+////                    .environmentObject(loadedDonorObject)
+////                    .previewLayout(.sizeThatFits)
+////                    .padding()
+////                    .previewDisplayName("Row View")
+////                
+////                // Edit Views
+////                NavigationView {
+////                    DonorEditView(mode: .add)
+////                        .environmentObject(loadedDonorObject)
+////                }
+////                .previewDisplayName("Add Donor View")
+////                
+////                NavigationView {
+////                    DonorEditView(mode: .edit(sampleDonor))
+////                        .environmentObject(loadedDonorObject)
+////                }
+////                .previewDisplayName("Edit Donor View")
+////                
+////                // Support Views
+////                LoadingView(message: "Loading donors...")
+////                    .previewLayout(.sizeThatFits)
+////                    .padding()
+////                    .previewDisplayName("Loading View")
+////                
+////                ErrorView(message: "Failed to load donors") {}
+////                    .previewLayout(.sizeThatFits)
+////                    .padding()
+////                    .previewDisplayName("Error View")
+////                
+////                EmptyStateView(
+////                    message: "No donors found",
+////                    action: {},
+////                    actionTitle: "Add Donor"
+////                )
+////                    .previewLayout(.sizeThatFits)
+////                    .padding()
+////                    .previewDisplayName("Empty State View")
+////            }
+////        }
+//    }

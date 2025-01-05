@@ -45,6 +45,8 @@
         @EnvironmentObject var donationObject: DonationObjectClass
         @EnvironmentObject var campaignObject: CampaignObjectClass
         @EnvironmentObject var incentiveObject: DonationIncentiveObjectClass
+        @EnvironmentObject var defaultDonationSettingsViewModel: DefaultDonationSettingsViewModel
+
             // Add defaultSettings property
             @State private var defaultSettings: DefaultDonationSettings?
 
@@ -134,8 +136,8 @@
                 // TODO: Load default settings from your repository
                 // For now, we'll create a sample default settings
                 let settings = DefaultDonationSettings(
-                    amount: 100,
-                    donationType: .creditCard,
+                    amount: defaultDonationSettingsViewModel.settings.amount,
+                    donationType: defaultDonationSettingsViewModel.settings.donationType,
                     requestEmailReceipt: true,
                     requestPrintedReceipt: false
                 )

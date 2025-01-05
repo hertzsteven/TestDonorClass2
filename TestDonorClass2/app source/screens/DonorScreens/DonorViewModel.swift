@@ -15,13 +15,15 @@ class DonorListViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var selectedDonor: Donor?
     @Published var isLoading: Bool = false
+    @Published var maintenanceMode: Bool
     
     // MARK: - References
     private let donorObject: DonorObjectClass
     
     // MARK: - Initialization
-    init(donorObject: DonorObjectClass) {
+    init(donorObject: DonorObjectClass, maintenanceMode: Bool) {
         self.donorObject = donorObject
+        self.maintenanceMode = maintenanceMode
     }
     
     // MARK: - View Operations

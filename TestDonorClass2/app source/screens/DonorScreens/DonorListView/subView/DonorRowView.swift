@@ -19,6 +19,7 @@
                 let donor: Donor
                 @State private var showingDonationSheet = false
                 @State private var totalDonations: Double = 0.0
+                var maintenanceMode: Bool
                 @EnvironmentObject var donationObject: DonationObjectClass
                 
                 var body: some View {
@@ -34,30 +35,36 @@
                                 }
                             }
                             Spacer()
-                            Button(action: {
-                                showingDonationSheet = true
-                            }) {
-                                Image(systemName: "dollarsign.circle")
-                                    .foregroundColor(.blue)
-                                    .imageScale(.large)
+                            if !maintenanceMode {
+                                Button(action: {
+                                    showingDonationSheet = true
+                                }) {
+                                    Image(systemName: "dollarsign.circle")
+                                        .foregroundColor(.blue)
+                                        .imageScale(.large)
+                                }
+                                .buttonStyle(BorderlessButtonStyle())
                             }
-                            .buttonStyle(BorderlessButtonStyle())
+
                         }
-                        
-                        if totalDonations > 0 {
-                            Text("Total Donations: $\(String(format: "%.2f", totalDonations))")
-                                .font(.caption)
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    .task {
-                        await updateTotalDonations()
-                    }
-                    .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DonationAdded"))) { notification in
-                        if let donorId = notification.userInfo?["donorId"] as? Int,
-                           donorId == donor.id {
-                            Task {
+                        if !maintenanceMode {
+                            Group {
+                                if totalDonations > 0 {
+                                    Text("Total Donations: $\(String(format: "%.2f", totalDonations))")
+                                        .font(.caption)
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            .task {
                                 await updateTotalDonations()
+                            }
+                            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DonationAdded"))) { notification in
+                                if let donorId = notification.userInfo?["donorId"] as? Int,
+                                   donorId == donor.id {
+                                    Task {
+                                        await updateTotalDonations()
+                                    }
+                                }
                             }
                         }
                     }
@@ -84,7 +91,7 @@
                     firstName: "John",
                     lastName: "Doe",
                     email: "john@example.com"
-                ))
+                ), maintenanceMode: false)
                 .environmentObject(DonationObjectClass())
                 .padding()
             }

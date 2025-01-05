@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DefaultDonationSettingsView: View {
-    @StateObject private var viewModel = DefaultDonationSettingsViewModel()
+    @EnvironmentObject var viewModel: DefaultDonationSettingsViewModel
     @EnvironmentObject var campaignObject: CampaignObjectClass
     @EnvironmentObject var incentiveObject: DonationIncentiveObjectClass
     @Environment(\.dismiss) var dismiss
