@@ -56,11 +56,13 @@
                 self.donations.append(donation)
             }
             // Notify any listeners that totals need to be updated
-            NotificationCenter.default.post(
-                name: NSNotification.Name("DonationAdded"),
-                object: nil,
-                userInfo: ["donorId": donation.donorId]
-            )
+            await MainActor.run {
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("DonationAdded"),
+                    object: nil,
+                    userInfo: ["donorId": donation.donorId]
+                )
+            }
         }
             
         func updateDonation(_ donation: Donation) async throws {
