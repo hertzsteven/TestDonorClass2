@@ -303,6 +303,7 @@
                         t.column("uuid", .text).notNull().unique()
                         t.column("donor_id", .integer).references("donor", onDelete: .cascade)
                         t.column("campaign_id", .integer)
+                        t.column("donation_incentive_id", .integer)
                         t.column("amount", .double).notNull()
                         t.column("donation_type", .text).notNull()
                         t.column("payment_status", .text).notNull()

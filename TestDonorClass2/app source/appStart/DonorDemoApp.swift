@@ -25,54 +25,7 @@
         
         var body: some Scene {
             WindowGroup {
-                TabView {
-                    NavigationView {
-                        DonorListView(donorObject: donorObject, maintenanceMode: false)
-                            .task {
-                                await donorObject.loadDonors()
-                            }
-                    }
-                    .tabItem {
-                        Label("Donors", systemImage: "person.3")
-                    }
-                    
-                    NavigationView {
-                        DonationListView()
-                            .task {
-                                await donationObject.loadDonations()
-                            }
-                    }
-                    .tabItem {
-                        Label("Donations", systemImage: "dollarsign.circle")
-                    }
-                    
-                    NavigationView {
-                        CampaignListView(campaignObject: campaignObject)
-                            .task {
-                                await campaignObject.loadCampaigns()
-                            }
-                    }
-                    .tabItem {
-                        Label("Campaigns", systemImage: "flag")
-                    }
-                    
-                    NavigationView {
-                        DonationIncentiveListView(incentiveObject: incentiveObject)
-                            .task {
-                                await incentiveObject.loadIncentives()
-                            }
-                    }
-                    .tabItem {
-                        Label("Incentives", systemImage: "gift")
-                    }
-                    NavigationView {
-                        MaintenanceView(campaignObject: campaignObject, incentiveObject: incentiveObject, donorObject: donorObject, donationObject: donationObject)
-                   }
-                    .tabItem {
-                        Label("Maintenance", systemImage: "gift")
-                    }
-
-                }
+                MasterTabView()
                 .environmentObject(donorObject)
                 .environmentObject(donationObject)
                 .environmentObject(campaignObject)

@@ -49,7 +49,7 @@
                         }
                         if !maintenanceMode {
                             Group {
-                                if totalDonations > 0 {
+                                if totalDonations > -1 {
                                     Text("Total Donations: $\(String(format: "%.2f", totalDonations))")
                                         .font(.caption)
                                         .foregroundColor(.blue)
