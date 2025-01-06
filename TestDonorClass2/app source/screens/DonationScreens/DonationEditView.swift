@@ -6,7 +6,7 @@
     //
 
     import SwiftUI
-import MessageUI
+    import MessageUI
 
     private struct CampaignPickerView: View {
         @EnvironmentObject var campaignObject: CampaignObjectClass
@@ -129,16 +129,26 @@ import MessageUI
             } message: {
                 Text(alertMessage)
             }
-            
             .sheet(isPresented: $isShowingMailView) {
-                if let receipt = currentReceipt {
-                    MailView(receipt: receipt,
-                             emailRecipient: donor.email ?? "",
-                             onCompletion: {
+                MailView(
+                    receipt: Receipt(
+                        date: Date(),
+                        total: Double(amount) ?? 0,
+                        items: [
+                            ReceiptItem(
+                                name: selectedCampaign?.name ?? "General Donation",
+                                price: Double(amount) ?? 0
+                            )
+                        ],
+                        donorName: "\(donor.firstName) \(donor.lastName)",
+                        donationType: donationType.rawValue
+                    ),
+                    emailRecipient: donor.email ?? "",
+                    onCompletion: {
                         isShowingMailView = false
                         presentationMode.wrappedValue.dismiss()
-                    })
-                }
+                    }
+                )
             }
             
             .onAppear {
@@ -182,22 +192,6 @@ import MessageUI
             }
         }
         
-        // Add function to create receipt
-        private func createReceipt(donation: Donation) -> Receipt {
-            let items = [
-                ReceiptItem(name: selectedCampaign?.name ?? "General Donation",
-                           price: donation.amount)
-            ]
-            
-            return Receipt(
-                date: donation.donationDate,
-                total: donation.amount,
-                items: items,
-                donorName: "\(donor.firstName) \(donor.lastName)",
-                donationType: donation.donationType.rawValue
-            )
-        }
-        
         private func saveDonation() {
             guard let amountValue = Double(amount) else {
                 alertTitle = "Error"
@@ -221,14 +215,20 @@ import MessageUI
                 donationDate: Date()
             )
             
-                // Add donation using DonationObjectClass (we'll create this next)
             Task {
                 do {
                     try await donationObject.addDonation(donation)
+                    
                     await MainActor.run {
-                        if requestEmailReceipt && MFMailComposeViewController.canSendMail() {
-                            currentReceipt = createReceipt(donation: donation)
-                            isShowingMailView = true
+                        if requestEmailReceipt {
+                            if MFMailComposeViewController.canSendMail() {
+                                isShowingMailView = true
+                            } else {
+                                alertTitle = "Email Not Available"
+                                alertMessage = "Email is not set up on this device. The donation was saved successfully."
+                                isError = true
+                                showingAlert = true
+                            }
                         } else {
                             alertTitle = "Success"
                             alertMessage = "Donation of $\(String(format: "%.2f", amountValue)) successfully saved!"
@@ -248,15 +248,14 @@ import MessageUI
         }
     }
 
-
-            #Preview {
-                NavigationView {
-                    DonationEditView(donor: Donor(
-                        firstName: "John",
-                        lastName: "Doe"
-                    ))
-                    .environmentObject(DonorObjectClass())
-                    .environmentObject(CampaignObjectClass())
-                    .environmentObject(DonationIncentiveObjectClass())
-                }
-            }
+    #Preview {
+        NavigationView {
+            DonationEditView(donor: Donor(
+                firstName: "John",
+                lastName: "Doe"
+            ))
+            .environmentObject(DonorObjectClass())
+            .environmentObject(CampaignObjectClass())
+            .environmentObject(DonationIncentiveObjectClass())
+        }
+    }
