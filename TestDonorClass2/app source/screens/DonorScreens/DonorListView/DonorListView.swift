@@ -26,13 +26,20 @@
         }
 
         var body: some View {
-            VStack {
-//                if !donorObject.donors.isEmpty {
-//                    Text("Select a Donor")
-//                        .font(.headline)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                        .padding([.leading,.top])
-//                }
+            VStack(spacing: 0) {
+                // Search mode picker at the top
+                if donorObject.loadingState == .loaded {
+                    Picker("Search Mode", selection: $searchMode) {
+                        ForEach(SearchMode.allCases, id: \.self) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+                
+                // Main content
                 Group {
                     switch donorObject.loadingState {
                         
@@ -59,54 +66,49 @@
                         }
                     }
                 }
-                .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
-                
-                .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
-                .safeAreaInset(edge: .top) {
-                    if donorObject.loadingState == .loaded {
-                        Picker("Search Mode", selection: $searchMode) {
-                            ForEach(SearchMode.allCases, id: \.self) { mode in
-                                Text(mode.rawValue).tag(mode)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .padding(.horizontal)
+            }
+            .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
+            .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
+            .onChange(of: viewModel.searchText) { oldValue, newValue in
+                Task {
+                    try await viewModel.performSearch(mode: searchMode, oldValue: oldValue, newValue: newValue)
+                }
+            }
+            .onChange(of: searchMode) { oldValue, newValue in
+                viewModel.searchText = "" // Clear search when changing modes
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button(action: { showingAddDonor = true }) {
+                        Label("Add Donor", systemImage: "plus")
                     }
-                }
-                
-                .onChange(of: viewModel.searchText, initial: false) { oldValue, newValue in
-                    Task {
-                        try await viewModel.performSearch(mode: searchMode, oldValue: oldValue, newValue: newValue)
-                    }
-                }
-                .onChange(of: searchMode) { oldValue, newValue in
-                    viewModel.searchText = "" // Clear search when changing modes
-                }
-                
-                .toolbar {
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        Button(action: { showingAddDonor = true }) {
-                            Label("Add Donor", systemImage: "plus")
-                        }
-                        
-                        if !viewModel.maintenanceMode {
-                            Button(action: { showingDefaults = true }) {
-                                Label("Defaults", systemImage: "gear")
-                            }
+                    
+                    if !viewModel.maintenanceMode {
+                        Button(action: { showingDefaults = true }) {
+                            Label("Defaults", systemImage: "gear")
                         }
                     }
                 }
-                .sheet(isPresented: $showingAddDonor) {
-                    DonorEditView(mode: .add)
-                }
-                .sheet(isPresented: $showingDefaults) {
-                    DefaultDonationSettingsView()
-                }
+            }
+            .sheet(isPresented: $showingAddDonor) {
+                DonorEditView(mode: .add)
+            }
+            .sheet(isPresented: $showingDefaults) {
+                DefaultDonationSettingsView()
             }
         }
         
         private var donorList: some View {
-
+            VStack(alignment: .leading, spacing: 0) {
+                // Add Select a Donor text as part of the list
+                if !donorObject.donors.isEmpty {
+                    Text("Select a Donor")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .padding(.horizontal)
+                        .padding(.vertical, 10)
+                }
+                
                 List {
                     if donorObject.donors.isEmpty {
                         EmptyStateView(
@@ -138,14 +140,64 @@
                         } : nil)
                     }
                 }
+                .listStyle(PlainListStyle())
+            }
         }
     }
 
+    //
+    //  DonorViews.swift
+    //  TestDonorClass2
+    //
+    //  Created by Steven Hertz on 12/24/24.
+    //
 
+    import SwiftUI
 
+    #Preview {
+        // Create a donor object with mock data
+        let donorObject: DonorObjectClass = {
+            let object = DonorObjectClass()
+            object.donors = [
+                Donor(
+                    firstName: "John",
+                    lastName: "Doe",
+                    jewishName: "Yaakov",
+                    address: "123 Main St",
+                    city: "New York",
+                    state: "NY",
+                    zip: "10001",
+                    email: "john@example.com",
+                    phone: "555-555-5555",
+                    notes: "Important donor"
+                ),
+                Donor(
+                    firstName: "Sarah",
+                    lastName: "Cohen",
+                    jewishName: "Sara",
+                    address: "456 Broadway",
+                    city: "Brooklyn",
+                    state: "NY",
+                    zip: "11213",
+                    email: "sarah@example.com",
+                    phone: "555-555-5556",
+                    notes: "Regular contributor"
+                )
+            ]
+            object.loadingState = .loaded
+            return object
+        }()
+        
+        // Create donation object
+        let donationObject = DonationObjectClass()
+        
+        return NavigationView {
+            DonorListView(donorObject: donorObject, maintenanceMode: false)
+                .environmentObject(donorObject)
+                .environmentObject(donationObject)
+        }
+    }
 
-
-    // MARK: - Support Views
     struct LoadingView: View {
         let message: String
         
@@ -208,58 +260,5 @@
                 }
             }
             .padding()
-        }
-    }
-
-    //
-    //  DonorViews.swift
-    //  TestDonorClass2
-    //
-    //  Created by Steven Hertz on 12/24/24.
-    //
-
-    import SwiftUI
-
-    #Preview {
-        // Create a donor object with mock data
-        let donorObject: DonorObjectClass = {
-            let object = DonorObjectClass()
-            object.donors = [
-                Donor(
-                    firstName: "John",
-                    lastName: "Doe",
-                    jewishName: "Yaakov",
-                    address: "123 Main St",
-                    city: "New York",
-                    state: "NY",
-                    zip: "10001",
-                    email: "john@example.com",
-                    phone: "555-555-5555",
-                    notes: "Important donor"
-                ),
-                Donor(
-                    firstName: "Sarah",
-                    lastName: "Cohen",
-                    jewishName: "Sara",
-                    address: "456 Broadway",
-                    city: "Brooklyn",
-                    state: "NY",
-                    zip: "11213",
-                    email: "sarah@example.com",
-                    phone: "555-555-5556",
-                    notes: "Regular contributor"
-                )
-            ]
-            object.loadingState = .loaded
-            return object
-        }()
-        
-        // Create donation object
-        let donationObject = DonationObjectClass()
-        
-        return NavigationView {
-            DonorListView(donorObject: donorObject, maintenanceMode: false)
-                .environmentObject(donorObject)
-                .environmentObject(donationObject)
         }
     }
