@@ -49,4 +49,24 @@ class DonorListViewModel: ObservableObject {
         }
         isLoading = false
     }
+    
+        // Update performSearch method
+    func performSearch(mode: DonorListView.SearchMode, oldValue oldValue: String, newValue newSearchText: String ) async throws {
+            guard !searchText.isEmpty else {
+                donorObject.loadingState = .notLoaded
+                await donorObject.loadDonors()
+                donorObject.loadingState = .loaded
+                return
+            }
+            
+            switch mode {
+            case .name:
+                try await donorObject.searchDonors(searchText)
+            case .id:
+                if let id = Int(searchText) {
+                  try  await donorObject.searchDonorById(id)
+                }
+            }
+        }
+
 }

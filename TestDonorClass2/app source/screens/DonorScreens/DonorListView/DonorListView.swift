@@ -14,104 +14,130 @@
         @StateObject private var viewModel: DonorListViewModel
         @State private var showingAddDonor = false
         @State private var showingDefaults = false
+        @State var searchMode: SearchMode = .name
         
-    //    init(donorObject: DonorObjectClass) {
-    //        _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject))
-    //    }
+        enum SearchMode: String, CaseIterable {
+            case name = "Name"
+            case id = "ID"
+        }
+        
         init(donorObject: DonorObjectClass, maintenanceMode: Bool) {
             _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject, maintenanceMode: maintenanceMode))
         }
 
         var body: some View {
-            Group {
-                switch donorObject.loadingState {
-                    
-                case .notLoaded:
-                    let _ = print("Not loaded yet")
-                    LoadingView(message: "Initializing...")
-                    
-                case .loading:
-                    let _ = print("loading")
-                    LoadingView(message: "Loading donors...")
-                    
-                case .loaded:
-                    let _ = print("loaded")
-                    donorList
-                    
-                case .error(let message):
-                    let _ = print("in error")
-                    ErrorView(message: message) {
-                        Task {
-                            print("Retrying...")
-                            await donorObject.loadDonors()
-                            print("Retry complete")
+            VStack {
+//                if !donorObject.donors.isEmpty {
+//                    Text("Select a Donor")
+//                        .font(.headline)
+//                        .frame(maxWidth: .infinity, alignment: .leading)
+//                        .padding([.leading,.top])
+//                }
+                Group {
+                    switch donorObject.loadingState {
+                        
+                    case .notLoaded:
+                        let _ = print("Not loaded yet")
+                        LoadingView(message: "Initializing...")
+                        
+                    case .loading:
+                        let _ = print("loading")
+                        LoadingView(message: "Loading donors...")
+                        
+                    case .loaded:
+                        let _ = print("loaded")
+                        donorList
+                        
+                    case .error(let message):
+                        let _ = print("in error")
+                        ErrorView(message: message) {
+                            Task {
+                                print("Retrying...")
+                                await donorObject.loadDonors()
+                                print("Retry complete")
+                            }
                         }
                     }
                 }
-            }
-            .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
-            
-            .searchable(text: $viewModel.searchText)
-            
-            .onChange(of: viewModel.searchText, initial: false) { oldValue, newValue in
-                Task {
-                    await viewModel.performSearch()
-                }
-            }
-
-            .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddDonor = true }) {
-                        Label("Add Donor", systemImage: "plus")
+                .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
+                
+                .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
+                .safeAreaInset(edge: .top) {
+                    if donorObject.loadingState == .loaded {
+                        Picker("Search Mode", selection: $searchMode) {
+                            ForEach(SearchMode.allCases, id: \.self) { mode in
+                                Text(mode.rawValue).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal)
                     }
-                    
-                    if !viewModel.maintenanceMode {
-                        Button(action: { showingDefaults = true }) {
-                            Label("Defaults", systemImage: "gear")
+                }
+                
+                .onChange(of: viewModel.searchText, initial: false) { oldValue, newValue in
+                    Task {
+                        try await viewModel.performSearch(mode: searchMode, oldValue: oldValue, newValue: newValue)
+                    }
+                }
+                .onChange(of: searchMode) { oldValue, newValue in
+                    viewModel.searchText = "" // Clear search when changing modes
+                }
+                
+                .toolbar {
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        Button(action: { showingAddDonor = true }) {
+                            Label("Add Donor", systemImage: "plus")
+                        }
+                        
+                        if !viewModel.maintenanceMode {
+                            Button(action: { showingDefaults = true }) {
+                                Label("Defaults", systemImage: "gear")
+                            }
                         }
                     }
                 }
-            }
-            .sheet(isPresented: $showingAddDonor) {
+                .sheet(isPresented: $showingAddDonor) {
                     DonorEditView(mode: .add)
-            }
-            .sheet(isPresented: $showingDefaults) {
+                }
+                .sheet(isPresented: $showingDefaults) {
                     DefaultDonationSettingsView()
+                }
             }
         }
         
         private var donorList: some View {
-            List {
-                if donorObject.donors.isEmpty {
-                    EmptyStateView(
-                        message: "No donors found",
-                        action: { Task { await donorObject.loadDonors() }},
-                        actionTitle: "Refresh"
-                    )
-                } else {
-                    ForEach(donorObject.donors) { donor in
-                        if viewModel.maintenanceMode {
-                            NavigationLink(destination: DonorDetailView(donor: donor)) {
-                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-                            }
-                        } else {
-                            
-                            NavigationLink(destination: DonationEditView(donor: donor)
-                                .environmentObject(donationObject)) {
-                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-                        }
 
-                        }
-                    }
-                    .onDelete(perform: viewModel.maintenanceMode ? { indexSet in
-                        Task {
-                            if let index = indexSet.first {
-                                try? await donorObject.deleteDonor(donorObject.donors[index])
+                List {
+                    if donorObject.donors.isEmpty {
+                        EmptyStateView(
+                            message: "No donors found",
+                            action: { Task { await donorObject.loadDonors() }},
+                            actionTitle: "Refresh"
+                        )
+                    } else {
+                        ForEach(donorObject.donors) { donor in
+                            if viewModel.maintenanceMode {
+                                NavigationLink(destination: DonorDetailView(donor: donor)) {
+                                    DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+                                }
+                            } else {
+                                
+                                NavigationLink(destination: DonationEditView(donor: donor)
+                                    .environmentObject(donationObject)) {
+                                        DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+                                    }
+                                
                             }
                         }
-                    } : nil)
+                        .onDelete(perform: viewModel.maintenanceMode ? { indexSet in
+                            Task {
+                                if let index = indexSet.first {
+                                    try? await donorObject.deleteDonor(donorObject.donors[index])
+                                }
+                            }
+                        } : nil)
+                    }
                 }
-            }
         }
     }
 
@@ -195,128 +221,45 @@
     import SwiftUI
 
     #Preview {
-        NavigationView {
-            DonorListView(donorObject: DonorObjectClass(), maintenanceMode: false)
-                .environmentObject(DonorObjectClass())
+        // Create a donor object with mock data
+        let donorObject: DonorObjectClass = {
+            let object = DonorObjectClass()
+            object.donors = [
+                Donor(
+                    firstName: "John",
+                    lastName: "Doe",
+                    jewishName: "Yaakov",
+                    address: "123 Main St",
+                    city: "New York",
+                    state: "NY",
+                    zip: "10001",
+                    email: "john@example.com",
+                    phone: "555-555-5555",
+                    notes: "Important donor"
+                ),
+                Donor(
+                    firstName: "Sarah",
+                    lastName: "Cohen",
+                    jewishName: "Sara",
+                    address: "456 Broadway",
+                    city: "Brooklyn",
+                    state: "NY",
+                    zip: "11213",
+                    email: "sarah@example.com",
+                    phone: "555-555-5556",
+                    notes: "Regular contributor"
+                )
+            ]
+            object.loadingState = .loaded
+            return object
+        }()
+        
+        // Create donation object
+        let donationObject = DonationObjectClass()
+        
+        return NavigationView {
+            DonorListView(donorObject: donorObject, maintenanceMode: false)
+                .environmentObject(donorObject)
+                .environmentObject(donationObject)
         }
     }
-
-    //    struct DonorViews_Previews: PreviewProvider {
-    //        // Sample data
-    //        static let sampleDonor = Donor(
-    //    //        id: 1,
-    //            firstName: "John",
-    //            lastName: "Doe",
-    //            jewishName: "Yaakov",
-    //            address: "123 Main St",
-    //            city: "New York",
-    //            state: "NY",
-    //            zip: "10001",
-    //            email: "john@example.com",
-    //            phone: "555-555-5555",
-    //            notes: "Important donor"
-    //        )
-    //
-    //        // Sample donor object with different states
-    //        static var loadedDonorObject: DonorObjectClass = {
-    //            let object = DonorObjectClass()
-    //            object.donors = [sampleDonor]
-    //            object.loadingState = .loaded
-    //            return object
-    //        }()
-    //
-    //        static var emptyDonorObject: DonorObjectClass = {
-    //            let object = DonorObjectClass()
-    //            object.donors = []
-    //            object.loadingState = .loaded
-    //            return object
-    //        }()
-    //
-    //        static var loadingDonorObject: DonorObjectClass = {
-    //            let object = DonorObjectClass()
-    //            object.loadingState = .loading
-    //            return object
-    //        }()
-    //
-    //        static var errorDonorObject: DonorObjectClass = {
-    //            let object = DonorObjectClass()
-    //            object.loadingState = .error("Failed to load donors")
-    //            return object
-    //        }()
-    //
-    ////        static var previews: some View {
-    ////            Group {
-    ////                // Main List View - Different States
-    ////                NavigationView {
-    ////                    DonorListView(donorObject: loadedDonorObject, maintenanceMode: false)
-    ////                        .environmentObject(loadedDonorObject)
-    ////                }
-    ////                .previewDisplayName("List View - Loaded")
-    ////
-    ////                NavigationView {
-    ////                    DonorListView(donorObject: emptyDonorObject,  maintenanceMode: false)
-    ////                        .environmentObject(emptyDonorObject)
-    ////                }
-    ////                .previewDisplayName("List View - Empty")
-    ////
-    ////                NavigationView {
-    ////                    DonorListView(donorObject: loadingDonorObject, maintenanceMode: false)
-    ////                        .environmentObject(loadingDonorObject)
-    ////                }
-    ////                .previewDisplayName("List View - Loading")
-    ////
-    ////                NavigationView {
-    ////                    DonorListView(donorObject: errorDonorObject, maintenanceMode: false)
-    ////                        .environmentObject(errorDonorObject)
-    ////                }
-    ////                .previewDisplayName("List View - Error")
-    ////
-    ////                // Detail View
-    ////                NavigationView {
-    ////                    DonorDetailView(donor: sampleDonor)
-    ////                        .environmentObject(loadedDonorObject)
-    ////                }
-    ////                .previewDisplayName("Detail View")
-    ////
-    ////                // Row View
-    ////                DonorRowView(donor: sampleDonor)
-    ////                    .environmentObject(loadedDonorObject)
-    ////                    .previewLayout(.sizeThatFits)
-    ////                    .padding()
-    ////                    .previewDisplayName("Row View")
-    ////
-    ////                // Edit Views
-    ////                NavigationView {
-    ////                    DonorEditView(mode: .add)
-    ////                        .environmentObject(loadedDonorObject)
-    ////                }
-    ////                .previewDisplayName("Add Donor View")
-    ////
-    ////                NavigationView {
-    ////                    DonorEditView(mode: .edit(sampleDonor))
-    ////                        .environmentObject(loadedDonorObject)
-    ////                }
-    ////                .previewDisplayName("Edit Donor View")
-    ////
-    ////                // Support Views
-    ////                LoadingView(message: "Loading donors...")
-    ////                    .previewLayout(.sizeThatFits)
-    ////                    .padding()
-    ////                    .previewDisplayName("Loading View")
-    ////
-    ////                ErrorView(message: "Failed to load donors") {}
-    ////                    .previewLayout(.sizeThatFits)
-    ////                    .padding()
-    ////                    .previewDisplayName("Error View")
-    ////
-    ////                EmptyStateView(
-    ////                    message: "No donors found",
-    ////                    action: {},
-    ////                    actionTitle: "Add Donor"
-    ////                )
-    ////                    .previewLayout(.sizeThatFits)
-    ////                    .padding()
-    ////                    .previewDisplayName("Empty State View")
-    ////            }
-    ////        }
-    //    }

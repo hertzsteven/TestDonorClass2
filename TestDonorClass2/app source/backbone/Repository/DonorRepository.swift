@@ -107,6 +107,25 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
             throw error
         }
     }
+    
+    
+        // Add implementation for getting donor by ID
+        func getDonorById(_ id: Int) async throws -> Donor? {
+            try await dbPool.read { db in
+                try Donor.filter(Column("id") == id).fetchOne(db)
+            }
+        }
+        
+        // Implement findByName (renamed from searchDonors)
+        func findByNameX(_ name: String) async throws -> [Donor] {
+            try await dbPool.read { db in
+                try Donor
+                    .filter(Column("firstName").lowercased.like("%\(name.lowercased())%")
+                            || Column("lastName").lowercased.like("%\(name.lowercased())%"))
+                    .fetchAll(db)
+            }
+        }
+
         // MARK: - Activities
         //        func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double {
         //            do {

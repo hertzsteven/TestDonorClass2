@@ -93,6 +93,29 @@
                 self.donors = results
             }
         }
+              
+        // Add method for searching by ID
+        func searchDonorById(_ id: Int) async {
+            loadingState = .loading
+            do {
+                if let donor = try await repository.getDonorById(id) {
+                    await MainActor.run {
+                        self.donors = [donor]
+                        self.loadingState = .loaded
+                    }
+                } else {
+                    await MainActor.run {
+                        self.donors = []
+                        self.loadingState = .loaded
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.loadingState = .error(error.localizedDescription)
+                }
+            }
+        }
+        
         
     //    // MARK: - Analytics
     //    func getTotalDonations(for donor: Donor) async throws -> Double {

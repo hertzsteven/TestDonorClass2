@@ -33,7 +33,7 @@
                 Picker("Incentive", selection: $selectedIncentive) {
                     Text("None").tag(DonationIncentive?.none)
                     ForEach(incentiveObject.incentives.filter { $0.status == .active }) { incentive in
-                        Text("\(incentive.name) ($\(incentive.dollarAmount))").tag(DonationIncentive?.some(incentive))
+                        Text("\(incentive.name) ($\(String(format: "%.2f", incentive.dollarAmount)))").tag(DonationIncentive?.some(incentive))
                     }
                 }
             }
@@ -76,90 +76,114 @@
             return doubleValue > 0
         }
         
+        private var formattedAmount: Binding<String> {
+            Binding(
+                get: { self.amount },
+                set: { newValue in
+                    if let number = Double(newValue) {
+                        self.amount = String(format: "%.2f", number)
+                    } else if newValue.isEmpty {
+                        self.amount = ""
+                    }
+                }
+            )
+        }
+        
         var body: some View {
-            Form {
-                Section(header: Text("Donation Details")) {
-                    TextField("Amount", text: $amount)
-                        .keyboardType(.decimalPad)
+  
+            VStack {
+                Text(donor.firstName + " " + donor.lastName)
+                Form {
                     
-                    Picker("Type", selection: $donationType) {
-                        ForEach(DonationType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
+                    Section(header: Text("Donation Details")) {
+                        TextField("Amount", text: formattedAmount)
+                            .keyboardType(.decimalPad)
+                            .onChange(of: amount) { newValue in
+                                if newValue.isEmpty { return }
+                                if let number = Double(newValue) {
+                                    self.amount = String(format: "%.2f", number)
+                                }
+                            }
+                        
+                        Picker("Type", selection: $donationType) {
+                            ForEach(DonationType.allCases, id: \.self) { type in
+                                Text(type.rawValue).tag(type)
+                            }
                         }
                     }
-                }
-                
-                CampaignPickerView(selectedCampaign: $selectedCampaign)
-                IncentivePickerView(selectedIncentive: $selectedIncentive)
-                
-                Section(header: Text("Receipt Options")) {
-                    Toggle("Request Email Receipt", isOn: $requestEmailReceipt)
-                    Toggle("Request Printed Receipt", isOn: $requestPrintedReceipt)
-                    Toggle("Anonymous Donation", isOn: $isAnonymous)
-                }
-                
-                Section(header: Text("Additional Information")) {
-                    TextEditor(text: $notes)
-                        .frame(height: 100)
-                }
-            }
-            
-            
-            .navigationTitle("New Donation")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        saveDonation()
-                    }
-                    .disabled(!isValidAmount)
-                }
-            }
-            .alert(alertTitle, isPresented: $showingAlert) {
-                Button("OK", role: .cancel) {
-                    // Dismiss view if it was a success alert
-                    if !isError {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-            } message: {
-                Text(alertMessage)
-            }
-            .sheet(isPresented: $isShowingMailView) {
-                MailView(
-                    receipt: Receipt(
-                        date: Date(),
-                        total: Double(amount) ?? 0,
-                        items: [
-                            ReceiptItem(
-                                name: selectedCampaign?.name ?? "General Donation",
-                                price: Double(amount) ?? 0
-                            )
-                        ],
-                        donorName: "\(donor.firstName) \(donor.lastName)",
-                        donationType: donationType.rawValue
-                    ),
-                    emailRecipient: donor.email ?? "",
-                    onCompletion: {
-                        isShowingMailView = false
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                )
-            }
-            
-            .onAppear {
-                    // Load campaigns and incentives when view appears
-                Task {
-                    await campaignObject.loadCampaigns()
-                    await incentiveObject.loadIncentives()
                     
-                        // Load and apply default settings
-                    await loadAndApplyDefaultSettings()
+                    CampaignPickerView(selectedCampaign: $selectedCampaign)
+                    IncentivePickerView(selectedIncentive: $selectedIncentive)
                     
+                    Section(header: Text("Receipt Options")) {
+                        Toggle("Request Email Receipt", isOn: $requestEmailReceipt)
+                        Toggle("Request Printed Receipt", isOn: $requestPrintedReceipt)
+                        Toggle("Anonymous Donation", isOn: $isAnonymous)
+                    }
+                    
+                    Section(header: Text("Additional Information")) {
+                        TextEditor(text: $notes)
+                            .frame(height: 100)
+                    }
+                }
+                
+                
+                .navigationTitle("New Donation")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Save") {
+                            saveDonation()
+                        }
+                        .disabled(!isValidAmount)
+                    }
+                }
+                .alert(alertTitle, isPresented: $showingAlert) {
+                    Button("OK", role: .cancel) {
+                            // Dismiss view if it was a success alert
+                        if !isError {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+                } message: {
+                    Text(alertMessage)
+                }
+                .sheet(isPresented: $isShowingMailView) {
+                    MailView(
+                        receipt: Receipt(
+                            date: Date(),
+                            total: Double(amount) ?? 0,
+                            items: [
+                                ReceiptItem(
+                                    name: selectedCampaign?.name ?? "General Donation",
+                                    price: Double(amount) ?? 0
+                                )
+                            ],
+                            donorName: "\(donor.firstName) \(donor.lastName)",
+                            donationType: donationType.rawValue
+                        ),
+                        emailRecipient: donor.email ?? "",
+                        onCompletion: {
+                            isShowingMailView = false
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    )
+                }
+                
+                .onAppear {
+                        // Load campaigns and incentives when view appears
+                    Task {
+                        await campaignObject.loadCampaigns()
+                        await incentiveObject.loadIncentives()
+                        
+                            // Load and apply default settings
+                        await loadAndApplyDefaultSettings()
+                        
+                    }
                 }
             }
             
@@ -257,5 +281,7 @@
             .environmentObject(DonorObjectClass())
             .environmentObject(CampaignObjectClass())
             .environmentObject(DonationIncentiveObjectClass())
+            .environmentObject(DefaultDonationSettingsViewModel())
+            .environmentObject(DonationObjectClass())
         }
     }
