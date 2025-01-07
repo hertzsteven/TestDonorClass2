@@ -79,11 +79,35 @@ struct DonationIncentiveListView: View {
     }
 }
 
-// MARK: - Preview
-#Preview {
-    NavigationView {
-        DonationIncentiveListView(incentiveObject: DonationIncentiveObjectClass())
-            .environmentObject(DonationIncentiveObjectClass())
+    // Your imports remain the same
+
+    // Main view implementation remains the same
+
+    // MARK: - Preview
+    #Preview {
+        let mockIncentiveObject: DonationIncentiveObjectClass = {
+            let object = DonationIncentiveObjectClass()
+            object.incentives = [
+                DonationIncentive(name: "Light a Candle", dollarAmount: 36.00),
+                DonationIncentive(name: "Tefilla by kever", dollarAmount: 55.00)
+            ]
+            object.loadingState = .loaded
+            return object
+        }()
+        
+        NavigationView {
+            DonationIncentiveListView(incentiveObject: mockIncentiveObject)
+                .environmentObject(mockIncentiveObject)
+        }
     }
-}
+
+    // End of file
+
+    // End of file
+//#Preview {
+//    NavigationView {
+//        DonationIncentiveListView(incentiveObject: DonationIncentiveObjectClass())
+//            .environmentObject(DonationIncentiveObjectClass())
+//    }
+//}
 

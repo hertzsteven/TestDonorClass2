@@ -103,10 +103,10 @@
                 // Add Select a Donor text as part of the list
                 if !donorObject.donors.isEmpty {
                     Text("Select a Donor")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                        .font(.title)
+                        .fontWeight(.regular)
                         .padding(.horizontal)
-                        .padding(.vertical, 10)
+                        .padding(.vertical, 8)
                 }
                 
                 List {
@@ -122,13 +122,14 @@
                                 NavigationLink(destination: DonorDetailView(donor: donor)) {
                                     DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
                                 }
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             } else {
                                 
                                 NavigationLink(destination: DonationEditView(donor: donor)
                                     .environmentObject(donationObject)) {
                                         DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
                                     }
-                                
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             }
                         }
                         .onDelete(perform: viewModel.maintenanceMode ? { indexSet in
