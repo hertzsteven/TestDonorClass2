@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "icons8-coin_in_hand.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

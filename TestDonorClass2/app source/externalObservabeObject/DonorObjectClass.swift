@@ -95,24 +95,25 @@
         }
               
         // Add method for searching by ID
+        @MainActor
         func searchDonorById(_ id: Int) async {
-            loadingState = .loading
+            updateLoadingState(.loading)
             do {
                 if let donor = try await repository.getDonorById(id) {
-                    await MainActor.run {
+//                    await MainActor.run {
                         self.donors = [donor]
                         self.loadingState = .loaded
-                    }
+//                    }
                 } else {
-                    await MainActor.run {
+//                    await MainActor.run {
                         self.donors = []
                         self.loadingState = .loaded
-                    }
+//                    }
                 }
             } catch {
-                await MainActor.run {
+//                await MainActor.run {
                     self.loadingState = .error(error.localizedDescription)
-                }
+//                }
             }
         }
         
@@ -121,10 +122,15 @@
     //    func getTotalDonations(for donor: Donor) async throws -> Double {
     //        try await repository.getTotalDonationsAmount(forDonorId: donor.id)
     //    }
-        
-        // MARK: - Error Handling
-        @MainActor
-        func clearError() {
-            errorMessage = nil
-        }
+    
+    @MainActor
+    private func updateLoadingState(_ loadingState: LoadingState) {
+        self.loadingState = loadingState
     }
+        
+    // MARK: - Error Handling
+    @MainActor
+    func clearError() {
+        errorMessage = nil
+    }
+}

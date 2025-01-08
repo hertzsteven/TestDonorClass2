@@ -7,6 +7,10 @@
 
 import SwiftUI
 struct MasterTabView: View {
+//    init() {
+//        Thread.sleep(forTimeInterval: 20.0)
+//    }
+    
     @EnvironmentObject private var donorObject: DonorObjectClass
     @EnvironmentObject private var donationObject: DonationObjectClass
     @EnvironmentObject private var campaignObject : CampaignObjectClass

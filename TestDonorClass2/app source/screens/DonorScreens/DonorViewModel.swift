@@ -35,7 +35,8 @@ class DonorListViewModel: ObservableObject {
     func performSearch() async {
         isLoading = true
         do {
-            donorObject.loadingState = .notLoaded
+            await MainActor.run { donorObject.loadingState = .notLoaded }
+//            donorObject.loadingState = .notLoaded
             if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 print("Loading all donors in search...")
                 try await donorObject.loadDonors()
@@ -43,7 +44,8 @@ class DonorListViewModel: ObservableObject {
                 print("Loading donors matching search...")
                 try await donorObject.searchDonors(searchText)
             }
-            donorObject.loadingState = .loaded
+            await MainActor.run { donorObject.loadingState = .loaded }
+//            donorObject.loadingState = .loaded
         } catch {
             // Handle error if needed
         }
@@ -53,9 +55,11 @@ class DonorListViewModel: ObservableObject {
         // Update performSearch method
     func performSearch(mode: DonorListView.SearchMode, oldValue oldValue: String, newValue newSearchText: String ) async throws {
             guard !searchText.isEmpty else {
-                donorObject.loadingState = .notLoaded
+                await MainActor.run { donorObject.loadingState = .notLoaded }
+//                donorObject.loadingState = .notLoaded
                 await donorObject.loadDonors()
-                donorObject.loadingState = .loaded
+                await MainActor.run { donorObject.loadingState = .loaded }
+//                donorObject.loadingState = .loaded
                 return
             }
             

@@ -19,6 +19,7 @@
         
         // Add initializer
         init() {
+//            Thread.sleep(forTimeInterval: 15.0)
             _donorObject = StateObject(wrappedValue: DonorObjectClass())
             _donationObject = StateObject(wrappedValue: DonationObjectClass())
         }

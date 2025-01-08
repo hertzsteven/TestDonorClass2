@@ -1,14 +1,14 @@
-//
-// DonationIncentiveListViewModel.swift
-// TestDonorClass2
-//
+    //
+    // DonationIncentiveListViewModel.swift
+    // TestDonorClass2
+    //
 
-import Foundation
+    import Foundation
 
-@MainActor
+    @MainActor
 class DonationIncentiveListViewModel: ObservableObject {
     @Published var searchText = ""
-    private let incentiveObject: DonationIncentiveObjectClass
+    let incentiveObject: DonationIncentiveObjectClass
     
     init(incentiveObject: DonationIncentiveObjectClass) {
         self.incentiveObject = incentiveObject
@@ -21,5 +21,15 @@ class DonationIncentiveListViewModel: ObservableObject {
         }
         await incentiveObject.searchIncentives(searchText)
     }
+    
+//    func canDeleteIncentive(_ incentive: DonationIncentive) async -> Bool {
+//        do {
+//                // Get all donations that reference this incentive
+//            let donations = try await incentiveObject.donationRepository.getDonations(forIncentiveId: incentive.id)
+//            return donations.isEmpty
+//        } catch {
+//            print("Error checking donations for incentive: \(error)")
+//            return false // Fail safe - prevent deletion if we can't verify
+//        }
+//    }
 }
-

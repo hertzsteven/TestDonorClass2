@@ -65,6 +65,14 @@ class DonationIncentiveObjectClass: ObservableObject {
         }
     }
     
+    func isInUse(id: Int) async throws -> Bool {
+        let inUse = try await repository.isIncentiveInUse(id)
+        print("Incentive in use: \(inUse)")
+        return inUse
+    }
+
+    
+    
     // MARK: - CRUD Operations
     func addIncentive(_ incentive: DonationIncentive) async throws {
         try await repository.insert(incentive)

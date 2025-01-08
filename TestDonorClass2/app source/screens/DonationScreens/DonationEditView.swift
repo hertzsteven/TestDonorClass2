@@ -92,7 +92,14 @@
         var body: some View {
   
             VStack {
-                Text(donor.firstName + " " + donor.lastName)
+                HStack {
+                    Text("For " + donor.firstName + " " + donor.lastName)
+                        .font(.title2)
+//                        .font(.system(size: 38)) // Set font size to 38
+//                        .font(systemFont(size: 24))
+                        .padding()
+                    Spacer()
+                }
                 Form {
                     
                     Section(header: Text("Donation Details")) {
@@ -118,7 +125,7 @@
                     Section(header: Text("Receipt Options")) {
                         Toggle("Request Email Receipt", isOn: $requestEmailReceipt)
                         Toggle("Request Printed Receipt", isOn: $requestPrintedReceipt)
-                        Toggle("Anonymous Donation", isOn: $isAnonymous)
+//                        Toggle("Anonymous Donation", isOn: $isAnonymous)
                     }
                     
                     Section(header: Text("Additional Information")) {

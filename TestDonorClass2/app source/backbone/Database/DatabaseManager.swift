@@ -24,12 +24,17 @@
                     .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
                     .appendingPathComponent(dbName)
                 dbPool = try DatabasePool(path: databaseURL.path)
+                    // Enable foreign key constraints
+                try dbPool.write { db in
+                    try db.execute(sql: "PRAGMA foreign_keys = ON;")
+                }
+                
                 print(databaseURL.absoluteString)
-                // Add this line to ensure table exists
+                    // Add this line to ensure table exists
                 try ensureDonorTableExists()
-
-                // Migrate database
-                //                try migrator.migrate(dbPool)
+                
+                    // Migrate database
+                    //                try migrator.migrate(dbPool)
             } catch {
                 fatalError("Database initialization failed: \(error)")
             }
@@ -293,50 +298,6 @@
                     print("Donor table already exists")
                 }
                 
-                // Check if donation table exists
-                let donationTableExists = try db.tableExists("donation")
-                if !donationTableExists {
-                    print("Donation table does not exist. Creating...")
-                    // Create donations table
-                    try db.create(table: "donation") { t in
-                        t.autoIncrementedPrimaryKey("id")
-                        t.column("uuid", .text).notNull().unique()
-                        t.column("donor_id", .integer).references("donor", onDelete: .cascade)
-                        t.column("campaign_id", .integer)
-                        t.column("donation_incentive_id", .integer)
-                        t.column("amount", .double).notNull()
-                        t.column("donation_type", .text).notNull()
-                        t.column("payment_status", .text).notNull()
-                        t.column("transaction_number", .text)
-                        t.column("receipt_number", .text)
-                        t.column("payment_processor_info", .text)
-                        t.column("request_email_receipt", .boolean).notNull().defaults(to: false)
-                        t.column("request_printed_receipt", .boolean).notNull().defaults(to: false)
-                        t.column("notes", .text)
-                        t.column("is_anonymous", .boolean).notNull().defaults(to: false)
-                        t.column("donation_date", .datetime).notNull()
-                        t.column("created_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
-                        t.column("updated_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
-                    }
-                    // Create donation indexes
-                    try db.create(index: "idx_donation_donor", on: "donation", columns: ["donor_id"])
-                    try db.create(index: "idx_donation_campaign", on: "donation", columns: ["campaign_id"])
-                    try db.create(index: "idx_donation_date", on: "donation", columns: ["donation_date"])
-                    try db.create(index: "idx_donation_uuid", on: "donation", columns: ["uuid"])
-                    // Create update trigger for donation timestamps
-                    try db.execute(sql: """
-                        CREATE TRIGGER IF NOT EXISTS update_donation_timestamp 
-                        AFTER UPDATE ON donation
-                        BEGIN
-                            UPDATE donation SET updated_at = CURRENT_TIMESTAMP 
-                            WHERE id = NEW.id;
-                        END;
-                    """)
-                    print("Donation table created successfully")
-                } else {
-                    print("Donation table already exists")
-                }
-                
                 let campaignTableExists = try db.tableExists("campaign")
                 if !campaignTableExists {
                     // Create campaigns table
@@ -394,6 +355,58 @@
                 } else {
                     print("DonationIncentive table already exists")
                 }
+                
+                // Check if donation table exists
+                let donationTableExists = try db.tableExists("donation")
+                if !donationTableExists {
+                    print("Donation table does not exist. Creating...")
+                    // Create donations table
+                    try db.create(table: "donation") { t in
+                        t.autoIncrementedPrimaryKey("id")
+                        t.column("uuid", .text).notNull().unique()
+                        t.column("donor_id", .integer)
+                        t.column("campaign_id", .integer)
+                        t.column("donation_incentive_id", .integer)
+                        t.column("amount", .double).notNull()
+                        t.column("donation_type", .text).notNull()
+                        t.column("payment_status", .text).notNull()
+                        t.column("transaction_number", .text)
+                        t.column("receipt_number", .text)
+                        t.column("payment_processor_info", .text)
+                        t.column("request_email_receipt", .boolean).notNull().defaults(to: false)
+                        t.column("request_printed_receipt", .boolean).notNull().defaults(to: false)
+                        t.column("notes", .text)
+                        t.column("is_anonymous", .boolean).notNull().defaults(to: false)
+                        t.column("donation_date", .datetime).notNull()
+                        t.column("created_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                        t.column("updated_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                            // Foreign key constraint
+                        t.foreignKey(["donor_id"], references: "donor", columns: ["id"], onDelete: .restrict)
+                        t.foreignKey(["campaign_id"], references: "campaign", columns: ["id"], onDelete: .restrict)
+                        t.foreignKey(["donation_incentive_id"], references: "donation_incentive", columns: ["id"], onDelete: .restrict)
+
+                    }
+                    // Create donation indexes
+                    try db.create(index: "idx_donation_donor", on: "donation", columns: ["donor_id"])
+                    try db.create(index: "idx_donation_campaign", on: "donation", columns: ["campaign_id"])
+                    try db.create(index: "idx_donation_date", on: "donation", columns: ["donation_date"])
+                    try db.create(index: "idx_donation_uuid", on: "donation", columns: ["uuid"])
+                    // Create update trigger for donation timestamps
+                    try db.execute(sql: """
+                        CREATE TRIGGER IF NOT EXISTS update_donation_timestamp 
+                        AFTER UPDATE ON donation
+                        BEGIN
+                            UPDATE donation SET updated_at = CURRENT_TIMESTAMP 
+                            WHERE id = NEW.id;
+                        END;
+                    """)
+                    print("Donation table created successfully")
+                } else {
+                    print("Donation table already exists")
+                }
+                
+
+                
             }
         }
     }
