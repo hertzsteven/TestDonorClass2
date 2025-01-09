@@ -57,6 +57,8 @@
         @State private var isAnonymous: Bool = false
         @State private var requestEmailReceipt: Bool = false
         @State private var requestPrintedReceipt: Bool = false
+        @State private var campaignId: Int? = nil
+        @State private var incentiveId: Int? = nil
         
         @State private var showingAlert = false
         @State private var alertMessage = ""
@@ -202,8 +204,10 @@
             let settings = DefaultDonationSettings(
                 amount: defaultDonationSettingsViewModel.settings.amount,
                 donationType: defaultDonationSettingsViewModel.settings.donationType,
-                requestEmailReceipt: true,
-                requestPrintedReceipt: false
+                campaignId: defaultDonationSettingsViewModel.settings.campaignId,
+                donationIncentiveId: defaultDonationSettingsViewModel.settings.donationIncentiveId,
+                requestEmailReceipt: defaultDonationSettingsViewModel.settings.requestEmailReceipt,
+                requestPrintedReceipt: defaultDonationSettingsViewModel.settings.requestPrintedReceipt
             )
             
             await MainActor.run {
@@ -212,14 +216,21 @@
                 self.donationType = settings.donationType ?? .creditCard
                 self.requestEmailReceipt = settings.requestEmailReceipt
                 self.requestPrintedReceipt = settings.requestPrintedReceipt
+                self.campaignId = settings.campaignId
+                self.incentiveId = settings.donationIncentiveId
+                dump(settings)
+                print("\(settings)")
+                print("\(self.campaignId ?? 0)")
+                print("\(self.campaignId ?? 0)")
+
                 if let campaignId = settings.campaignId {
                     self.selectedCampaign = campaignObject.campaigns.first(where: { $0.id == campaignId })
                 }
                 if let incentiveId = settings.donationIncentiveId {
                     self.selectedIncentive = incentiveObject.incentives.first(where: { $0.id == incentiveId })
                 }
-                self.notes = settings.notes ?? ""
-                self.isAnonymous = settings.isAnonymous
+//               self.notes = settings.notes ?? ""
+//                self.isAnonymous = settings.isAnonymous
             }
         }
         

@@ -38,15 +38,31 @@ class DefaultDonationSettingsViewModel: ObservableObject {
         }
     }
     
-    func saveSettings() -> Bool {
+    func saveSettings() async -> Bool {
         do {
             let data = try JSONEncoder().encode(settings)
             UserDefaults.standard.set(data, forKey: settingsKey)
+            await resetSettings()
             return true
         } catch {
             self.error = .encodingFailed
             return false
         }
+    }
+    
+    func resetSettings() async {
+        if let data = UserDefaults.standard.data(forKey: settingsKey) {
+            await MainActor.run {
+                do {
+                     self.settings = try JSONDecoder().decode(DefaultDonationSettings.self, from: data)
+                 } catch {
+                     self.error = .decodingFailed
+                     self.settings = DefaultDonationSettings()
+                 }
+             }
+            }
+ 
+
     }
     
     func clearError() {

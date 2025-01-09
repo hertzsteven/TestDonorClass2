@@ -74,17 +74,21 @@ struct DefaultDonationSettingsView: View {
                 
                 Section {
                     Button("Save Default Settings") {
-                        if !viewModel.saveSettings() {
-                            showingError = true
-                        } else {
-                            dismiss()
+                        Task {
+                            if await !viewModel.saveSettings() {
+                                showingError = true
+                            } else {
+                                dismiss()
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity)
                     
                     Button("Clear All Defaults") {
-                        viewModel.settings = DefaultDonationSettings()
-                        viewModel.saveSettings()
+                        Task {
+                            viewModel.settings = DefaultDonationSettings()
+                            await viewModel.saveSettings()
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .foregroundColor(.red)

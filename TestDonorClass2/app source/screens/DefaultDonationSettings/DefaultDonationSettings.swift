@@ -9,8 +9,8 @@ struct DefaultDonationSettings: Codable, FetchableRecord, PersistableRecord {
     var donationIncentiveId: Int?
     var requestEmailReceipt: Bool
     var requestPrintedReceipt: Bool
-    var notes: String?
-    var isAnonymous: Bool
+//    var notes: String?
+//    var isAnonymous: Bool
     
     // MARK: - Table Definition
     enum Columns {
@@ -21,8 +21,6 @@ struct DefaultDonationSettings: Codable, FetchableRecord, PersistableRecord {
         static let donationIncentiveId = Column("donation_incentive_id")
         static let requestEmailReceipt = Column("request_email_receipt")
         static let requestPrintedReceipt = Column("request_printed_receipt")
-        static let notes = Column("notes")
-        static let isAnonymous = Column("is_anonymous")
     }
     
     init(id: Int? = nil,
@@ -31,9 +29,10 @@ struct DefaultDonationSettings: Codable, FetchableRecord, PersistableRecord {
          campaignId: Int? = nil,
          donationIncentiveId: Int? = nil,
          requestEmailReceipt: Bool = false,
-         requestPrintedReceipt: Bool = false,
-         notes: String? = nil,
-         isAnonymous: Bool = false) {
+         requestPrintedReceipt: Bool = false)
+//         notes: String? = nil,
+//         isAnonymous: Bool = false)
+    {
         self.id = id
         self.amount = amount
         self.donationType = donationType
@@ -41,10 +40,10 @@ struct DefaultDonationSettings: Codable, FetchableRecord, PersistableRecord {
         self.donationIncentiveId = donationIncentiveId
         self.requestEmailReceipt = requestEmailReceipt
         self.requestPrintedReceipt = requestPrintedReceipt
-        self.notes = notes
-        self.isAnonymous = isAnonymous
+//        self.notes = notes
+//        self.isAnonymous = isAnonymous
     }
-    
+    /*
     func applyToDonation(_ donation: inout Donation) {
         if let amount = amount { donation.amount = amount }
         if let donationType = donationType { donation.donationType = donationType }
@@ -52,9 +51,10 @@ struct DefaultDonationSettings: Codable, FetchableRecord, PersistableRecord {
         if let donationIncentiveId = donationIncentiveId { donation.donationIncentiveId = donationIncentiveId }
         donation.requestEmailReceipt = requestEmailReceipt
         donation.requestPrintedReceipt = requestPrintedReceipt
-        if let notes = notes { donation.notes = notes }
-        donation.isAnonymous = isAnonymous
+//        if let notes = notes { donation.notes = notes }
+//        donation.isAnonymous = isAnonymous
     }
+     */
 }
 
 // End of file. No additional code.

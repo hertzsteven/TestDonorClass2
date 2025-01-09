@@ -55,15 +55,15 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "0F6C884A-E3E2-4B5F-9D4B-890B5E6F4035"
+            uuid = "818A9440-C943-426D-AD71-4AFA36359A1F"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TestDonorClass2/app source/screens/DonationScreens/DonationEditView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "202"
-            endingLineNumber = "202"
+            startingLineNumber = "224"
+            endingLineNumber = "224"
             landmarkName = "loadAndApplyDefaultSettings()"
             landmarkType = "7">
          </BreakpointContent>
