@@ -33,7 +33,7 @@
             
             await MainActor.run { loadingState = .loading }
             
-            try? await Task.sleep(for: .seconds(1))
+//            try? await Task.sleep(for: .seconds(1))
             do {
                 let fetchedDonors = try await repository.getAll()
                 print("Fetched donors count: \(fetchedDonors.count)")

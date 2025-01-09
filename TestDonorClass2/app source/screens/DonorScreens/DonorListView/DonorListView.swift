@@ -5,146 +5,175 @@
     //  Created by Steven Hertz on 12/24/24.
     //
 
-    import SwiftUI
+import SwiftUI
 
     // MARK: - Main List View
-    struct DonorListView: View {
-        @EnvironmentObject var donorObject: DonorObjectClass
-        @EnvironmentObject var donationObject: DonationObjectClass
-        @StateObject private var viewModel: DonorListViewModel
-        @State private var showingAddDonor = false
-        @State private var showingDefaults = false
-        @State var searchMode: SearchMode = .name
-        
-        enum SearchMode: String, CaseIterable {
-            case name = "Name"
-            case id = "ID"
-        }
-        
-        init(donorObject: DonorObjectClass, maintenanceMode: Bool) {
-            _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject, maintenanceMode: maintenanceMode))
-        }
-
-        var body: some View {
-            VStack(spacing: 0) {
+struct DonorListView: View {
+    @EnvironmentObject var donorObject: DonorObjectClass
+    @EnvironmentObject var donationObject: DonationObjectClass
+    @StateObject private var viewModel: DonorListViewModel
+    @State private var showingAddDonor = false
+    @State private var showingDefaults = false
+    @State var searchMode: SearchMode = .name
+    
+        // Alert handling properties
+    @State private var showAlert = false      // Controls alert visibility
+    @State private var alertMessage = ""      // Alert message content
+    
+    
+    enum SearchMode: String, CaseIterable {
+        case name = "Name"
+        case id = "ID"
+    }
+    
+    init(donorObject: DonorObjectClass, maintenanceMode: Bool) {
+        _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject, maintenanceMode: maintenanceMode))
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
                 // Search mode picker at the top
-                if donorObject.loadingState == .loaded {
-                    Picker("Search Mode", selection: $searchMode) {
-                        ForEach(SearchMode.allCases, id: \.self) { mode in
-                            Text(mode.rawValue).tag(mode)
+            if donorObject.loadingState == .loaded {
+                Picker("Search Mode", selection: $searchMode) {
+                    ForEach(SearchMode.allCases, id: \.self) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            
+                // Main content
+            Group {
+                switch donorObject.loadingState {
+                    
+                case .notLoaded:
+                    let _ = print("Not loaded yet")
+                    LoadingView(message: "Initializing...")
+                    
+                case .loading:
+                    let _ = print("loading")
+                    LoadingView(message: "Loading donors...")
+                    
+                case .loaded:
+                    let _ = print("loaded")
+                    donorList
+                    
+                case .error(let message):
+                    let _ = print("in error")
+                    ErrorView(message: message) {
+                        Task {
+                            print("Retrying...")
+                            await donorObject.loadDonors()
+                            print("Retry complete")
                         }
                     }
-                    .pickerStyle(.segmented)
+                }
+            }
+        }
+        .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
+        .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
+        .onChange(of: viewModel.searchText) { oldValue, newValue in
+            Task {
+                try await viewModel.performSearch(mode: searchMode, oldValue: oldValue, newValue: newValue)
+            }
+        }
+        .onChange(of: searchMode) { oldValue, newValue in
+            viewModel.searchText = "" // Clear search when changing modes
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Button(action: { showingAddDonor = true }) {
+                    Label("Add Donor", systemImage: "plus")
+                }
+                
+                if !viewModel.maintenanceMode {
+                    Button(action: { showingDefaults = true }) {
+                        Label("Defaults", systemImage: "gear")
+                    }
+                }
+            }
+        }
+            // Error alert configuration
+        .alert("Error", isPresented: $showAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(alertMessage)
+        }
+        
+        .sheet(isPresented: $showingAddDonor) {
+            DonorEditView(mode: .add)
+        }
+        .sheet(isPresented: $showingDefaults) {
+            DefaultDonationSettingsView()
+        }
+    }
+    
+    private var donorList: some View {
+        VStack(alignment: .leading, spacing: 0) {
+                // Add Select a Donor text as part of the list
+            if !donorObject.donors.isEmpty {
+                Text("Select a Donor")
+                    .font(.title)
+                    .fontWeight(.regular)
                     .padding(.horizontal)
                     .padding(.vertical, 8)
-                }
-                
-                // Main content
-                Group {
-                    switch donorObject.loadingState {
-                        
-                    case .notLoaded:
-                        let _ = print("Not loaded yet")
-                        LoadingView(message: "Initializing...")
-                        
-                    case .loading:
-                        let _ = print("loading")
-                        LoadingView(message: "Loading donors...")
-                        
-                    case .loaded:
-                        let _ = print("loaded")
-                        donorList
-                        
-                    case .error(let message):
-                        let _ = print("in error")
-                        ErrorView(message: message) {
-                            Task {
-                                print("Retrying...")
-                                await donorObject.loadDonors()
-                                print("Retry complete")
+            }
+            
+            List {
+                if donorObject.donors.isEmpty {
+                    EmptyStateView(
+                        message: "No donors found",
+                        action: { Task { await donorObject.loadDonors() }},
+                        actionTitle: "Refresh"
+                    )
+                } else {
+                    ForEach(donorObject.donors) { donor in
+                        if viewModel.maintenanceMode {
+                            NavigationLink(destination: DonorDetailView(donor: donor)) {
+                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
                             }
-                        }
-                    }
-                }
-            }
-            .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
-            .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
-            .onChange(of: viewModel.searchText) { oldValue, newValue in
-                Task {
-                    try await viewModel.performSearch(mode: searchMode, oldValue: oldValue, newValue: newValue)
-                }
-            }
-            .onChange(of: searchMode) { oldValue, newValue in
-                viewModel.searchText = "" // Clear search when changing modes
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddDonor = true }) {
-                        Label("Add Donor", systemImage: "plus")
-                    }
-                    
-                    if !viewModel.maintenanceMode {
-                        Button(action: { showingDefaults = true }) {
-                            Label("Defaults", systemImage: "gear")
-                        }
-                    }
-                }
-            }
-            .sheet(isPresented: $showingAddDonor) {
-                DonorEditView(mode: .add)
-            }
-            .sheet(isPresented: $showingDefaults) {
-                DefaultDonationSettingsView()
-            }
-        }
-        
-        private var donorList: some View {
-            VStack(alignment: .leading, spacing: 0) {
-                // Add Select a Donor text as part of the list
-                if !donorObject.donors.isEmpty {
-                    Text("Select a Donor")
-                        .font(.title)
-                        .fontWeight(.regular)
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                }
-                
-                List {
-                    if donorObject.donors.isEmpty {
-                        EmptyStateView(
-                            message: "No donors found",
-                            action: { Task { await donorObject.loadDonors() }},
-                            actionTitle: "Refresh"
-                        )
-                    } else {
-                        ForEach(donorObject.donors) { donor in
-                            if viewModel.maintenanceMode {
-                                NavigationLink(destination: DonorDetailView(donor: donor)) {
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                        } else {
+                            
+                            NavigationLink(destination: DonationEditView(donor: donor)
+                                .environmentObject(donationObject)) {
                                     DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
                                 }
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                            } else {
-                                
-                                NavigationLink(destination: DonationEditView(donor: donor)
-                                    .environmentObject(donationObject)) {
-                                        DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-                                    }
-                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                            }
                         }
-                        .onDelete(perform: viewModel.maintenanceMode ? { indexSet in
-                            Task {
-                                if let index = indexSet.first {
-                                    try? await donorObject.deleteDonor(donorObject.donors[index])
-                                }
-                            }
-                        } : nil)
+                    }
+                    .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
+//                    .onDelete(perform: viewModel.maintenanceMode ? { indexSet in
+//                        Task {
+//                            if let index = indexSet.first {
+//                                try? await donorObject.deleteDonor(donorObject.donors[index])
+//                            }
+//                        }
+//                    } : nil)
+                }
+            }
+            .listStyle(PlainListStyle())
+        }
+    }
+    
+    private func handleDelete(at indexSet: IndexSet) {
+        Task {
+            if let index = indexSet.first {
+                do {
+                    try await donorObject.deleteDonor(donorObject.donors[index])
+                } catch {
+                    await MainActor.run {
+                        alertMessage = error.localizedDescription
+                        showAlert = true
                     }
                 }
-                .listStyle(PlainListStyle())
+                
             }
         }
     }
+}
 
     //
     //  DonorViews.swift
@@ -153,113 +182,113 @@
     //  Created by Steven Hertz on 12/24/24.
     //
 
-    import SwiftUI
+import SwiftUI
 
-    #Preview {
+#Preview {
         // Create a donor object with mock data
-        let donorObject: DonorObjectClass = {
-            let object = DonorObjectClass()
-            object.donors = [
-                Donor(
-                    firstName: "John",
-                    lastName: "Doe",
-                    jewishName: "Yaakov",
-                    address: "123 Main St",
-                    city: "New York",
-                    state: "NY",
-                    zip: "10001",
-                    email: "john@example.com",
-                    phone: "555-555-5555",
-                    notes: "Important donor"
-                ),
-                Donor(
-                    firstName: "Sarah",
-                    lastName: "Cohen",
-                    jewishName: "Sara",
-                    address: "456 Broadway",
-                    city: "Brooklyn",
-                    state: "NY",
-                    zip: "11213",
-                    email: "sarah@example.com",
-                    phone: "555-555-5556",
-                    notes: "Regular contributor"
-                )
-            ]
-            object.loadingState = .loaded
-            return object
-        }()
-        
+    let donorObject: DonorObjectClass = {
+        let object = DonorObjectClass()
+        object.donors = [
+            Donor(
+                firstName: "John",
+                lastName: "Doe",
+                jewishName: "Yaakov",
+                address: "123 Main St",
+                city: "New York",
+                state: "NY",
+                zip: "10001",
+                email: "john@example.com",
+                phone: "555-555-5555",
+                notes: "Important donor"
+            ),
+            Donor(
+                firstName: "Sarah",
+                lastName: "Cohen",
+                jewishName: "Sara",
+                address: "456 Broadway",
+                city: "Brooklyn",
+                state: "NY",
+                zip: "11213",
+                email: "sarah@example.com",
+                phone: "555-555-5556",
+                notes: "Regular contributor"
+            )
+        ]
+        object.loadingState = .loaded
+        return object
+    }()
+    
         // Create donation object
-        let donationObject = DonationObjectClass()
-        
-        return NavigationView {
-            DonorListView(donorObject: donorObject, maintenanceMode: false)
-                .environmentObject(donorObject)
-                .environmentObject(donationObject)
+    let donationObject = DonationObjectClass()
+    
+    return NavigationView {
+        DonorListView(donorObject: donorObject, maintenanceMode: false)
+            .environmentObject(donorObject)
+            .environmentObject(donationObject)
+    }
+}
+
+struct LoadingView: View {
+    let message: String
+    
+    var body: some View {
+        VStack {
+            ProgressView()
+                .padding()
+            Text(message)
+                .foregroundColor(.secondary)
         }
     }
+}
 
-    struct LoadingView: View {
-        let message: String
-        
-        var body: some View {
-            VStack {
-                ProgressView()
-                    .padding()
-                Text(message)
-                    .foregroundColor(.secondary)
+struct ErrorView: View {
+    let message: String
+    let retryAction: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 50))
+                .foregroundColor(.red)
+            
+            Text("Error")
+                .font(.title)
+            
+            Text(message)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+            
+            Button("Retry It") {
+                retryAction()
             }
+            .buttonStyle(.bordered)
         }
+        .padding()
     }
+}
 
-    struct ErrorView: View {
-        let message: String
-        let retryAction: () -> Void
-        
-        var body: some View {
-            VStack(spacing: 16) {
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.system(size: 50))
-                    .foregroundColor(.red)
-                
-                Text("Error")
-                    .font(.title)
-                
-                Text(message)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-                
-                Button("Retry It") {
-                    retryAction()
+struct EmptyStateView: View {
+    let message: String
+    let action: (() -> Void)?
+    let actionTitle: String?
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "person.crop.circle.badge.questionmark")
+                .font(.system(size: 50))
+                .foregroundColor(.secondary)
+            
+            Text(message)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+            
+            if let action = action, let actionTitle = actionTitle {
+                Button(actionTitle) {
+                    action()
                 }
                 .buttonStyle(.bordered)
             }
-            .padding()
         }
+        .padding()
     }
-
-    struct EmptyStateView: View {
-        let message: String
-        let action: (() -> Void)?
-        let actionTitle: String?
-        
-        var body: some View {
-            VStack(spacing: 16) {
-                Image(systemName: "person.crop.circle.badge.questionmark")
-                    .font(.system(size: 50))
-                    .foregroundColor(.secondary)
-                
-                Text(message)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-                
-                if let action = action, let actionTitle = actionTitle {
-                    Button(actionTitle) {
-                        action()
-                    }
-                    .buttonStyle(.bordered)
-                }
-            }
-            .padding()
-        }
-    }
+}

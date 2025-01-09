@@ -101,14 +101,31 @@
                             }
                         }
                     }
-                    .onDelete { indexSet in
-                        Task {
-                            if let index = indexSet.first {
-                                let incentive = incentiveObject.incentives[index]
-//                                if await viewModel.canDeleteIncentive(incentive) {
-                                    try? await incentiveObject.deleteIncentive(incentive)
-//                                }
-                            }
+                    .onDelete(perform: handleDelete)
+//                    .onDelete { indexSet in
+//                        Task {
+//                            if let index = indexSet.first {
+//                                let incentive = incentiveObject.incentives[index]
+////                                if await viewModel.canDeleteIncentive(incentive) {
+//                                    try? await incentiveObject.deleteIncentive(incentive)
+////                                }
+//                            }
+//                        }
+//                    }
+                }
+            }
+        }
+        
+        private func handleDelete(at indexSet: IndexSet) {
+            Task {
+                if let index = indexSet.first {
+                    let incentive = incentiveObject.incentives[index]
+                    do {
+                        try await incentiveObject.deleteIncentive(incentive)
+                    } catch {
+                        await MainActor.run {
+                            deleteErrorMessage = error.localizedDescription
+                            showDeleteError = true
                         }
                     }
                 }

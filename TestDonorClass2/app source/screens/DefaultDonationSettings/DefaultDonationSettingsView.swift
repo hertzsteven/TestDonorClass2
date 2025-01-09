@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct DefaultDonationSettingsView: View {
-    @EnvironmentObject var viewModel: DefaultDonationSettingsViewModel
+    @StateObject private var viewModel = DefaultDonationSettingsViewModel()
+    @State private var showingError = false
     @EnvironmentObject var campaignObject: CampaignObjectClass
     @EnvironmentObject var incentiveObject: DonationIncentiveObjectClass
     @Environment(\.dismiss) var dismiss
@@ -73,8 +74,11 @@ struct DefaultDonationSettingsView: View {
                 
                 Section {
                     Button("Save Default Settings") {
-                        viewModel.saveSettings()
-                        dismiss()
+                        if !viewModel.saveSettings() {
+                            showingError = true
+                        } else {
+                            dismiss()
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     
@@ -94,8 +98,13 @@ struct DefaultDonationSettingsView: View {
                 }
             }
         }
-
-
+        .alert("Error", isPresented: $showingError, presenting: viewModel.error) { _ in
+            Button("OK") {
+                viewModel.clearError()
+            }
+        } message: { error in
+            Text(error.localizedDescription)
+        }
         .onAppear {
             // Load campaigns and incentives when view appears
             Task {
@@ -110,7 +119,6 @@ struct DefaultDonationSettingsView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             DefaultDonationSettingsView()
-                .environmentObject(DefaultDonationSettingsViewModel())
                 .environmentObject(CampaignObjectClass())
                 .environmentObject(DonationIncentiveObjectClass())
         }

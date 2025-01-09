@@ -150,8 +150,10 @@
                 }
             } else {
                 // Creating a new campaign
+    //                let x = 111
                 campaign = Campaign(
-                    uuid: UUID().uuidString,      // Generate new UUID
+                    uuid: "",        // Keep original UUID
+    //                    uuid: UUID().uuidString,      // Generate new UUID
                     campaignCode: campaignCode,     // New campaign code
                     name: name,                    // New name
                     description: description,       // New description
@@ -172,11 +174,16 @@
                     } else {
                         try await campaignObject.addCampaign(campaign)
                     }
-                    dismiss()  // Close the form on success
+                    // Dispatch UI updates to the main thread
+                    await MainActor.run {
+                        dismiss()  // Close the form on success
+                    }
                 } catch {
-                    // Show error alert if operation fails
-                    alertMessage = error.localizedDescription
-                    showAlert = true
+                    // Dispatch UI updates to the main thread
+                    await MainActor.run {
+                        alertMessage = error.localizedDescription
+                        showAlert = true
+                    }
                 }
             }
         }

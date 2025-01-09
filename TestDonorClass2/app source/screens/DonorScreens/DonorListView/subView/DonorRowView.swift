@@ -35,7 +35,7 @@
                                 }
                             }
                             Spacer()
-                            /*
+                            
                             if !maintenanceMode {
                                 Button(action: {
                                     showingDonationSheet = true
@@ -46,7 +46,7 @@
                                 }
                                 .buttonStyle(BorderlessButtonStyle())
                             }
-                             */
+                             
                         }
                         if !maintenanceMode {
                             Group {

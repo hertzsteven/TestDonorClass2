@@ -91,8 +91,11 @@ struct DonationDetailView: View {
             return
         }
         
-        isLoadingDonor = true
+        
         Task {
+            await MainActor.run {
+                isLoadingDonor = true
+            }
             do {
                 donor = try await donorObject.getDonor(donorId)
                 if donor != nil {
