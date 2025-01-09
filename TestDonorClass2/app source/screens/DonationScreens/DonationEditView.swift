@@ -146,7 +146,9 @@
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Save") {
-                            saveDonation()
+                            Task {
+                                await saveDonation()
+                            }
                         }
                         .disabled(!isValidAmount)
                     }
@@ -212,7 +214,7 @@
             
             await MainActor.run {
                     // Apply the settings to our form
-                self.amount = String(settings.amount ?? 0)
+                self.amount = String(defaultDonationSettingsViewModel.settings.amount ?? 0)
                 self.donationType = settings.donationType ?? .creditCard
                 self.requestEmailReceipt = settings.requestEmailReceipt
                 self.requestPrintedReceipt = settings.requestPrintedReceipt
@@ -234,12 +236,14 @@
             }
         }
         
-        private func saveDonation() {
+        private func saveDonation() async {
             guard let amountValue = Double(amount) else {
-                alertTitle = "Error"
-                alertMessage = "Please enter a valid amount"
-                isError = true
-                showingAlert = true
+                await MainActor.run {
+                    alertTitle = "Error"
+                    alertMessage = "Please enter a valid amount"
+                    isError = true
+                    showingAlert = true
+                }
                 return
             }
             

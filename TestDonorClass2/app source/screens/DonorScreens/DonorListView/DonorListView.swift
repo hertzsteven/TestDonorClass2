@@ -11,6 +11,7 @@ import SwiftUI
 struct DonorListView: View {
     @EnvironmentObject var donorObject: DonorObjectClass
     @EnvironmentObject var donationObject: DonationObjectClass
+//    @EnvironmentObject var defaultDonationSettingsViewModel: DefaultDonationSettingsViewModel
     @StateObject private var viewModel: DonorListViewModel
     @State private var showingAddDonor = false
     @State private var showingDefaults = false
@@ -107,6 +108,7 @@ struct DonorListView: View {
         }
         .sheet(isPresented: $showingDefaults) {
             DefaultDonationSettingsView()
+//                .environmentObject(defaultDonationSettingsViewModel)
         }
     }
     
