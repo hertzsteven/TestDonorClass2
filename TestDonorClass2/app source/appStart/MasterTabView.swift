@@ -20,46 +20,17 @@ struct MasterTabView: View {
     var body: some View {
         
         TabView {
-            NavigationView {
+//            NavigationView {
                 DonorListView(donorObject: donorObject, maintenanceMode: false)
                     .task {
                         await donorObject.loadDonors()
                     }
-            }
+//            }
             .tabItem {
                 Label("Donations", systemImage: "dollarsign")
             }
             .tag(0)
             
-                //                    NavigationView {
-                //                        DonationListView()
-                //                            .task {
-                //                                await donationObject.loadDonations()
-                //                            }
-                //                    }
-                //                    .tabItem {
-                //                        Label("Donations", systemImage: "dollarsign.circle")
-                //                    }
-                //
-                //                    NavigationView {
-                //                        CampaignListView(campaignObject: campaignObject)
-                //                            .task {
-                //                                await campaignObject.loadCampaigns()
-                //                            }
-                //                    }
-                //                    .tabItem {
-                //                        Label("Campaigns", systemImage: "flag")
-                //                    }
-                //
-                //                    NavigationView {
-                //                        DonationIncentiveListView(incentiveObject: incentiveObject)
-                //                            .task {
-                //                                await incentiveObject.loadIncentives()
-                //                            }
-                //                    }
-                //                    .tabItem {
-                //                        Label("Incentives", systemImage: "gift")
-                //                    }
             NavigationView {
                 MaintenanceView(campaignObject: campaignObject, incentiveObject: incentiveObject, donorObject: donorObject, donationObject: donationObject)
             }
@@ -68,11 +39,17 @@ struct MasterTabView: View {
             }
             .tag(1)
             
+            StubPersonView()
+                .tabItem {
+                    Label("Stub Person", systemImage: "person")
+                }
+                .tag(2)
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
-                .tag(2)
+            .tag(3)
+            
             
         }
     }

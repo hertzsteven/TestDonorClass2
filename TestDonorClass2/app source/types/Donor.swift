@@ -10,7 +10,7 @@ import Foundation
 import GRDB
 
 // MARK: - Donor Model
-struct Donor: Identifiable, Codable, FetchableRecord, PersistableRecord {
+struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecord {
     var id: Int?
     let uuid: String
     var salutation: String?

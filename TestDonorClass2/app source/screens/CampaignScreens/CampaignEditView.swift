@@ -149,11 +149,8 @@
                     return  // Safety check - shouldn't happen
                 }
             } else {
-                // Creating a new campaign
-    //                let x = 111
                 campaign = Campaign(
-                    uuid: "",        // Keep original UUID
-    //                    uuid: UUID().uuidString,      // Generate new UUID
+                    uuid: UUID().uuidString,      // Generate new UUID
                     campaignCode: campaignCode,     // New campaign code
                     name: name,                    // New name
                     description: description,       // New description

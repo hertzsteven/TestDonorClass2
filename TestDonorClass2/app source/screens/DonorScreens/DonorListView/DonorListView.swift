@@ -21,6 +21,8 @@ struct DonorListView: View {
     @State private var showAlert = false      // Controls alert visibility
     @State private var alertMessage = ""      // Alert message content
     
+    @State private var selectedDonor: Donor? = nil
+    
     
     enum SearchMode: String, CaseIterable {
         case name = "Name"
@@ -34,16 +36,16 @@ struct DonorListView: View {
     var body: some View {
         VStack(spacing: 0) {
                 // Search mode picker at the top
-            if donorObject.loadingState == .loaded {
-                Picker("Search Mode", selection: $searchMode) {
-                    ForEach(SearchMode.allCases, id: \.self) { mode in
-                        Text(mode.rawValue).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-            }
+//            if donorObject.loadingState == .loaded {
+//                Picker("Search Mode", selection: $searchMode) {
+//                    ForEach(SearchMode.allCases, id: \.self) { mode in
+//                        Text(mode.rawValue).tag(mode)
+//                    }
+//                }
+//                .pickerStyle(.segmented)
+//                .padding(.horizontal)
+//                .padding(.vertical, 8)
+//            }
             
                 // Main content
             Group {
@@ -59,8 +61,26 @@ struct DonorListView: View {
                     
                 case .loaded:
                     let _ = print("loaded")
-                    donorList
+                    if viewModel.maintenanceMode {
+                        donorList
+                    } else {
+                        
                     
+                        //                    donorList
+                    if donorObject.donors.isEmpty {
+                        VStack {
+                            Button(action: {
+                                showingAddDonor = true }) {
+                                    Label("Add Donor", systemImage: "plus") }
+                            EmptyStateView(
+                                message: "No donors found",
+                                action: { Task { await donorObject.loadDonors() }},
+                                actionTitle: "Refresh"
+                            )
+                        }
+                    } else {
+                        newDonorList}
+                }
                 case .error(let message):
                     let _ = print("in error")
                     ErrorView(message: message) {
@@ -156,9 +176,97 @@ struct DonorListView: View {
 //                    } : nil)
                 }
             }
-            .listStyle(PlainListStyle())
+//            .listStyle(PlainListStyle())
         }
     }
+    
+    var newDonorList: some View {
+        
+//        NavigationSplitView {
+//            List(donorObject.donors, selection: $selectedDonor) { donor in
+//                NavigationLink(value: donor) {
+//                    DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+//                }
+//            }
+            NavigationSplitView {
+                List(selection: $selectedDonor) {
+                    ForEach(donorObject.donors) { donor in
+                        NavigationLink(value: donor) {
+                            DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+                        }
+                    }
+                    .onDelete(perform: viewModel.maintenanceMode ? handleDelete : nil)
+                }
+//            .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
+//            .listStyle(PlainListStyle())
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        print("clear")
+                        selectedDonor = nil
+                    }) {
+                        Text("Clear")
+                    }
+                    .buttonStyle(.plain)
+                }
+                ToolbarItem(placement: .bottomBar) {
+                    if donorObject.loadingState == .loaded {
+                        Picker("Search Mode", selection: $searchMode) {
+                            ForEach(SearchMode.allCases, id: \.self) { mode in
+                                Text(mode.rawValue).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                    }
+                }
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button(action: { showingAddDonor = true }) {
+                        Label("Add Donor", systemImage: "plus")
+                    }
+                    
+                    if !viewModel.maintenanceMode {
+                        Button(action: { showingDefaults = true }) {
+                            Label("Defaults", systemImage: "gear")
+                        }
+                    }
+                }
+            }
+        } detail: {
+            if viewModel.maintenanceMode {
+
+                if let donor = selectedDonor {
+                    DonorDetailView(donor: donor)
+                        .environmentObject(donationObject)
+                } else {
+                    Text("Select a donor")
+                }
+
+            } else {
+                
+                if let donor = selectedDonor {
+                    DonationEditView(donor: donor)
+                        .environmentObject(donationObject)
+                } else {
+                    Text("Select a donor")
+                }
+            }
+
+        }
+            
+//        .navigationDestination(for: Donor.self, destination: { donor in
+//            DonationEditView(donor: donor)
+//                .environmentObject(donationObject)
+//        })
+    }
+                 
+              
+              
+      
+
     
     private func handleDelete(at indexSet: IndexSet) {
         Task {

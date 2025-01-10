@@ -26,7 +26,7 @@ struct MaintenanceView: View {
     @State private var errorMessage = ""
     
     var body: some View {
-        NavigationStack {
+//        NavigationStack {
             List {
                 Section("Donor Management") {
                  NavigationLink("Donors") {
@@ -70,7 +70,7 @@ struct MaintenanceView: View {
             } message: {
                 Text(errorMessage)
             }
-        }
+//        }
     }
 }
 
