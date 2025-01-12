@@ -18,7 +18,13 @@
         let dbName: String = "donations_db.sqlite"
         static let shared = DatabaseManager()
         private var dbPool: DatabasePool!
+
+
         private init() {
+            connectToDB()
+        }
+        
+        func connectToDB() {
             do {
                 let databaseURL = try FileManager.default
                     .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
@@ -39,9 +45,22 @@
                 fatalError("Database initialization failed: \(error)")
             }
         }
+        
+        
         func getDbPool() -> DatabasePool {
             dbPool
         }
+        // close dbPool
+        
+        func closeConnections() {
+            do {
+                try dbPool.close()
+                dbPool = nil
+            } catch let error {
+                print("Error closing database: \(error)")
+            }
+        }
+        
         // Make function throwing and fix the scalar issue
         //            func testDatabaseConnection() throws {  // Added throws here
         //                do {

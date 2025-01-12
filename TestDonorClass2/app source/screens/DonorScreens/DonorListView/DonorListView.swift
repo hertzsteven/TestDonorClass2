@@ -239,8 +239,10 @@ struct DonorListView: View {
             if viewModel.maintenanceMode {
 
                 if let donor = selectedDonor {
+                    
                     DonorDetailView(donor: donor)
                         .environmentObject(donationObject)
+                        .toolbar(.hidden, for: .tabBar)
                 } else {
                     Text("Select a donor")
                 }
@@ -250,8 +252,10 @@ struct DonorListView: View {
                 if let donor = selectedDonor {
                     DonationEditView(donor: donor)
                         .environmentObject(donationObject)
+                        .toolbar(.hidden, for: .tabBar)
                 } else {
                     Text("Select a donor")
+                        .toolbar(.visible, for: .tabBar)
                 }
             }
 

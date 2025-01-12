@@ -49,8 +49,6 @@ struct MasterTabView: View {
                     Label("Settings", systemImage: "gearshape")
                 }
             .tag(3)
-            
-            
         }
     }
     
