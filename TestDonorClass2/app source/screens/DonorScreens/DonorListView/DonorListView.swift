@@ -199,42 +199,53 @@ struct DonorListView: View {
                 }
 //            .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
 //            .listStyle(PlainListStyle())
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        print("clear")
-                        selectedDonor = nil
-                    }) {
-                        Text("Clear")
-                    }
-                    .buttonStyle(.plain)
-                }
-                ToolbarItem(placement: .bottomBar) {
-                    if donorObject.loadingState == .loaded {
-                        Picker("Search Mode", selection: $searchMode) {
-                            ForEach(SearchMode.allCases, id: \.self) { mode in
-                                Text(mode.rawValue).tag(mode)
+                .toolbar {
+                    if let donor = selectedDonor {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(action: {
+                                print("clear")
+                                selectedDonor = nil
+                            }) {
+                                Text("Clear").foregroundColor(Color.blue)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }else {
+                        ToolbarItemGroup {
+                            Button("Add Donor", action: { showingAddDonor = true })
+                            if !viewModel.maintenanceMode {
+                                Button(action: { showingDefaults = true }) {
+                                    Label("Defaults", systemImage: "gear")
+                                }
                             }
                         }
-                        .pickerStyle(.segmented)
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
                     }
-                }
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddDonor = true }) {
-                        Label("Add Donor", systemImage: "plus")
-                    }
-                    
-                    if !viewModel.maintenanceMode {
-                        Button(action: { showingDefaults = true }) {
-                            Label("Defaults", systemImage: "gear")
+                    ToolbarItem(placement: .bottomBar) {
+                        if donorObject.loadingState == .loaded {
+                            Picker("Search Mode", selection: $searchMode) {
+                                ForEach(SearchMode.allCases, id: \.self) { mode in
+                                    Text(mode.rawValue).tag(mode)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
                         }
                     }
                 }
-            }
+//            .toolbar {
+//                ToolbarItemGroup(placement: .navigationBarTrailing) {
+//                    Button(action: { showingAddDonor = true }) {
+//                        Label("Add Donor", systemImage: "plus")
+//                    }
+//                    
+//                    if !viewModel.maintenanceMode {
+//                        Button(action: { showingDefaults = true }) {
+//                            Label("Defaults", systemImage: "gear")
+//                        }
+//                    }
+//                }
+//            }
         } detail: {
             if viewModel.maintenanceMode {
 

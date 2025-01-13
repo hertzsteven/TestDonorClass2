@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		464F66DF2D355390006E26F7 /* SwiftCSV in Frameworks */ = {isa = PBXBuildFile; productRef = 464F66DE2D355390006E26F7 /* SwiftCSV */; };
 		46FD889A2D1BAF990070DA16 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 46FD88992D1BAF990070DA16 /* GRDB */; };
 /* End PBXBuildFile section */
 
@@ -70,6 +71,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				46FD889A2D1BAF990070DA16 /* GRDB in Frameworks */,
+				464F66DF2D355390006E26F7 /* SwiftCSV in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -131,6 +133,7 @@
 			name = TestDonorClass2;
 			packageProductDependencies = (
 				46FD88992D1BAF990070DA16 /* GRDB */,
+				464F66DE2D355390006E26F7 /* SwiftCSV */,
 			);
 			productName = TestDonorClass2;
 			productReference = 46FD88542D1AFB1D0070DA16 /* TestDonorClass2.app */;
@@ -217,6 +220,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				46FD88982D1BAF990070DA16 /* XCRemoteSwiftPackageReference "GRDB" */,
+				464F66DD2D355390006E26F7 /* XCRemoteSwiftPackageReference "SwiftCSV" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 46FD88552D1AFB1D0070DA16 /* Products */;
@@ -592,6 +596,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		464F66DD2D355390006E26F7 /* XCRemoteSwiftPackageReference "SwiftCSV" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/naoty/SwiftCSV";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.10.0;
+			};
+		};
 		46FD88982D1BAF990070DA16 /* XCRemoteSwiftPackageReference "GRDB" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/groue/GRDB.swift";
@@ -603,6 +615,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		464F66DE2D355390006E26F7 /* SwiftCSV */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 464F66DD2D355390006E26F7 /* XCRemoteSwiftPackageReference "SwiftCSV" */;
+			productName = SwiftCSV;
+		};
 		46FD88992D1BAF990070DA16 /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 46FD88982D1BAF990070DA16 /* XCRemoteSwiftPackageReference "GRDB" */;

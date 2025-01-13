@@ -39,14 +39,19 @@ struct MasterTabView: View {
             }
             .tag(1)
             
-            StubPersonView()
-                .tabItem {
-                    Label("Stub Person", systemImage: "person")
-                }
-                .tag(2)
+//            StubPersonView()
+//                .tabItem {
+//                    Label("Stub Person", systemImage: "person")
+//                }
+//                .tag(2)
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
+                }
+            .tag(2)
+            CSVHandlerView()
+                .tabItem {
+                    Label("Load Data", systemImage: "pencil")
                 }
             .tag(3)
         }
@@ -54,3 +59,6 @@ struct MasterTabView: View {
     
 }
 
+#Preview {
+    MasterTabView()
+}

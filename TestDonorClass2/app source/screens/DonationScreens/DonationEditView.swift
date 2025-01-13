@@ -64,6 +64,8 @@
         @State private var alertMessage = ""
         @State private var alertTitle = ""  // Add this line
         @State private var isError = false   // Add this line
+        
+        @State private var defaultsLoaded: Bool = false
 
         // Add new state properties
         @State private var selectedCampaign: Campaign?
@@ -99,9 +101,14 @@
                         .font(.title2)
 //                        .font(.system(size: 38)) // Set font size to 38
 //                        .font(systemFont(size: 24))
-                        .padding()
+                      
                     Spacer()
-                }
+                    if defaultsLoaded {
+                        Label("Defaults Loaded", systemImage: "checkmark.circle.fill")
+                            .foregroundColor(.cyan)
+                    }
+                    
+                }  .padding()
                 Form {
                     
                     Section(header: Text("Donation Details")) {
@@ -203,6 +210,16 @@
         private func loadAndApplyDefaultSettings() async {
                 // TODO: Load default settings from your repository
                 // For now, we'll create a sample default settings
+            
+            if         defaultDonationSettingsViewModel.settings.amount != nil
+                        || defaultDonationSettingsViewModel.settings.donationType != nil
+                    || defaultDonationSettingsViewModel.settings.campaignId != nil
+                    || defaultDonationSettingsViewModel.settings.donationIncentiveId != nil
+                    || defaultDonationSettingsViewModel.settings.requestEmailReceipt
+                    || defaultDonationSettingsViewModel.settings.requestPrintedReceipt {
+                defaultsLoaded.toggle()
+            }
+            
             let settings = DefaultDonationSettings(
                 amount: defaultDonationSettingsViewModel.settings.amount,
                 donationType: defaultDonationSettingsViewModel.settings.donationType,

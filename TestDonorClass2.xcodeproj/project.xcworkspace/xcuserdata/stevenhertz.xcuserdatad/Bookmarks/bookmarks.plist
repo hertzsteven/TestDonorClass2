@@ -3,6 +3,51 @@
 <plist version="1.0">
 <dict>
 	<key>top-level-items</key>
-	<array/>
+	<array>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>16</string>
+					<key>EndingLineNumber</key>
+					<string>105</string>
+					<key>StartingColumnNumber</key>
+					<string>9</string>
+					<key>StartingLineNumber</key>
+					<string>105</string>
+					<key>Timestamp</key>
+					<string>758396994.92664</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>TestDonorClass2/app source/screens/DonorScreens/DonorListView/DonorListView.swift</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>toolbar</string>
+				<key>leading</key>
+				<string>            viewModel.searchText = "" // Clear search when changing modes
+        }
+        .</string>
+				<key>trailing</key>
+				<string> {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Button(action: { showingAddDonor = true }) {
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+	</array>
 </dict>
 </plist>
