@@ -13,6 +13,8 @@ struct CampaignListView: View {
     @StateObject private var viewModel: CampaignListViewModel
     @State private var showingAddCampaign = false
     
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
+    
         // Alert handling properties
     @State private var showAlert = false      // Controls alert visibility
     @State private var alertMessage = ""      // Alert message content
@@ -54,6 +56,12 @@ struct CampaignListView: View {
                     Label("Add Campaign", systemImage: "plus")
                 }
             }
+            ToolbarItem(placement: .bottomBar) {
+                Button(action: { toggleSidebar() }) {
+                    Label("Sidebar", systemImage: "sidebar.left")
+                }
+                
+            }
         }
         .sheet(isPresented: $showingAddCampaign) {
             CampaignEditView(mode: .add)
@@ -63,6 +71,9 @@ struct CampaignListView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(alertMessage)
+        }
+        .onDisappear {
+            toggleSidebar()
         }
     }
     
@@ -97,6 +108,12 @@ struct CampaignListView: View {
                 }
                 
             }
+        }
+    }
+    
+    private func toggleSidebar() {
+        withAnimation {
+            columnVisibility = (columnVisibility == .all) ? .detailOnly : .all
         }
     }
 }

@@ -12,7 +12,7 @@
         // MARK: - Published Properties
         @Published var donors: [Donor] = []
         @Published var errorMessage: String?
-        @Published var loadingState: LoadingState = .notLoaded
+        @Published var loadingState: LoadingState = .loaded
         
         // MARK: - Private Properties
         private let repository: any DonorSpecificRepositoryProtocol
@@ -24,6 +24,17 @@
         }
         
         // MARK: - Data Loading
+        func clearDonors() async  {
+            print("Starting to clear donors")
+            await MainActor.run { loadingState = .loading }
+            let fetchedDonors = [Donor]()
+            await MainActor.run {
+                self.donors = fetchedDonors
+                self.loadingState = .loaded
+                print("Cleared donors array count: \(self.donors.count)")
+            }
+        }
+        
         func loadDonors() async {
             print("Starting to load donors")
             guard loadingState == .notLoaded else {
@@ -35,7 +46,8 @@
             
 //            try? await Task.sleep(for: .seconds(1))
             do {
-                let fetchedDonors = try await repository.getAll()
+//                let fetchedDonors = try await repository.getAll()
+                let fetchedDonors =    [Donor]()
                 print("Fetched donors count: \(fetchedDonors.count)")
                 await MainActor.run {
                     self.donors = fetchedDonors
@@ -81,13 +93,24 @@
             return donor
         }
         
+        func getCount() async throws -> Int {
+            let count = try await repository.getCount()
+            return count
+        }
+        
         // MARK: - Search Operations
         func searchDonors(_ searchText: String) async throws {
             if searchText.isEmpty {
-                await loadDonors()
+//                await loadDonors()
+                await MainActor.run {
+                    self.donors = []
+                }
                 return
             }
-            
+            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 3 {
+                return
+            }
+
             let results = try await repository.findByName(searchText)
             await MainActor.run {
                 self.donors = results

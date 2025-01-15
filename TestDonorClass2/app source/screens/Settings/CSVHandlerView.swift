@@ -79,7 +79,8 @@
         
         init() {
             do {
-                try CSVHandler.initialize(fileName: "UTISample")
+//                try CSVHandler.initialize(fileName: "UTISample")
+                try CSVHandler.initialize(fileName: "UTIMAIN")
                 initializationMessage = "CSVHandler initialized successfully."
             } catch {
                 initializationMessage = "Error initializing CSVHandler: \(error.localizedDescription)"
@@ -131,13 +132,20 @@
                 } else {
                   print(row[CSVColumns.mnf])
                     }
-                
-                let donor = Donor(
-                    uuid: UUID().uuidString,
-                    firstName: row[CSVColumns.first.description] ?? "",
-                    lastName: row[CSVColumns.last.description] ?? "",
-                    jewishName: row[CSVColumns.mnf]?.isEmpty ?? true ? nil : row[CSVColumns.mnf]
-                )
+
+                let donor = Donor(uuid: UUID().uuidString,
+                              salutation: row[CSVColumns.salutation]?.isEmpty ?? true ? nil : row[CSVColumns.salutation],
+                              firstName: row[CSVColumns.first] ?? "",
+                              lastName: row[CSVColumns.last] ?? "",
+                              jewishName: row[CSVColumns.jewName]?.isEmpty ?? true ? nil : row[CSVColumns.jewName],
+                              address: row[CSVColumns.street]?.isEmpty ?? true ? nil : row[CSVColumns.street],
+                              city: row[CSVColumns.city]?.isEmpty ?? true ? nil : row[CSVColumns.city],
+                              state: row[CSVColumns.state]?.isEmpty ?? true ? nil : row[CSVColumns.state],
+                              zip: row[CSVColumns.zip]?.isEmpty ?? true ? nil : row[CSVColumns.zip],
+//                              email: row[CSVColumns.city]?.isEmpty ?? true ? nil : row[CSVColumns.city],
+//                              phone: row[CSVColumns.city]?.isEmpty ?? true ? nil : row[CSVColumns.city],
+//                              donorSource: row[CSVColumns.city]?.isEmpty ?? true ? nil : row[CSVColumns.city],
+                              notes: row[CSVColumns.lastContributions]?.isEmpty ?? true ? nil : row[CSVColumns.lastContributions])
                 Task {
                     do {
                         try await donorObject.addDonor(donor)

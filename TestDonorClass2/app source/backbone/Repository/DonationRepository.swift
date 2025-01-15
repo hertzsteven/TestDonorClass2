@@ -35,6 +35,18 @@
             }
         }
         
+        func getCount() async throws -> Int {
+            do {
+                let count = try await dbPool.read { db in
+                    try Donation.fetchCount(db)
+                }
+                return count
+            } catch {
+                handleError(error, context: "Failed to count all")
+                throw RepositoryError.fetchFailed(error.localizedDescription)
+            }
+        }
+        
         func getOne(_ id: Int) async throws -> Donation? {
             try await dbPool.read { db in
                 try Donation.fetchOne(db, id: id)

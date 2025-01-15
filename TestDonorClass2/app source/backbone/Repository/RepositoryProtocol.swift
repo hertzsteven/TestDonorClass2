@@ -15,6 +15,9 @@ protocol RepositoryProtocol {
     func insert(_ item: Model) async throws
         // Read
     func getAll() async throws -> [Model]
+    
+    func getCount() async throws -> Int 
+    
     func getOne(_ id: Int) async throws -> Model?
         // Update
     func update(_ item: Model) async throws

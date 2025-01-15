@@ -72,7 +72,8 @@ struct CSVHandler {
 
             do {
                 // Ensure the file exists in the bundle
-                guard let path = Bundle.main.path(forResource: "UTISample", ofType: "csv") else {
+//                guard let path = Bundle.main.path(forResource: "UTISample", ofType: "csv") else {
+                guard let path = Bundle.main.path(forResource: "UTIMAIN", ofType: "txt") else {
                     print("CSV file not found in the bundle.")
                     return
                 }

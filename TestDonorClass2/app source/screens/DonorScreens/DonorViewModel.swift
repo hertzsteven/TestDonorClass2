@@ -39,7 +39,7 @@ class DonorListViewModel: ObservableObject {
 //            donorObject.loadingState = .notLoaded
             if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 print("Loading all donors in search...")
-                try await donorObject.loadDonors()
+//                try await donorObject.loadDonors()
             } else {
                 print("Loading donors matching search...")
                 try await donorObject.searchDonors(searchText)
@@ -53,13 +53,19 @@ class DonorListViewModel: ObservableObject {
     }
     
         // Update performSearch method
-    func performSearch(mode: DonorListView.SearchMode, oldValue oldValue: String, newValue newSearchText: String ) async throws {
+    func performSearch(mode: DonorListView.SearchMode, newValue sdovidearchText: String ) async throws {
+        print("Performing search... new \(searchText)")
+        
             guard !searchText.isEmpty else {
-                await MainActor.run { donorObject.loadingState = .notLoaded }
+//                await MainActor.run {
+                    donorObject.loadingState = .notLoaded
+                await donorObject.clearDonors()
+//                }
 //                donorObject.loadingState = .notLoaded
-                await donorObject.loadDonors()
-                await MainActor.run { donorObject.loadingState = .loaded }
-//                donorObject.loadingState = .loaded
+//                await MainActor.run { donorObject.clearDonors() }
+                print("Search text empty and number of donors loaded is \(donorObject.donors.count)")
+//                await MainActor.run { donorObject.loadingState = .loaded }
+                donorObject.loadingState = .loaded
                 return
             }
             

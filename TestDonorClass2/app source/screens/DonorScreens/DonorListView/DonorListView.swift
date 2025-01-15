@@ -11,17 +11,18 @@ import SwiftUI
 struct DonorListView: View {
     @EnvironmentObject var donorObject: DonorObjectClass
     @EnvironmentObject var donationObject: DonationObjectClass
-//    @EnvironmentObject var defaultDonationSettingsViewModel: DefaultDonationSettingsViewModel
     @StateObject private var viewModel: DonorListViewModel
     @State private var showingAddDonor = false
     @State private var showingDefaults = false
     @State var searchMode: SearchMode = .name
     
         // Alert handling properties
-    @State private var showAlert = false      // Controls alert visibility
-    @State private var alertMessage = ""      // Alert message content
+    @State private var showAlert = false
+    @State private var alertMessage = ""
     
     @State private var selectedDonor: Donor? = nil
+    
+    @State private var donorCount: Int = 0
     
     
     enum SearchMode: String, CaseIterable {
@@ -35,19 +36,7 @@ struct DonorListView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-                // Search mode picker at the top
-//            if donorObject.loadingState == .loaded {
-//                Picker("Search Mode", selection: $searchMode) {
-//                    ForEach(SearchMode.allCases, id: \.self) { mode in
-//                        Text(mode.rawValue).tag(mode)
-//                    }
-//                }
-//                .pickerStyle(.segmented)
-//                .padding(.horizontal)
-//                .padding(.vertical, 8)
-//            }
-            
-                // Main content
+            /*
             Group {
                 switch donorObject.loadingState {
                     
@@ -60,27 +49,25 @@ struct DonorListView: View {
                     LoadingView(message: "Loading donors...")
                     
                 case .loaded:
-                    let _ = print("loaded")
+                    let _ = print("donors loaded")
                     if viewModel.maintenanceMode {
                         donorList
                     } else {
-                        
-                    
                         //                    donorList
-                    if donorObject.donors.isEmpty {
-                        VStack {
-                            Button(action: {
-                                showingAddDonor = true }) {
-                                    Label("Add Donor", systemImage: "plus") }
-                            EmptyStateView(
-                                message: "No donors found",
-                                action: { Task { await donorObject.loadDonors() }},
-                                actionTitle: "Refresh"
-                            )
-                        }
-                    } else {
+//                    if donorCount == 0 {
+//                        VStack {
+//                            Button(action: {
+//                                showingAddDonor = true }) {
+//                                    Label("Add Donor", systemImage: "plus") }
+//                            EmptyStateView(
+//                                message: "No donors found",
+//                                action: { Task { await donorObject.loadDonors() }},
+//                                actionTitle: "Refresh"
+//                            )
+//                        }
+//                    } else {
                         newDonorList}
-                }
+//                }
                 case .error(let message):
                     let _ = print("in error")
                     ErrorView(message: message) {
@@ -92,12 +79,68 @@ struct DonorListView: View {
                     }
                 }
             }
+            */
+            if viewModel.maintenanceMode {
+                VStack {
+                        // Buttons for Search and Clear
+                        HStack {
+                            Button(action: {print("search")}) {
+                                Text("Search")
+                                    .frame(maxWidth: .infinity, minHeight: 36)
+                                    .padding(.horizontal, 12)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                            }
+                            
+                            Button(action: {print("search")}) {
+                                Text("Clear")
+                                    .frame(maxWidth: .infinity, minHeight: 36)
+                                    .padding(.horizontal, 12)
+                                    .background(Color.red)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                            }
+                        }
+                        .padding([.horizontal, .top])
+                    donorList
+                }
+               
+            } else {
+                    //                    donorList
+                    //                    if donorCount == 0 {
+                    //                        VStack {
+                    //                            Button(action: {
+                    //                                showingAddDonor = true }) {
+                    //                                    Label("Add Donor", systemImage: "plus") }
+                    //                            EmptyStateView(
+                    //                                message: "No donors found",
+                    //                                action: { Task { await donorObject.loadDonors() }},
+                    //                                actionTitle: "Refresh"
+                    //                            )
+                    //                        }
+                    //                    } else {
+                
+                newDonorList
+            }
+
+        }
+        .onAppear {
+
+            Task {
+                donorCount = try await donorObject.getCount()
+                donorObject.loadingState = .loaded
+            }
+
         }
         .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
         .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
         .onChange(of: viewModel.searchText) { oldValue, newValue in
             Task {
-                try await viewModel.performSearch(mode: searchMode, oldValue: oldValue, newValue: newValue)
+                if oldValue.count > 0 && newValue.count == 0 {
+                    try await viewModel.performSearch(mode: searchMode, newValue: newValue)
+                }
+                
             }
         }
         .onChange(of: searchMode) { oldValue, newValue in
@@ -116,7 +159,7 @@ struct DonorListView: View {
                 }
             }
         }
-            // Error alert configuration
+
         .alert("Error", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -147,7 +190,7 @@ struct DonorListView: View {
                 if donorObject.donors.isEmpty {
                     EmptyStateView(
                         message: "No donors found",
-                        action: { Task { await donorObject.loadDonors() }},
+                        action: { print("refres")},
                         actionTitle: "Refresh"
                     )
                 } else {
@@ -167,38 +210,47 @@ struct DonorListView: View {
                         }
                     }
                     .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
-//                    .onDelete(perform: viewModel.maintenanceMode ? { indexSet in
-//                        Task {
-//                            if let index = indexSet.first {
-//                                try? await donorObject.deleteDonor(donorObject.donors[index])
-//                            }
-//                        }
-//                    } : nil)
                 }
             }
-//            .listStyle(PlainListStyle())
         }
     }
     
     var newDonorList: some View {
         
-//        NavigationSplitView {
-//            List(donorObject.donors, selection: $selectedDonor) { donor in
-//                NavigationLink(value: donor) {
-//                    DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-//                }
-//            }
             NavigationSplitView {
-                List(selection: $selectedDonor) {
-                    ForEach(donorObject.donors) { donor in
-                        NavigationLink(value: donor) {
-                            DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+                VStack {
+                        // Buttons for Search and Clear
+                        HStack {
+                            Button(action: {
+                                Task {
+                                    try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                                }
+                            }) {
+                                Text("Search")
+                                    .frame(maxWidth: .infinity, minHeight: 36)
+                                    .padding(.horizontal, 12)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                            }
+                        }
+                        .padding([.horizontal])
+                    switch donorObject.donors.isEmpty {
+                    case true:
+                        Text("Please search for a donor").tint(.gray)
+                        Spacer()
+                    case false:
+                        List(selection: $selectedDonor) {
+                            ForEach(donorObject.donors) { donor in
+                                NavigationLink(value: donor) {
+                                    DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+                                }
+                            }
+                            .onDelete(perform: viewModel.maintenanceMode ? handleDelete : nil)
                         }
                     }
-                    .onDelete(perform: viewModel.maintenanceMode ? handleDelete : nil)
                 }
-//            .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
-//            .listStyle(PlainListStyle())
+
                 .toolbar {
                     if let donor = selectedDonor {
                         ToolbarItem(placement: .navigationBarTrailing) {
@@ -233,19 +285,6 @@ struct DonorListView: View {
                         }
                     }
                 }
-//            .toolbar {
-//                ToolbarItemGroup(placement: .navigationBarTrailing) {
-//                    Button(action: { showingAddDonor = true }) {
-//                        Label("Add Donor", systemImage: "plus")
-//                    }
-//                    
-//                    if !viewModel.maintenanceMode {
-//                        Button(action: { showingDefaults = true }) {
-//                            Label("Defaults", systemImage: "gear")
-//                        }
-//                    }
-//                }
-//            }
         } detail: {
             if viewModel.maintenanceMode {
 
@@ -271,17 +310,7 @@ struct DonorListView: View {
             }
 
         }
-            
-//        .navigationDestination(for: Donor.self, destination: { donor in
-//            DonationEditView(donor: donor)
-//                .environmentObject(donationObject)
-//        })
     }
-                 
-              
-              
-      
-
     
     private func handleDelete(at indexSet: IndexSet) {
         Task {
@@ -300,14 +329,6 @@ struct DonorListView: View {
     }
 }
 
-    //
-    //  DonorViews.swift
-    //  TestDonorClass2
-    //
-    //  Created by Steven Hertz on 12/24/24.
-    //
-
-import SwiftUI
 
 #Preview {
         // Create a donor object with mock data

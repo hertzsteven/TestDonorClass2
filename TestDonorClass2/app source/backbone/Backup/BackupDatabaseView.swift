@@ -11,6 +11,11 @@ struct BackupDatabaseView: View {
             Text("Backup Your Database")
                 .font(.title)
             
+            Button("copy over resource") {
+                performCopy()
+            }
+            
+             
             Button("Pick Folder to Backup") {
                 showFolderPicker = true
             }
@@ -69,6 +74,31 @@ struct BackupDatabaseView: View {
             }
                 // Copy your DB file
             try fileManager.copyItem(at: dbURL, to: destinationURL)
+            return "Successfully backed up to: \(destinationURL.lastPathComponent)"
+        } catch {
+            return "Error copying database: \(error.localizedDescription)"
+        }
+    }
+    
+    private func performCopy() -> String {
+        
+            // Do the file operation
+        let fileManager = FileManager.default
+        
+            // get a file from project resources
+        let fileURL = Bundle.main.url(forResource: "UTIMAIN", withExtension: "csv")!
+        print("fileURL: \(fileURL)")
+        
+        let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let destinationURL = documentsURL.appendingPathComponent(fileURL.lastPathComponent)
+        
+        do {
+                // If a file already exists at the same name, remove it
+            if fileManager.fileExists(atPath: destinationURL.path) {
+                try fileManager.removeItem(at: destinationURL)
+            }
+                // Copy your DB file
+            try fileManager.copyItem(at: fileURL, to: destinationURL)
             return "Successfully backed up to: \(destinationURL.lastPathComponent)"
         } catch {
             return "Error copying database: \(error.localizedDescription)"

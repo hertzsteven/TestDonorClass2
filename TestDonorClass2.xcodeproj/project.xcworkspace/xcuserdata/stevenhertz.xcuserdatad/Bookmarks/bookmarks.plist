@@ -10,15 +10,15 @@
 				<key>location-parameters</key>
 				<dict>
 					<key>EndingColumnNumber</key>
-					<string>16</string>
+					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>105</string>
+					<string>210</string>
 					<key>StartingColumnNumber</key>
-					<string>9</string>
+					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>105</string>
+					<string>209</string>
 					<key>Timestamp</key>
-					<string>758396994.92664</string>
+					<string>758586484.078563</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -34,17 +34,65 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>toolbar</string>
+				<string>                        }
+</string>
 				<key>leading</key>
-				<string>            viewModel.searchText = "" // Clear search when changing modes
-        }
-        .</string>
+				<string>                                }
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+</string>
 				<key>trailing</key>
-				<string> {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                Button(action: { showingAddDonor = true }) {
+				<string>                    }
+                    .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
+                }
 </string>
 			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>52</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>51</string>
+					<key>Timestamp</key>
+					<string>758571718.580235</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>TestDonorClass2/app source/screens/DonorScreens/DonorListView/DonorListView.swift</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>                    let _ = print("donors loaded")
+</string>
+				<key>leading</key>
+				<string>                    
+                case .loaded:
+</string>
+				<key>trailing</key>
+				<string>                    if viewModel.maintenanceMode {
+                        donorList
+                    } else {
+</string>
+			</dict>
+			<key>title</key>
+			<string>Find Result:                     let _ = print("loaded")</string>
 			<key>type</key>
 			<string>bookmark</string>
 		</dict>

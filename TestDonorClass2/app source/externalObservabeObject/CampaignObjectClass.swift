@@ -23,6 +23,7 @@
         }
         
         // MARK: - Data Loading
+        
         func loadCampaigns() async {
             print("Starting to load campaigns")
             guard loadingState == .notLoaded else {

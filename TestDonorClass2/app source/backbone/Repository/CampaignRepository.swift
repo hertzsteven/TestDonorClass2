@@ -49,6 +49,18 @@ class CampaignRepository: CampaignSpecificRepositoryProtocol {
             throw RepositoryError.fetchFailed(error.localizedDescription)
         }
     }
+    
+    func getCount() async throws -> Int {
+        do {
+            let count = try await dbPool.read { db in
+                try Campaign.fetchCount(db)
+            }
+            return count
+        } catch {
+            handleError(error, context: "Failed to count all")
+            throw RepositoryError.fetchFailed(error.localizedDescription)
+        }
+    }
 
         // MARK: - CRUD
     func insert(_ campaign: Campaign) async throws  {
