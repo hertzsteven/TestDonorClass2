@@ -33,7 +33,10 @@ struct MasterTabView: View {
                 }
                 .tag(0)
             NavigationView {
-                MaintenanceView(campaignObject: campaignObject, incentiveObject: incentiveObject, donorObject: donorObject, donationObject: donationObject)
+                MaintenanceView(campaignObject: campaignObject,
+                                incentiveObject: incentiveObject,
+                                donorObject: donorObject,
+                                donationObject: donationObject)
             }
             .tabItem {
                 Label("Maintenance", systemImage: "square.grid.3x1.folder.badge.plus")

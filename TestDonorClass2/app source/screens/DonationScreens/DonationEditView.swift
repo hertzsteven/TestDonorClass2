@@ -15,9 +15,11 @@
         var body: some View {
             Section(header: Text("Campaign")) {
                 Picker("Campaign", selection: $selectedCampaign) {
-                    Text("None").tag(Campaign?.none)
-                    ForEach(campaignObject.campaigns.filter { $0.status == .active }) { campaign in
-                        Text(campaign.name).tag(Campaign?.some(campaign))
+                    Text("None").tag(nil as Campaign?)
+//
+                    ForEach(campaignObject.campaigns.filter { $0.id ?? 100 > 99 }) { campaign in
+//                    ForEach(campaignObject.campaigns) { campaign in
+                        Text(campaign.name).tag(campaign  as Campaign?)
                     }
                 }
             }
@@ -97,10 +99,13 @@
   
             VStack {
                 HStack {
-                    Text("For " + donor.firstName + " " + donor.lastName)
-                        .font(.title2)
-//                        .font(.system(size: 38)) // Set font size to 38
-//                        .font(systemFont(size: 24))
+                    if let firstName = donor.firstName, let lastName = donor.lastName {
+                        Text("For " + firstName + " " + lastName )
+                            .font(.title2)
+    //                        .font(.system(size: 38)) // Set font size to 38
+    //                        .font(systemFont(size: 24))
+                    }
+
                       
                     Spacer()
                     if defaultsLoaded {
@@ -129,6 +134,7 @@
                     }
                     
                     CampaignPickerView(selectedCampaign: $selectedCampaign)
+                    
                     IncentivePickerView(selectedIncentive: $selectedIncentive)
                     
                     Section(header: Text("Receipt Options")) {

@@ -37,17 +37,17 @@
         
         func loadDonors() async {
             print("Starting to load donors")
-            guard loadingState == .notLoaded else {
-                print("Skipping load - current state: \(loadingState)")
-                return
-            }
+//            guard loadingState == .notLoaded else {
+//                print("Skipping load - current state: \(loadingState)")
+//                return
+//            }
             
             await MainActor.run { loadingState = .loading }
             
 //            try? await Task.sleep(for: .seconds(1))
             do {
-//                let fetchedDonors = try await repository.getAll()
-                let fetchedDonors =    [Donor]()
+                let fetchedDonors = try await repository.getAll()
+//                let fetchedDonors =    [Donor]()
                 print("Fetched donors count: \(fetchedDonors.count)")
                 await MainActor.run {
                     self.donors = fetchedDonors

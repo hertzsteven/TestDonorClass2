@@ -53,7 +53,8 @@ class DonorListViewModel: ObservableObject {
     }
     
         // Update performSearch method
-    func performSearch(mode: DonorListView.SearchMode, newValue sdovidearchText: String ) async throws {
+    @MainActor
+    func performSearch(mode: DonorListView.SearchMode, newValue searchText: String ) async throws {
         print("Performing search... new \(searchText)")
         
             guard !searchText.isEmpty else {

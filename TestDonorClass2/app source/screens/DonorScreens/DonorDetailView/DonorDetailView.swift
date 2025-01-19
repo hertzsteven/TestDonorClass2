@@ -11,7 +11,15 @@ struct DonorDetailView: View {
     let donor: Donor
     @State private var showingEditSheet = false
     @EnvironmentObject var donorObject: DonorObjectClass
+    @EnvironmentObject var donationObject: DonationObjectClass
     @Environment(\.presentationMode) var presentationMode
+    
+        // Add state for donations and loading state
+        @State private var donorDonations: [Donation] = []
+        @State private var isLoadingDonations = true // Changed to true by default
+        @State private var donationsError: String? = nil
+
+    
     
     var body: some View {
         Form {
@@ -19,8 +27,12 @@ struct DonorDetailView: View {
                 if let salutation = donor.salutation {
                     LabeledContent("Salutation", value: salutation)
                 }
-                LabeledContent("First Name", value: donor.firstName)
-                LabeledContent("Last Name", value: donor.lastName)
+                if let firstName = donor.firstName {
+                    LabeledContent("First Name", value: firstName)
+                }
+                if let lastName = donor.lastName {
+                    LabeledContent("Last Name", value: lastName)
+                }
                 if let jewishName = donor.jewishName {
                     LabeledContent("Jewish Name", value: jewishName)
                 }
@@ -49,6 +61,22 @@ struct DonorDetailView: View {
                     LabeledContent("ZIP", value: zip)
                 }
             }
+            
+                // Modified Donations section with async loading
+            Section(header: Text("Donations")) {
+                DonationsListView(
+                    isLoadingDonations: isLoadingDonations,
+                    donationsError: donationsError,
+                    donorDonations: donorDonations,
+                    onReload: {
+                        Task {
+                            await loadDonations()
+                        }
+                    }
+
+                )
+            }
+                          
         }
         .navigationTitle("Donor Details")
         .toolbar {
@@ -63,7 +91,67 @@ struct DonorDetailView: View {
                 DonorEditView(mode: .edit(donor))
 //            }
         }
+            // Remove the existing .task modifier
+            // Add onChange modifier to watch donor changes
+        .onChange(of: donor, initial: true) { oldValue, newValue in
+             Task {
+                 await loadDonations()
+             }
+         }
+//            .onAppear {
+//                Task {
+//                    await loadDonations()
+//                }
+//            }
     }
+    
+        // Modified loadDonations to be async
+        private func loadDonations() async {
+            guard let donorId = donor.id else { return }
+            // Reset states
+            await MainActor.run {
+                isLoadingDonations = true
+                donationsError = nil
+                donorDonations = []
+            }
+            
+            do {
+                try await donationObject.loadDonationsForDonor(donorId: donorId)
+                await MainActor.run {
+                    self.donorDonations = donationObject.donations
+                    self.isLoadingDonations = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.donationsError = "Failed to load donations: \(error.localizedDescription)"
+                    self.isLoadingDonations = false
+                }
+            }
+        }
+
+        // Modified to use async/await properly
+    private func loadDonationsold() async {
+            guard let donorId = donor.id else { return }
+            // Reset states
+            isLoadingDonations = true
+            donationsError = nil
+            donorDonations = []
+//            Task {
+                do {
+                    try await donationObject.loadDonationsForDonor(donorId: donorId)
+                    await MainActor.run {
+                        self.donorDonations = donationObject.donations
+                        self.isLoadingDonations = false
+                    }
+                } catch {
+                    await MainActor.run {
+                        self.donationsError = "Failed to load donations: \(error.localizedDescription)"
+                        self.isLoadingDonations = false
+                    }
+                }
+//            }
+        }
+
 }
         // MARK: - Preview
         #Preview {

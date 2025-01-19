@@ -15,6 +15,7 @@ struct DonorListView: View {
     @State private var showingAddDonor = false
     @State private var showingDefaults = false
     @State var searchMode: SearchMode = .name
+    @State var clearTheDonors: Bool = false
     
         // Alert handling properties
     @State private var showAlert = false
@@ -80,6 +81,8 @@ struct DonorListView: View {
                 }
             }
             */
+            /* mh maint
+            
             if viewModel.maintenanceMode {
                 VStack {
                         // Buttons for Search and Clear
@@ -121,8 +124,9 @@ struct DonorListView: View {
                     //                        }
                     //                    } else {
                 
+               */
                 newDonorList
-            }
+//            }
 
         }
         .onAppear {
@@ -138,7 +142,9 @@ struct DonorListView: View {
         .onChange(of: viewModel.searchText) { oldValue, newValue in
             Task {
                 if oldValue.count > 0 && newValue.count == 0 {
+                    clearTheDonors = true
                     try await viewModel.performSearch(mode: searchMode, newValue: newValue)
+                    clearTheDonors = false
                 }
                 
             }
@@ -235,7 +241,7 @@ struct DonorListView: View {
                             }
                         }
                         .padding([.horizontal])
-                    switch donorObject.donors.isEmpty {
+                    switch donorObject.donors.isEmpty || clearTheDonors {
                     case true:
                         Text("Please search for a donor").tint(.gray)
                         Spacer()
@@ -264,12 +270,24 @@ struct DonorListView: View {
                         }
                     }else {
                         ToolbarItemGroup {
-                            Button("Add Donor", action: { showingAddDonor = true })
-                            if !viewModel.maintenanceMode {
+                            if viewModel.maintenanceMode {
+                                Button { showingAddDonor = true } label: {
+                                    Text(Image(systemName: "plus"))
+                                }
+
+                            } else {
+                                
                                 Button(action: { showingDefaults = true }) {
                                     Label("Defaults", systemImage: "gear")
                                 }
                             }
+                            
+                            Button {
+                                viewModel.maintenanceMode.toggle()
+                            }  label: {
+                                Text(viewModel.maintenanceMode ? Image(systemName: "info.circle") : Image(systemName: "dollarsign.circle"))
+                            }
+                            
                         }
                     }
                     ToolbarItem(placement: .bottomBar) {

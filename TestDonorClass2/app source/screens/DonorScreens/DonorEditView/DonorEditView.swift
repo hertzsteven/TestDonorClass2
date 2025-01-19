@@ -130,8 +130,8 @@ struct DonorEditView: View {
                 if case .edit(let donor) = mode {
                     // Populate fields with existing donor data
                     salutation = donor.salutation ?? ""
-                    firstName = donor.firstName
-                    lastName = donor.lastName
+                    firstName = donor.firstName  ?? ""
+                    lastName = donor.lastName  ?? ""
                     jewishName = donor.jewishName ?? ""
                     email = donor.email ?? ""
                     phone = formatPhoneNumber(donor.phone ?? "")

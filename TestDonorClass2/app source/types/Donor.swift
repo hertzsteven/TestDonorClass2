@@ -14,8 +14,8 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
     var id: Int?
     let uuid: String
     var salutation: String?
-    var firstName: String
-    var lastName: String
+    var firstName: String?
+    var lastName: String?
     var jewishName: String?
     var address: String?
     var city: String?
@@ -30,7 +30,7 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
     
     // MARK: - Computed Properties
     var fullName: String {
-        "\(firstName) \(lastName)"
+        "\(firstName ?? "")  \(lastName ?? "")"
     }
     
     // MARK: - Table Definition
@@ -70,8 +70,8 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
     init(// id: Int = 0,
          uuid: String = UUID().uuidString,
          salutation: String? = nil,
-         firstName: String,
-         lastName: String,
+         firstName: String? = nil,
+         lastName: String? = nil,
          jewishName: String? = nil,
          address: String? = nil,
          city: String? = nil,
@@ -105,10 +105,10 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
 // MARK: - Validation Extension
 extension Donor {
     func validate() throws {
-        if firstName.isEmpty {
+        if ((firstName?.isEmpty) != nil) {
             throw ValidationError.emptyFirstName
         }
-        if lastName.isEmpty {
+        if ((lastName?.isEmpty) != nil) {
             throw ValidationError.emptyLastName
         }
         if let email = email, !email.isEmpty {

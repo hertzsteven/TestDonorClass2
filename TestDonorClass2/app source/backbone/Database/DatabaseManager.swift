@@ -25,10 +25,39 @@
         }
         
         func connectToDB() {
+            let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            print("Catalyst documents path:", docsURL?.path ?? "nil")
+
+            let libraryURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first
+            print("Catalyst library path:", libraryURL?.path ?? "nil")
+            print("Catalyst library path:", libraryURL?.path ?? "nil")
+
             do {
                 let databaseURL = try FileManager.default
                     .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
                     .appendingPathComponent(dbName)
+                
+                let fileManager = FileManager.default
+                
+                    // get a file from project resources
+                let fileURL = Bundle.main.url(forResource: "donations_db", withExtension: "sqlite")!
+                print("fileURL: \(fileURL)")
+                
+                do {
+                        // If a file already exists at the same name, remove it
+                    if !fileManager.fileExists(atPath: databaseURL.path) {
+                        print("DB file not found, copying from bundle.")
+                        
+                            // Copy your DB file
+                        try fileManager.copyItem(at: fileURL, to: databaseURL)
+                    } else {
+                        print("DB file found.")
+                    }
+                } catch {
+                    fatalError("could not copy the file")
+                }
+                
+
                 dbPool = try DatabasePool(path: databaseURL.path)
                     // Enable foreign key constraints
                 try dbPool.write { db in
@@ -163,8 +192,8 @@
                     t.autoIncrementedPrimaryKey("id")
                     t.column("uuid", .text).notNull().unique()
                     t.column("salutation", .text)
-                    t.column("first_name", .text).notNull()
-                    t.column("last_name", .text).notNull()
+                    t.column("first_name", .text) // .notNull()
+                    t.column("last_name", .text)  // .notNull()
                     t.column("jewish_name", .text)
                     t.column("address", .text)
                     t.column("city", .text)
@@ -285,8 +314,8 @@
                         t.autoIncrementedPrimaryKey("id")
                         t.column("uuid", .text).notNull().unique()
                         t.column("salutation", .text)
-                        t.column("first_name", .text).notNull()
-                        t.column("last_name", .text).notNull()
+                        t.column("first_name", .text) // .notNull()
+                        t.column("last_name", .text)  // .notNull()
                         t.column("jewish_name", .text)
                         t.column("address", .text)
                         t.column("city", .text)

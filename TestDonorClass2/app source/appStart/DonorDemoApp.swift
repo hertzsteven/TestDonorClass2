@@ -22,6 +22,13 @@
 //            Thread.sleep(forTimeInterval: 15.0)
             _donorObject = StateObject(wrappedValue: DonorObjectClass())
             _donationObject = StateObject(wrappedValue: DonationObjectClass())
+            let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            print("Catalyst documents path:", docsURL?.path ?? "nil")
+
+            let libraryURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first
+            print("Catalyst library path:", libraryURL?.path ?? "nil")
+            print("Catalyst library path:", libraryURL?.path ?? "nil")
+
         }
         
         var body: some Scene {

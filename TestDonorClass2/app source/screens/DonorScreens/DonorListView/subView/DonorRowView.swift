@@ -27,7 +27,9 @@
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(donor.fullName)
-                                    .font(.headline)
+                                    .font(.subheadline)
+                                    .foregroundColor(.primary)
+//                                    .font(.system(size: 16, weight: .semibold))
                                 if let address = donor.address {
                                     Text(address)
                                         .font(.subheadline)
@@ -35,18 +37,8 @@
                                 }
                             }
                             Spacer()
-                            
-                            if !maintenanceMode {
-                                Button(action: {
-                                    showingDonationSheet = true
-                                }) {
-                                    Image(systemName: "dollarsign.circle")
-                                        .foregroundColor(.blue)
-                                        .imageScale(.large)
-                                }
-                                .buttonStyle(BorderlessButtonStyle())
-                            }
-                             
+                            // if in maintenancemode show info circle else show doller
+                            Text(maintenanceMode ? Image(systemName: "info.circle") : Image(systemName: "dollarsign.circle")).foregroundStyle(.secondary)
                         }
                         if !maintenanceMode {
                             Group {
@@ -69,6 +61,14 @@
                             }
                         }
                     }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.white)
+                            .shadow(radius: 2)
+                    )
+
+                    
                     .sheet(isPresented: $showingDonationSheet) {
                         NavigationView {
                             DonationEditView(donor: donor)
