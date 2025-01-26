@@ -13,11 +13,14 @@ import GRDB
 struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecord {
     var id: Int?
     let uuid: String
+    var company: String?
     var salutation: String?
     var firstName: String?
     var lastName: String?
     var jewishName: String?
     var address: String?
+    var addl_line: String?
+    var suite: String?
     var city: String?
     var state: String?
     var zip: String?
@@ -30,18 +33,28 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
     
     // MARK: - Computed Properties
     var fullName: String {
-        "\(firstName ?? "")  \(lastName ?? "")"
+        if let company = company {
+            return "\(firstName ?? "")  \(lastName ?? "")\n\(company)"
+        } else {
+            return "\(firstName ?? "")  \(lastName ?? "")"
+        }
+    }
+    var fullNameOld: String {
+        "\(firstName ?? "")  \(lastName ?? "")  \(company ?? "")"
     }
     
     // MARK: - Table Definition
     enum Columns {
         static let id = Column("id")
         static let uuid = Column("uuid")
+        static let company = Column("company")
         static let salutation = Column("salutation")
         static let firstName = Column("first_name")
         static let lastName = Column("last_name")
         static let jewishName = Column("jewish_name")
         static let address = Column("address")
+        static let addl_line = Column("addl_line")
+        static let suite = Column("suite")
         static let city = Column("city")
         static let state = Column("state")
         static let zip = Column("zip")
@@ -55,11 +68,11 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
 
     // MARK: - GRDB Coding Keys
     enum CodingKeys: String, CodingKey {
-        case id, uuid, salutation
+        case id, uuid, company, salutation
         case firstName = "first_name"
         case lastName = "last_name"
         case jewishName = "jewish_name"
-        case address, city, state, zip, email, phone
+        case address, addl_line, suite ,city, state, zip, email, phone
         case donorSource = "donor_source"
         case notes
         case createdAt = "created_at"
@@ -68,38 +81,44 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
     
     // MARK: - Initialization
     init(// id: Int = 0,
-         uuid: String = UUID().uuidString,
-         salutation: String? = nil,
-         firstName: String? = nil,
-         lastName: String? = nil,
-         jewishName: String? = nil,
-         address: String? = nil,
-         city: String? = nil,
-         state: String? = nil,
-         zip: String? = nil,
-         email: String? = nil,
-         phone: String? = nil,
-         donorSource: String? = nil,
-         notes: String? = nil,
-         createdAt: Date = Date(),
-         updatedAt: Date = Date()) {
-//        self.id = id
-        self.uuid = uuid
-        self.salutation = salutation
-        self.firstName = firstName
-        self.lastName = lastName
-        self.jewishName = jewishName
-        self.address = address
-        self.city = city
-        self.state = state
-        self.zip = zip
-        self.email = email
-        self.phone = phone
-        self.donorSource = donorSource
-        self.notes = notes
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
+        uuid: String = UUID().uuidString,
+        company: String? = nil,
+        salutation: String? = nil,
+        firstName: String? = nil,
+        lastName: String? = nil,
+        jewishName: String? = nil,
+        address: String? = nil,
+        addl_line: String? = nil,
+        suite: String? = nil,
+        city: String? = nil,
+        state: String? = nil,
+        zip: String? = nil,
+        email: String? = nil,
+        phone: String? = nil,
+        donorSource: String? = nil,
+        notes: String? = nil,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()) {
+                //        self.id = id
+            self.uuid = uuid
+            self.salutation = salutation
+            self.company = company
+            self.firstName = firstName
+            self.lastName = lastName
+            self.jewishName = jewishName
+            self.address = address
+            self.addl_line = addl_line
+            self.suite = suite
+            self.city = city
+            self.state = state
+            self.zip = zip
+            self.email = email
+            self.phone = phone
+            self.donorSource = donorSource
+            self.notes = notes
+            self.createdAt = createdAt
+            self.updatedAt = updatedAt
+        }
 }
 
 // MARK: - Validation Extension

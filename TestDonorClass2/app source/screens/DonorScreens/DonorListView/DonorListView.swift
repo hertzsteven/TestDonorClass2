@@ -21,7 +21,11 @@ struct DonorListView: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     
-    @State private var selectedDonor: Donor? = nil
+    @State  var selectedDonor: Donor? = nil
+    @State private var selectedDonorID: Donor.ID?  // Which donor is currently selected?
+
+    /// A new donor used for the "Add Donor" flow (since we need a binding).
+   @State private var blankDonor = Donor()
     
     @State private var donorCount: Int = 0
     
@@ -131,7 +135,7 @@ struct DonorListView: View {
         }
         .onAppear {
 
-            Task {
+             Task {
                 donorCount = try await donorObject.getCount()
                 donorObject.loadingState = .loaded
             }
@@ -173,7 +177,7 @@ struct DonorListView: View {
         }
         
         .sheet(isPresented: $showingAddDonor) {
-            DonorEditView(mode: .add)
+            DonorEditView(mode: .add, donor: $blankDonor)
         }
         .sheet(isPresented: $showingDefaults) {
             DefaultDonationSettingsView()
@@ -181,45 +185,45 @@ struct DonorListView: View {
         }
     }
     
-    private var donorList: some View {
-        VStack(alignment: .leading, spacing: 0) {
-                // Add Select a Donor text as part of the list
-            if !donorObject.donors.isEmpty {
-                Text("Select a Donor")
-                    .font(.title)
-                    .fontWeight(.regular)
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-            }
-            
-            List {
-                if donorObject.donors.isEmpty {
-                    EmptyStateView(
-                        message: "No donors found",
-                        action: { print("refres")},
-                        actionTitle: "Refresh"
-                    )
-                } else {
-                    ForEach(donorObject.donors) { donor in
-                        if viewModel.maintenanceMode {
-                            NavigationLink(destination: DonorDetailView(donor: donor)) {
-                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-                            }
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        } else {
-                            
-                            NavigationLink(destination: DonationEditView(donor: donor)
-                                .environmentObject(donationObject)) {
-                                    DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-                                }
-                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        }
-                    }
-                    .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
-                }
-            }
-        }
-    }
+//    private var donorList: some View {
+//        VStack(alignment: .leading, spacing: 0) {
+//                // Add Select a Donor text as part of the list
+//            if !donorObject.donors.isEmpty {
+//                Text("Select a Donor")
+//                    .font(.title)
+//                    .fontWeight(.regular)
+//                    .padding(.horizontal)
+//                    .padding(.vertical, 8)
+//            }
+//            
+//            List {
+//                if donorObject.donors.isEmpty {
+//                    EmptyStateView(
+//                        message: "No donors found",
+//                        action: { print("refres")},
+//                        actionTitle: "Refresh"
+//                    )
+//                } else {
+//                    ForEach(donorObject.donors) { donor in
+//                        if viewModel.maintenanceMode {
+//                            NavigationLink(destination: DonorDetailView(donor: donor)) {
+//                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+//                            }
+//                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+//                        } else {
+//                            
+//                            NavigationLink(destination: DonationEditView(donor: donor)
+//                                .environmentObject(donationObject)) {
+//                                    DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+//                                }
+//                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+//                        }
+//                    }
+//                    .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
+//                }
+//            }
+//        }
+//    }
     
     var newDonorList: some View {
         
@@ -246,8 +250,9 @@ struct DonorListView: View {
                         Text("Please search for a donor").tint(.gray)
                         Spacer()
                     case false:
-                        List(selection: $selectedDonor) {
-                            ForEach(donorObject.donors) { donor in
+                        
+                        List(selection: $selectedDonorID) {
+                            ForEach($donorObject.donors) { $donor in
                                 NavigationLink(value: donor) {
                                     DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
                                 }
@@ -303,12 +308,16 @@ struct DonorListView: View {
                         }
                     }
                 }
+                
         } detail: {
             if viewModel.maintenanceMode {
+                if let donorID = selectedDonorID,
+                   let theDonorIdx = donorObject.donors.firstIndex(where: { $0.id == donorID }) {
 
-                if let donor = selectedDonor {
-                    
-                    DonorDetailView(donor: donor)
+                
+//                if let donor = selectedDonor,
+//                   let theDonorIdx = donorObject.donors.firstIndex(of: donor) {
+                    DonorDetailView(donor: $donorObject.donors[theDonorIdx])
                         .environmentObject(donationObject)
                         .toolbar(.hidden, for: .tabBar)
                 } else {

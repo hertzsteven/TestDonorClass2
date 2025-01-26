@@ -13,6 +13,8 @@
         @Published var donors: [Donor] = []
         @Published var errorMessage: String?
         @Published var loadingState: LoadingState = .loaded
+        @Published var lastUpdatedDonor: Donor? = nil  // Add this property
+
         
         // MARK: - Private Properties
         private let repository: any DonorSpecificRepositoryProtocol
@@ -21,6 +23,11 @@
         // MARK: - Initialization
         init(repository: DonorRepository = DonorRepository()) {
             self.repository = repository
+        }
+        
+        @MainActor
+        func refreshDonor(_ donor: Donor) {
+            self.lastUpdatedDonor = donor
         }
         
         // MARK: - Data Loading
@@ -65,20 +72,21 @@
         
         // MARK: - CRUD Operations
         func addDonor(_ donor: Donor) async throws {
+            dump(donor)
             try await repository.insert(donor)
-            let fetchedDonors = try await repository.getAll()
-            await MainActor.run {
-                self.donors = fetchedDonors
-            }
+//            let fetchedDonors = try await repository.getAll()
+//            await MainActor.run {
+//                self.donors = fetchedDonors
+//            }
         }
         
         func updateDonor(_ donor: Donor) async throws {
             try await repository.update(donor)
-            await MainActor.run {
-                if let index = donors.firstIndex(where: { $0.id == donor.id }) {
-                    donors[index] = donor
-                }
-            }
+//            await MainActor.run {
+//                if let index = donors.firstIndex(where: { $0.id == donor.id }) {
+//                    donors[index] = donor
+//                }
+//            }
         }
         
         func deleteDonor(_ donor: Donor) async throws {

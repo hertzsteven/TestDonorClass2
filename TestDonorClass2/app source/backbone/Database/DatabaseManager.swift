@@ -313,11 +313,14 @@
                     try db.create(table: "donor") { t in
                         t.autoIncrementedPrimaryKey("id")
                         t.column("uuid", .text).notNull().unique()
+                        t.column("company", .text)
                         t.column("salutation", .text)
                         t.column("first_name", .text) // .notNull()
                         t.column("last_name", .text)  // .notNull()
                         t.column("jewish_name", .text)
                         t.column("address", .text)
+                        t.column("addl_line", .text)
+                        t.column("suite", .text)
                         t.column("city", .text)
                         t.column("state", .text)
                         t.column("zip", .text)
@@ -329,7 +332,7 @@
                         t.column("updated_at", .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
                     }
                     // Create donor indexes
-                    try db.create(index: "idx_donor_name", on: "donor", columns: ["last_name", "first_name"])
+                    try db.create(index: "idx_donor_name", on: "donor", columns: ["last_name", "first_name", "company"])
                     try db.create(index: "idx_donor_email", on: "donor", columns: ["email"])
                     try db.create(index: "idx_donor_uuid", on: "donor", columns: ["uuid"])
                     // Create update trigger for donor timestamps

@@ -108,7 +108,8 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
         do {
             let donors = try await dbPool.read { db in
                 try Donor.filter(Column("first_name").like("%\(searchText)%") ||
-                                 Column("last_name").like("%\(searchText)%"))
+                                 Column("last_name").like("%\(searchText)%") ||
+                                 Column("company").like("%\(searchText)%"))
                 .order(Column("last_name"), Column("first_name"))
                 .fetchAll(db)
             }

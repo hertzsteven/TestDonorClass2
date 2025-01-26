@@ -12,13 +12,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>216</string>
+					<string>280</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>215</string>
+					<string>279</string>
 					<key>Timestamp</key>
-					<string>758779024.186612</string>
+					<string>759590763.3704619</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -34,16 +34,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>                        }
+				<string>                                    Text(Image(systemName: "plus"))
 </string>
 				<key>leading</key>
-				<string>                                }
-                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+				<string>                            if viewModel.maintenanceMode {
+                                Button { showingAddDonor = true } label: {
 </string>
 				<key>trailing</key>
-				<string>                    }
-                    .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
-                }
+				<string>                                }
+
+                            } else {
 </string>
 			</dict>
 			<key>type</key>
@@ -57,13 +57,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>53</string>
+					<string>179</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>52</string>
+					<string>178</string>
 					<key>Timestamp</key>
-					<string>758760905.438693</string>
+					<string>759590763.370481</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -79,20 +79,18 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>                    let _ = print("donors loaded")
+				<string>        .sheet(isPresented: $showingAddDonor) {
 </string>
 				<key>leading</key>
-				<string>                    
-                case .loaded:
+				<string>        }
+        
 </string>
 				<key>trailing</key>
-				<string>                    if viewModel.maintenanceMode {
-                        donorList
-                    } else {
+				<string>            DonorEditView(mode: .add, donor: $blankDonor)
+        }
+        .sheet(isPresented: $showingDefaults) {
 </string>
 			</dict>
-			<key>title</key>
-			<string>Find Result:                     let _ = print("loaded")</string>
 			<key>type</key>
 			<string>bookmark</string>
 		</dict>
