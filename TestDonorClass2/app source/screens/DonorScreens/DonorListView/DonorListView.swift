@@ -229,6 +229,8 @@ struct DonorListView: View {
         
             NavigationSplitView {
                 VStack {
+
+                    
                         // Buttons for Search and Clear
                         HStack {
                             Button(action: {
@@ -250,8 +252,20 @@ struct DonorListView: View {
                         Text("Please search for a donor").tint(.gray)
                         Spacer()
                     case false:
-                        
+                        GroupBox(label: Label("Managing Donors", systemImage: "Managing Donors")) {
+    //                        Text("Managing Donation Incentives")
+    //                            .font(.headline)
+                            VStack(alignment: .leading) {
+                                Text("• Tap + to add a new donor")
+                                Text("• Tap any donor to edit details")
+                                Text("• Swipe left on a donor to delete")
+                            }
+                        }
+                        .backgroundStyle(.thinMaterial)
+                        .padding()
+
                         List(selection: $selectedDonorID) {
+
                             ForEach($donorObject.donors) { $donor in
                                 NavigationLink(value: donor) {
                                     DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
@@ -313,8 +327,6 @@ struct DonorListView: View {
             if viewModel.maintenanceMode {
                 if let donorID = selectedDonorID,
                    let theDonorIdx = donorObject.donors.firstIndex(where: { $0.id == donorID }) {
-
-                
 //                if let donor = selectedDonor,
 //                   let theDonorIdx = donorObject.donors.firstIndex(of: donor) {
                     DonorDetailView(donor: $donorObject.donors[theDonorIdx])
@@ -325,9 +337,9 @@ struct DonorListView: View {
                 }
 
             } else {
-                
-                if let donor = selectedDonor {
-                    DonationEditView(donor: donor)
+                if let donorID = selectedDonorID,
+                   let theDonorIdx = donorObject.donors.firstIndex(where: { $0.id == donorID }) {
+                    DonationEditView(donor: donorObject.donors[theDonorIdx])
                         .environmentObject(donationObject)
                         .toolbar(.hidden, for: .tabBar)
                 } else {

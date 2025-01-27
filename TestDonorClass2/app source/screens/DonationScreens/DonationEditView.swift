@@ -51,24 +51,24 @@
         @EnvironmentObject var defaultDonationSettingsViewModel: DefaultDonationSettingsViewModel
         
         // Add defaultSettings property
-        @State private var defaultSettings: DefaultDonationSettings?
+        @State private var defaultSettings      : DefaultDonationSettings?
         
-        @State private var amount: String = ""
-        @State private var donationType: DonationType = .creditCard
-        @State private var notes: String = ""
-        @State private var isAnonymous: Bool = false
-        @State private var requestEmailReceipt: Bool = false
+        @State private var amount               : String = ""
+        @State private var donationType         : DonationType = .creditCard
+        @State private var notes                : String = ""
+        @State private var isAnonymous          : Bool = false
+        @State private var requestEmailReceipt  : Bool = false
         @State private var requestPrintedReceipt: Bool = false
-        @State private var campaignId: Int? = nil
-        @State private var incentiveId: Int? = nil
+        @State private var campaignId           : Int? = nil
+        @State private var incentiveId          : Int? = nil
         
-        @State private var showingAlert = false
-        @State private var alertMessage = ""
-        @State private var alertTitle = ""  // Add this line
-        @State private var isError = false   // Add this line
+        @State private var showingAlert         = false
+        @State private var alertMessage         = ""
+        @State private var alertTitle           = ""  // Add this line
+        @State private var isError              = false   // Add this line
         
         @State private var defaultsLoaded: Bool = false
-
+        
         // Add new state properties
         @State private var selectedCampaign: Campaign?
         @State private var selectedIncentive: DonationIncentive?
