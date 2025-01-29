@@ -9,26 +9,28 @@ import SwiftUI
 
     // MARK: - Main List View
 struct DonorListView: View {
-    @EnvironmentObject var donorObject: DonorObjectClass
-    @EnvironmentObject var donationObject: DonationObjectClass
-    @StateObject private var viewModel: DonorListViewModel
+    
+    @EnvironmentObject var donorObject        : DonorObjectClass
+    @EnvironmentObject var donationObject     : DonationObjectClass
+    
+    @StateObject private var viewModel        : DonorListViewModel
+    
     @State private var showingAddDonor = false
     @State private var showingDefaults = false
-    @State var searchMode: SearchMode = .name
-    @State var clearTheDonors: Bool = false
+    @State var searchMode: SearchMode  = .name
+    @State var clearTheDonors: Bool    = false
     
         // Alert handling properties
-    @State private var showAlert = false
-    @State private var alertMessage = ""
+    @State private var showAlert       = false
+    @State private var alertMessage    = ""
     
-    @State  var selectedDonor: Donor? = nil
+    @State  var selectedDonor: Donor?  = nil
     @State private var selectedDonorID: Donor.ID?  // Which donor is currently selected?
-
-    /// A new donor used for the "Add Donor" flow (since we need a binding).
-   @State private var blankDonor = Donor()
+    
+        /// A new donor used for the "Add Donor" flow (since we need a binding).
+    @State private var blankDonor       = Donor()
     
     @State private var donorCount: Int = 0
-    
     
     enum SearchMode: String, CaseIterable {
         case name = "Name"
@@ -41,135 +43,35 @@ struct DonorListView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            /*
-            Group {
-                switch donorObject.loadingState {
-                    
-                case .notLoaded:
-                    let _ = print("Not loaded yet")
-                    LoadingView(message: "Initializing...")
-                    
-                case .loading:
-                    let _ = print("loading")
-                    LoadingView(message: "Loading donors...")
-                    
-                case .loaded:
-                    let _ = print("donors loaded")
-                    if viewModel.maintenanceMode {
-                        donorList
-                    } else {
-                        //                    donorList
-//                    if donorCount == 0 {
-//                        VStack {
-//                            Button(action: {
-//                                showingAddDonor = true }) {
-//                                    Label("Add Donor", systemImage: "plus") }
-//                            EmptyStateView(
-//                                message: "No donors found",
-//                                action: { Task { await donorObject.loadDonors() }},
-//                                actionTitle: "Refresh"
-//                            )
-//                        }
-//                    } else {
-                        newDonorList}
-//                }
-                case .error(let message):
-                    let _ = print("in error")
-                    ErrorView(message: message) {
-                        Task {
-                            print("Retrying...")
-                            await donorObject.loadDonors()
-                            print("Retry complete")
-                        }
-                    }
-                }
-            }
-            */
-            /* mh maint
-            
-            if viewModel.maintenanceMode {
-                VStack {
-                        // Buttons for Search and Clear
-                        HStack {
-                            Button(action: {print("search")}) {
-                                Text("Search")
-                                    .frame(maxWidth: .infinity, minHeight: 36)
-                                    .padding(.horizontal, 12)
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
-                            
-                            Button(action: {print("search")}) {
-                                Text("Clear")
-                                    .frame(maxWidth: .infinity, minHeight: 36)
-                                    .padding(.horizontal, 12)
-                                    .background(Color.red)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
-                        }
-                        .padding([.horizontal, .top])
-                    donorList
-                }
-               
-            } else {
-                    //                    donorList
-                    //                    if donorCount == 0 {
-                    //                        VStack {
-                    //                            Button(action: {
-                    //                                showingAddDonor = true }) {
-                    //                                    Label("Add Donor", systemImage: "plus") }
-                    //                            EmptyStateView(
-                    //                                message: "No donors found",
-                    //                                action: { Task { await donorObject.loadDonors() }},
-                    //                                actionTitle: "Refresh"
-                    //                            )
-                    //                        }
-                    //                    } else {
-                
-               */
-                newDonorList
-//            }
-
+            newDonorList
         }
+        
         .onAppear {
-
-             Task {
-                donorCount = try await donorObject.getCount()
-                donorObject.loadingState = .loaded
-            }
-
+            Task {await doOnAppearProcess()  }
         }
         .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
         .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
-        .onChange(of: viewModel.searchText) { oldValue, newValue in
-            Task {
-                if oldValue.count > 0 && newValue.count == 0 {
-                    clearTheDonors = true
-                    try await viewModel.performSearch(mode: searchMode, newValue: newValue)
-                    clearTheDonors = false
-                }
-                
-            }
-        }
-        .onChange(of: searchMode) { oldValue, newValue in
-            viewModel.searchText = "" // Clear search when changing modes
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                Button(action: { showingAddDonor = true }) {
-                    Label("Add Donor", systemImage: "plus")
-                }
-                
-                if !viewModel.maintenanceMode {
-                    Button(action: { showingDefaults = true }) {
-                        Label("Defaults", systemImage: "gear")
-                    }
-                }
-            }
-        }
 
+        
+        .onChange(of: viewModel.searchText) { oldValue, newValue in
+            Task { await handleSearchTextChange(from: oldValue, to: newValue) }
+        }
+        .onChange(of: searchMode) { viewModel.searchText = "" }
+        
+        .toolbar { toolBarListDonors() }
+//            ToolbarItemGroup(placement: .navigationBarTrailing) {
+//                Button(action: { showingAddDonor = true }) {
+//                    Label("Add Donor", systemImage: "plus")
+//                }
+//                
+//                if !viewModel.maintenanceMode {
+//                    Button(action: { showingDefaults = true }) {
+//                        Label("Defaults", systemImage: "gear")
+//                    }
+//                }
+//            }
+        
+        
         .alert("Error", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -181,175 +83,10 @@ struct DonorListView: View {
         }
         .sheet(isPresented: $showingDefaults) {
             DefaultDonationSettingsView()
-//                .environmentObject(defaultDonationSettingsViewModel)
+                //                .environmentObject(defaultDonationSettingsViewModel)
         }
     }
-    
-//    private var donorList: some View {
-//        VStack(alignment: .leading, spacing: 0) {
-//                // Add Select a Donor text as part of the list
-//            if !donorObject.donors.isEmpty {
-//                Text("Select a Donor")
-//                    .font(.title)
-//                    .fontWeight(.regular)
-//                    .padding(.horizontal)
-//                    .padding(.vertical, 8)
-//            }
-//            
-//            List {
-//                if donorObject.donors.isEmpty {
-//                    EmptyStateView(
-//                        message: "No donors found",
-//                        action: { print("refres")},
-//                        actionTitle: "Refresh"
-//                    )
-//                } else {
-//                    ForEach(donorObject.donors) { donor in
-//                        if viewModel.maintenanceMode {
-//                            NavigationLink(destination: DonorDetailView(donor: donor)) {
-//                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-//                            }
-//                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-//                        } else {
-//                            
-//                            NavigationLink(destination: DonationEditView(donor: donor)
-//                                .environmentObject(donationObject)) {
-//                                    DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-//                                }
-//                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-//                        }
-//                    }
-//                    .onDelete(perform:  viewModel.maintenanceMode ? handleDelete : nil)
-//                }
-//            }
-//        }
-//    }
-    
-    var newDonorList: some View {
-        
-            NavigationSplitView {
-                VStack {
 
-                    
-                        // Buttons for Search and Clear
-                        HStack {
-                            Button(action: {
-                                Task {
-                                    try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
-                                }
-                            }) {
-                                Text("Search")
-                                    .frame(maxWidth: .infinity, minHeight: 36)
-                                    .padding(.horizontal, 12)
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
-                        }
-                        .padding([.horizontal])
-                    switch donorObject.donors.isEmpty || clearTheDonors {
-                    case true:
-                        Text("Please search for a donor").tint(.gray)
-                        Spacer()
-                    case false:
-                        GroupBox(label: Label("Managing Donors", systemImage: "Managing Donors")) {
-    //                        Text("Managing Donation Incentives")
-    //                            .font(.headline)
-                            VStack(alignment: .leading) {
-                                Text("• Tap + to add a new donor")
-                                Text("• Tap any donor to edit details")
-                                Text("• Swipe left on a donor to delete")
-                            }
-                        }
-                        .backgroundStyle(.thinMaterial)
-                        .padding()
-
-                        List(selection: $selectedDonorID) {
-
-                            ForEach($donorObject.donors) { $donor in
-                                NavigationLink(value: donor) {
-                                    DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-                                }
-                            }
-                            .onDelete(perform: viewModel.maintenanceMode ? handleDelete : nil)
-                        }
-                    }
-                }
-
-                .toolbar {
-                    if let donor = selectedDonor {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button(action: {
-                                print("clear")
-                                selectedDonor = nil
-                            }) {
-                                Text("Clear").foregroundColor(Color.blue)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }else {
-                        ToolbarItemGroup {
-                            if viewModel.maintenanceMode {
-                                Button { showingAddDonor = true } label: {
-                                    Text(Image(systemName: "plus"))
-                                }
-
-                            } else {
-                                
-                                Button(action: { showingDefaults = true }) {
-                                    Label("Defaults", systemImage: "gear")
-                                }
-                            }
-                            
-                            Button {
-                                viewModel.maintenanceMode.toggle()
-                            }  label: {
-                                Text(viewModel.maintenanceMode ? Image(systemName: "info.circle") : Image(systemName: "dollarsign.circle"))
-                            }
-                            
-                        }
-                    }
-                    ToolbarItem(placement: .bottomBar) {
-                        if donorObject.loadingState == .loaded {
-                            Picker("Search Mode", selection: $searchMode) {
-                                ForEach(SearchMode.allCases, id: \.self) { mode in
-                                    Text(mode.rawValue).tag(mode)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .padding(.horizontal)
-                            .padding(.vertical, 8)
-                        }
-                    }
-                }
-                
-        } detail: {
-            if viewModel.maintenanceMode {
-                if let donorID = selectedDonorID,
-                   let theDonorIdx = donorObject.donors.firstIndex(where: { $0.id == donorID }) {
-//                if let donor = selectedDonor,
-//                   let theDonorIdx = donorObject.donors.firstIndex(of: donor) {
-                    DonorDetailView(donor: $donorObject.donors[theDonorIdx])
-                        .environmentObject(donationObject)
-                        .toolbar(.hidden, for: .tabBar)
-                } else {
-                    Text("Select a donor")
-                }
-
-            } else {
-                if let donorID = selectedDonorID,
-                   let theDonorIdx = donorObject.donors.firstIndex(where: { $0.id == donorID }) {
-                    DonationEditView(donor: donorObject.donors[theDonorIdx])
-                        .environmentObject(donationObject)
-                        .toolbar(.hidden, for: .tabBar)
-                } else {
-                    Text("Select a donor")
-                        .toolbar(.visible, for: .tabBar)
-                }
-            }
-
-        }
-    }
     
     private func handleDelete(at indexSet: IndexSet) {
         Task {
@@ -368,6 +105,208 @@ struct DonorListView: View {
     }
 }
 
+extension DonorListView {
+    private func handleSearchTextChange(from oldValue: String, to newValue: String) async {
+        let isClearing = !oldValue.isEmptyOrWhitespace  && newValue.isEmptyOrWhitespace
+        
+        if isClearing {
+            clearTheDonors = true
+            do {
+                try await viewModel.performSearch(mode: searchMode, newValue: newValue)
+            } catch {
+                // Handle specific errors
+                print("Search failed: \(error)")
+                // You might want to:
+                // - Update UI to show error state
+                // - Log the error
+                // - Show an alert to the user
+                // await handleSearchError(error)
+            }
+            clearTheDonors = false
+        }
+    }
+}
+
+extension DonorListView {
+    var newDonorList: some View {
+        
+        NavigationSplitView {
+            VStack {
+                
+                
+                    // Buttons for Search and Clear
+                HStack {
+                    Button(action: {
+                        Task {
+                            try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                        }
+                    }) {
+                        Text("Search")
+                            .frame(maxWidth: .infinity, minHeight: 36)
+                            .padding(.horizontal, 12)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                    }
+                }
+                .padding([.horizontal])
+                switch donorObject.donors.isEmpty || clearTheDonors {
+                case true:
+                    Text("Please search for a donor").tint(.gray)
+                    Spacer()
+                case false:
+                    GroupBox(label: Label("Managing Donors", systemImage: "Managing Donors")) {
+                            //                        Text("Managing Donation Incentives")
+                            //                            .font(.headline)
+                        VStack(alignment: .leading) {
+                            Text("• Tap any donor to edit details")
+                            Text("• Swipe left on a donor to delete")
+                        }
+                    }
+                    .backgroundStyle(.thinMaterial)
+                    .padding()
+                    
+                    List(selection: $selectedDonorID) {
+                        
+                        ForEach($donorObject.donors) { $donor in
+                            NavigationLink(value: donor) {
+                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+                            }
+                        }
+                        .onDelete(perform: viewModel.maintenanceMode ? handleDelete : nil)
+                    }
+                }
+            }
+            .toolbar { toolBarTrailLeftPane() }
+        } detail: {
+            if viewModel.maintenanceMode {
+                if let donorID = selectedDonorID,
+                   let theDonorIdx = donorObject.donors.firstIndex(where: { $0.id == donorID }) {
+                    DonorDetailView(donor: $donorObject.donors[theDonorIdx])
+                        .environmentObject(donationObject)
+                        .toolbar(.hidden, for: .tabBar)
+                } else {
+                    Text("Select a donor")
+                }
+                
+            } else {
+                if let donorID = selectedDonorID,
+                   let theDonorIdx = donorObject.donors.firstIndex(where: { $0.id == donorID }) {
+                    DonationEditView(donor: donorObject.donors[theDonorIdx])
+                        .environmentObject(donationObject)
+                        .toolbar(.hidden, for: .tabBar)
+                } else {
+                    Text("Select a donor")
+                        .toolbar(.visible, for: .tabBar)
+                }
+            }
+            
+        }
+    }
+}
+
+    // MARK: - Life Cycle Methods
+extension DonorListView {
+    
+    fileprivate func doOnDisappearProcess() {
+    }
+    
+    fileprivate func doOnAppearProcess() async {
+        await loadTheData()
+    }
+    
+    func loadTheData() async {
+        do {
+            donorCount = try await donorObject.getCount()
+            donorObject.loadingState = .loaded
+        } catch {
+            print("Error: \(error)")
+        }
+
+    }
+}
+
+    // MARK: - Toolbars
+extension DonorListView {
+    //    private var toolbarContent: some ToolbarContent {
+    //        ToolbarItem(placement: .navigationBarLeading) {
+    //            Button("Cancel") {
+    //                presentationMode.wrappedValue.dismiss()
+    //            }
+    //        }
+    //
+    //        ToolbarItem(placement: .navigationBarTrailing) {
+    //            Button("Save") {
+    //                print("llll")
+    //            }
+    //            .disabled(true)
+    //        }
+    //    }
+        
+        
+        @ToolbarContentBuilder
+    func toolBarTrailLeftPane() -> some ToolbarContent {
+        if let donor = selectedDonor {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    print("clear")
+                    selectedDonor = nil
+                }) {
+                    Text("Clear").foregroundColor(Color.blue)
+                }
+                .buttonStyle(.plain)
+            }
+        }else {
+            ToolbarItemGroup {
+                if viewModel.maintenanceMode {
+                    Button { showingAddDonor = true } label: {
+                        Text(Image(systemName: "plus"))
+                    }
+                    
+                } else {
+                    
+                    Button(action: { showingDefaults = true }) {
+                        Label("Defaults", systemImage: "gear")
+                    }
+                }
+                
+                Button {
+                    viewModel.maintenanceMode.toggle()
+                }  label: {
+                    Text(viewModel.maintenanceMode ? Image(systemName: "info.circle") : Image(systemName: "dollarsign.circle"))
+                }
+                
+            }
+        }
+        ToolbarItem(placement: .bottomBar) {
+            if donorObject.loadingState == .loaded {
+                Picker("Search Mode", selection: $searchMode) {
+                    ForEach(SearchMode.allCases, id: \.self) { mode in
+                        Text(mode.rawValue).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+        }
+    }
+//
+        @ToolbarContentBuilder
+        func toolBarListDonors() -> some ToolbarContent {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Button(action: { showingAddDonor = true }) {
+                    Label("Add Donor", systemImage: "plus")
+                }
+                
+                if !viewModel.maintenanceMode {
+                    Button(action: { showingDefaults = true }) {
+                        Label("Defaults", systemImage: "gear")
+                    }
+                }
+            }
+        }
+    }
 
 #Preview {
         // Create a donor object with mock data

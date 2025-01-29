@@ -12,13 +12,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>294</string>
+					<string>90</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>293</string>
+					<string>89</string>
 					<key>Timestamp</key>
-					<string>759673630.064912</string>
+					<string>759767321.575693</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -34,16 +34,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>                                    Text(Image(systemName: "plus"))
+				<string>    
 </string>
 				<key>leading</key>
-				<string>                            if viewModel.maintenanceMode {
-                                Button { showingAddDonor = true } label: {
+				<string>    }
+
 </string>
 				<key>trailing</key>
-				<string>                                }
-
-                            } else {
+				<string>    private func handleDelete(at indexSet: IndexSet) {
+        Task {
+            if let index = indexSet.first {
 </string>
 			</dict>
 			<key>type</key>
@@ -57,13 +57,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>179</string>
+					<string>81</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>178</string>
+					<string>80</string>
 					<key>Timestamp</key>
-					<string>759590763.370481</string>
+					<string>759767321.575577</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
