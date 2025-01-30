@@ -15,10 +15,16 @@ struct DonorListView: View {
     
     @StateObject private var viewModel        : DonorListViewModel
     
+    @State private var scannedCode          = ""
+    @State private var isShowingScanner     = false
+    @State private var isShowingResultSheet = false
+
+
     @State private var showingAddDonor = false
     @State private var showingDefaults = false
     @State var searchMode: SearchMode  = .name
     @State var clearTheDonors: Bool    = false
+    @State var isSearchingForDonor: Bool = false
     
         // Alert handling properties
     @State private var showAlert       = false
@@ -52,6 +58,36 @@ struct DonorListView: View {
         .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
         .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
 
+        .sheet(isPresented: $isShowingScanner) {
+            BarcodeScannerView(scannedCode: $scannedCode)
+        }
+        
+        .sheet(isPresented: $isShowingScanner) {
+            BarcodeScannerView(scannedCode: $scannedCode)
+        }
+        
+        .onChange(of: scannedCode) { newValue in
+            if !newValue.isEmpty {
+//                isShowingResultSheet = true
+                print("Scanned code: \(newValue)")
+                $viewModel.searchText.wrappedValue = newValue
+                Task {
+                    try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                }
+//                Task { await handleScannedCode(code: newValue) }
+            }
+        }
+        .sheet(isPresented: $isShowingResultSheet) {
+            VStack {
+                Text("Scanned Code: \(scannedCode)")
+                    .padding()
+                Button("Dismiss") {
+                    isShowingResultSheet = false
+                }
+                .padding()
+            }
+        }
+        
         
         .onChange(of: viewModel.searchText) { oldValue, newValue in
             Task { await handleSearchTextChange(from: oldValue, to: newValue) }
@@ -138,7 +174,9 @@ extension DonorListView {
                 HStack {
                     Button(action: {
                         Task {
+                            isSearchingForDonor.toggle()
                             try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                            isSearchingForDonor.toggle()
                         }
                     }) {
                         Text("Search")
@@ -152,7 +190,11 @@ extension DonorListView {
                 .padding([.horizontal])
                 switch donorObject.donors.isEmpty || clearTheDonors {
                 case true:
-                    Text("Please search for a donor").tint(.gray)
+                    if isSearchingForDonor {
+                        ProgressView()
+                    } else {
+                        Text("Please search for a donor").tint(.gray)
+                    }
                     Spacer()
                 case false:
                     GroupBox(label: Label("Managing Donors", systemImage: "Managing Donors")) {
@@ -269,6 +311,17 @@ extension DonorListView {
                         Label("Defaults", systemImage: "gear")
                     }
                 }
+                
+                if searchMode == .id {
+                    Button(action: {
+                        isShowingScanner.toggle()
+                        print("Scan \(searchMode)")
+                    }) {
+                        Label("Scan Barcode", systemImage: "barcode")
+                    }
+                }
+
+                
                 
                 Button {
                     viewModel.maintenanceMode.toggle()

@@ -42,6 +42,15 @@ struct MasterTabView: View {
                 Label("Maintenance", systemImage: "square.grid.3x1.folder.badge.plus")
             }
             .tag(1)
+                // NEW TAB for batch donations:
+                NavigationView {
+                    BatchDonationView()
+                }
+                .navigationViewStyle(.stack)  // forces single-column layout on iPad
+                .tabItem {
+                    Label("Batch Donations", systemImage: "tablecells.badge.ellipsis")
+                }
+//                .tag(2)
 
                 //            StubPersonView()
                 //                .tabItem {
@@ -52,12 +61,12 @@ struct MasterTabView: View {
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
-                .tag(2)
+                .tag(3)
             CSVHandlerView()
                 .tabItem {
                     Label("Load Data", systemImage: "pencil")
                 }
-                .tag(3)
+                .tag(4)
         }
     }
     
