@@ -87,14 +87,35 @@ struct BatchDonationView: View {
             }
 
             // Optionally, a button to finalize & save all rows into the donation table:
-//            HStack {
-//                Spacer()
-//                Button("Save Batch") {
-//                    Task {
-//                        await viewModel.saveBatch()
-//                    }
-//                }
-//                .padding(.bottom)
+            HStack {
+                Spacer()
+                Button("advanced Batch") {
+                    for row in viewModel.rows  where row.donorID != nil {
+                           let donorIDString = row.donorID.map(String.init) ?? "(none)"
+                           let donationAmount = row.donationOverride.isEmpty
+                               ? viewModel.globalDonation
+                               : row.donationOverride
+                           
+                           print("DonorID: \(donorIDString), Amount: \(donationAmount)")
+                       }
+                }
+                Button("Save Batch") {
+                    for row in viewModel.rows  where row.donorID != nil {
+                            // Use the row's donorID if present, otherwise say "(none)"
+                        let donorIDString = row.donorID.map(String.init) ?? "(none)"
+                        
+                            // If the row's override is blank, use the globalDonation
+                        let donationAmount = row.donationOverride.isEmpty
+                        ? viewModel.globalDonation
+                        : row.donationOverride
+                        
+                            // Print to the console
+                        print("DonorID: \(donorIDString), Amount: \(donationAmount)")
+                    }
+                    
+                }
+            }
+                .padding(.bottom)
 //            }
         }
 //        .padding(.horizontal)
