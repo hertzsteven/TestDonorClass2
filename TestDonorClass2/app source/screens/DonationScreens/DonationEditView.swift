@@ -8,7 +8,7 @@
     import SwiftUI
     import MessageUI
 
-    private struct CampaignPickerView: View {
+    struct CampaignPickerView: View {
         @EnvironmentObject var campaignObject: CampaignObjectClass
         @Binding var selectedCampaign: Campaign?
         

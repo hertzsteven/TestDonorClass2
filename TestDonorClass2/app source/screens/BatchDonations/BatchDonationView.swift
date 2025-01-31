@@ -12,7 +12,12 @@ struct BatchDonationView: View {
     @EnvironmentObject private var donorObject: DonorObjectClass
     @EnvironmentObject private var donationObject: DonationObjectClass
     
+    @EnvironmentObject var campaignObject: CampaignObjectClass
+
+    
     @StateObject private var viewModel = BatchDonationViewModel()
+
+    @State private var selectedCampaign: Campaign?
 
 
     // If you want your focus to jump from row to row:
@@ -22,12 +27,14 @@ struct BatchDonationView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Global donation amount across all rows
             HStack {
+                CampaignPickerView(selectedCampaign: $selectedCampaign)
                 Text("Global Amount:")
                 TextField("Enter global donation",
                           value: $viewModel.globalDonation, format: .number)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .keyboardType(.decimalPad)
                     .frame(width: 100)
+               
             }
             .padding(.top)
             
@@ -111,21 +118,26 @@ struct BatchDonationView: View {
                        }
                 }
                 Button("Save Batch") {
+                    if let x = selectedCampaign?.name {
+                        print("Campaign: \(x)")
+                    }
                     for i in viewModel.rows.indices where viewModel.rows[i].donorID != nil {
-//                    for row in viewModel.rows  where row.donorID != nil {
-                            // Use the row's donorID if present, otherwise say "(none)"
-                        let donorIDString = viewModel.rows[i].donorID.map(String.init) ?? "(none)"
+                        let currentRow = viewModel.rows[i]
+                        let donorIDString = currentRow.donorID.map(String.init) ?? "(none)"
                         
-                            // If the row's override is blank, use the globalDonation
-                        let donationAmount = (viewModel.rows[i].donationOverride == 0.0)
+                        // If the row's override is blank, use the globalDonation
+                        let donationAmount = (currentRow.donationOverride == 0.0)
                         ? viewModel.globalDonation
-                        : viewModel.rows[i].donationOverride
+                        : currentRow.donationOverride
                         
-                            // Print to the console
+                        let campaignID = selectedCampaign?.id ?? nil
+                        let donorID = viewModel.rows[i].donorID
                         print("DonorID: \(donorIDString), Amount: \(donationAmount)")
+
                         Task {
-                            let donation = Donation(donorId: viewModel.rows[i].donorID,
-                                                    amount: donationAmount,
+                            let donation = Donation(donorId:    donorID,
+                                                    campaignId: campaignID,
+                                                    amount:     donationAmount,
                                                     donationType: .check)
                             do {
                                 try await viewModel.addDonation(donation)
@@ -136,12 +148,17 @@ struct BatchDonationView: View {
                             }
                         }
                     }
-                    
                 }
             }
                 .padding(.bottom)
 //            }
         }
+        .onAppear {
+            Task {
+                await campaignObject.loadCampaigns()
+            }
+        }
+
 //        .padding(.horizontal)
             // Optional: load donors or do any setup
 //            .task {
@@ -151,6 +168,7 @@ struct BatchDonationView: View {
 //            }
         .navigationTitle("Batch Donations")
     }
+    
 
 }
 
