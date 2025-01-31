@@ -36,7 +36,7 @@ struct BatchDonationRowView: View {
                 .foregroundColor(row.isValidDonor ? .primary : .red)
             
             // Donation text field
-            TextField("Amount", text: $row.donationOverride)
+            TextField("Amount", value: $row.donationOverride, format: .number)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .keyboardType(.decimalPad)
                 .frame(width: 80)
