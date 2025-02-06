@@ -17,6 +17,8 @@ struct CSVHandler {
     // Private initializer to prevent multiple initializations
     private init(fileName: String, fileExtension: String) throws {
         // Locate the CSV file in the app bundle
+        print(fileName)
+        print("Loading CSV file...")
         guard let path = Bundle.main.path(forResource: fileName, ofType: fileExtension) else {
             throw NSError(domain: "CSVHandler", code: 1, userInfo: [NSLocalizedDescriptionKey: "CSV file not found in the bundle."])
         }

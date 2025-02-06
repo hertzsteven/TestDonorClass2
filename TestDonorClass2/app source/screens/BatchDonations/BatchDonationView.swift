@@ -118,9 +118,11 @@ struct BatchDonationView: View {
                        }
                 }
                 Button("Save Batch") {
-                    if let x = selectedCampaign?.name {
-                        print("Campaign: \(x)")
-                    }
+
+                    var successfulDonationsCount    = 0
+                    var totalDonationAmount: Double = 0
+                    var failedDonationsCount        = 0
+
                     for i in viewModel.rows.indices where viewModel.rows[i].donorID != nil {
                         let currentRow = viewModel.rows[i]
                         let donorIDString = currentRow.donorID.map(String.init) ?? "(none)"
@@ -135,19 +137,26 @@ struct BatchDonationView: View {
                         print("DonorID: \(donorIDString), Amount: \(donationAmount)")
 
                         Task {
-                            let donation = Donation(donorId:    donorID,
-                                                    campaignId: campaignID,
-                                                    amount:     donationAmount,
-                                                    donationType: .check)
+                            let donation = Donation(donorId:        donorID,
+                                                    campaignId:     campaignID,
+                                                    amount:         donationAmount,
+                                                    donationType:   .check)
                             do {
                                 try await viewModel.addDonation(donation)
                                 viewModel.rows[i].processStatus = .success
+                                successfulDonationsCount += 1
+                                totalDonationAmount += donationAmount
                             } catch {
                                 print("Error adding donation: \(error)")
+                                failedDonationsCount += 1
                                 viewModel.rows[i].processStatus = .failure(message: error.localizedDescription)
                             }
                         }
                     }
+                    print("Successful Donations: \(successfulDonationsCount)")
+                    print("Total Donation Amount: \(totalDonationAmount)")
+                    print("-------------------------")
+                    print("failed: \(failedDonationsCount)")
                 }
             }
                 .padding(.bottom)
