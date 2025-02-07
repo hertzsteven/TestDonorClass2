@@ -48,7 +48,7 @@ enum DonationValidationError: LocalizedError {
 
 
 // MARK: - Donation Model
-struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord {
+struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hashable {
     var id: Int?
     let uuid: String
     var donorId: Int?

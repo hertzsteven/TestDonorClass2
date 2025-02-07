@@ -62,11 +62,11 @@ struct MasterTabView: View {
                     Label("Settings", systemImage: "gearshape")
                 }
                 .tag(3)
-            CSVHandlerView()
-                .tabItem {
-                    Label("Load Data", systemImage: "pencil")
-                }
-                .tag(4)
+//            CSVHandlerView()
+//                .tabItem {
+//                    Label("Load Data", systemImage: "pencil")
+//                }
+//                .tag(4)
         }
     }
     

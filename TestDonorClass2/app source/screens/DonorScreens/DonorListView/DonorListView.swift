@@ -18,8 +18,8 @@ struct DonorListView: View {
     @State private var scannedCode          = ""
     @State private var isShowingScanner     = false
     @State private var isShowingResultSheet = false
-
-
+    
+    
     @State private var showingAddDonor = false
     @State private var showingDefaults = false
     @State var searchMode: SearchMode  = .name
@@ -53,11 +53,12 @@ struct DonorListView: View {
         }
         
         .onAppear {
-            Task {await doOnAppearProcess()  }
+            Task { await doOnAppearProcess()
+            }
         }
         .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
         .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
-
+        
         .sheet(isPresented: $isShowingScanner) {
             BarcodeScannerView(scannedCode: $scannedCode)
         }
@@ -68,13 +69,13 @@ struct DonorListView: View {
         
         .onChange(of: scannedCode) { newValue in
             if !newValue.isEmpty {
-//                isShowingResultSheet = true
+                    //                isShowingResultSheet = true
                 print("Scanned code: \(newValue)")
                 $viewModel.searchText.wrappedValue = newValue
                 Task {
                     try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
                 }
-//                Task { await handleScannedCode(code: newValue) }
+                    //                Task { await handleScannedCode(code: newValue) }
             }
         }
         .sheet(isPresented: $isShowingResultSheet) {
@@ -95,17 +96,17 @@ struct DonorListView: View {
         .onChange(of: searchMode) { viewModel.searchText = "" }
         
         .toolbar { toolBarListDonors() }
-//            ToolbarItemGroup(placement: .navigationBarTrailing) {
-//                Button(action: { showingAddDonor = true }) {
-//                    Label("Add Donor", systemImage: "plus")
-//                }
-//                
-//                if !viewModel.maintenanceMode {
-//                    Button(action: { showingDefaults = true }) {
-//                        Label("Defaults", systemImage: "gear")
-//                    }
-//                }
-//            }
+            //            ToolbarItemGroup(placement: .navigationBarTrailing) {
+            //                Button(action: { showingAddDonor = true }) {
+            //                    Label("Add Donor", systemImage: "plus")
+            //                }
+            //
+            //                if !viewModel.maintenanceMode {
+            //                    Button(action: { showingDefaults = true }) {
+            //                        Label("Defaults", systemImage: "gear")
+            //                    }
+            //                }
+            //            }
         
         
         .alert("Error", isPresented: $showAlert) {
@@ -122,7 +123,7 @@ struct DonorListView: View {
                 //                .environmentObject(defaultDonationSettingsViewModel)
         }
     }
-
+    
     
     private func handleDelete(at indexSet: IndexSet) {
         Task {
@@ -150,13 +151,13 @@ extension DonorListView {
             do {
                 try await viewModel.performSearch(mode: searchMode, newValue: newValue)
             } catch {
-                // Handle specific errors
+                    // Handle specific errors
                 print("Search failed: \(error)")
-                // You might want to:
-                // - Update UI to show error state
-                // - Log the error
-                // - Show an alert to the user
-                // await handleSearchError(error)
+                    // You might want to:
+                    // - Update UI to show error state
+                    // - Log the error
+                    // - Show an alert to the user
+                    // await handleSearchError(error)
             }
             clearTheDonors = false
         }
@@ -264,29 +265,29 @@ extension DonorListView {
         } catch {
             print("Error: \(error)")
         }
-
+        
     }
 }
 
     // MARK: - Toolbars
 extension DonorListView {
-    //    private var toolbarContent: some ToolbarContent {
-    //        ToolbarItem(placement: .navigationBarLeading) {
-    //            Button("Cancel") {
-    //                presentationMode.wrappedValue.dismiss()
-    //            }
-    //        }
-    //
-    //        ToolbarItem(placement: .navigationBarTrailing) {
-    //            Button("Save") {
-    //                print("llll")
-    //            }
-    //            .disabled(true)
-    //        }
-    //    }
-        
-        
-        @ToolbarContentBuilder
+        //    private var toolbarContent: some ToolbarContent {
+        //        ToolbarItem(placement: .navigationBarLeading) {
+        //            Button("Cancel") {
+        //                presentationMode.wrappedValue.dismiss()
+        //            }
+        //        }
+        //
+        //        ToolbarItem(placement: .navigationBarTrailing) {
+        //            Button("Save") {
+        //                print("llll")
+        //            }
+        //            .disabled(true)
+        //        }
+        //    }
+    
+    
+    @ToolbarContentBuilder
     func toolBarTrailLeftPane() -> some ToolbarContent {
         if let donor = selectedDonor {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -320,7 +321,7 @@ extension DonorListView {
                         Label("Scan Barcode", systemImage: "barcode")
                     }
                 }
-
+                
                 
                 
                 Button {
@@ -344,22 +345,22 @@ extension DonorListView {
             }
         }
     }
-//
-        @ToolbarContentBuilder
-        func toolBarListDonors() -> some ToolbarContent {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                Button(action: { showingAddDonor = true }) {
-                    Label("Add Donor", systemImage: "plus")
-                }
-                
-                if !viewModel.maintenanceMode {
-                    Button(action: { showingDefaults = true }) {
-                        Label("Defaults", systemImage: "gear")
-                    }
+        //
+    @ToolbarContentBuilder
+    func toolBarListDonors() -> some ToolbarContent {
+        ToolbarItemGroup(placement: .navigationBarTrailing) {
+            Button(action: { showingAddDonor = true }) {
+                Label("Add Donor", systemImage: "plus")
+            }
+            
+            if !viewModel.maintenanceMode {
+                Button(action: { showingDefaults = true }) {
+                    Label("Defaults", systemImage: "gear")
                 }
             }
         }
     }
+}
 
 #Preview {
         // Create a donor object with mock data

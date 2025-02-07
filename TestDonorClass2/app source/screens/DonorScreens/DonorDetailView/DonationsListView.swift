@@ -7,30 +7,82 @@ struct DonationsListView: View {
     let onReload: () -> Void
     
     var body: some View {
-        if isLoadingDonations {
-            HStack {
-                Spacer()
-                ProgressView()
-                    .padding()
-                Spacer()
+
+            
+            if isLoadingDonations {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .padding()
+                    Spacer()
+                }
+            } else if let error = donationsError {
+                HStack {
+                    Text(error)
+                        .foregroundColor(.red)
+                    Spacer()
+                    Button(action: onReload) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+            } else if donorDonations.isEmpty {
+                Text("No donations found")
+                    .foregroundColor(.secondary)
+            } else {
+                    //        NavigationStack {
+                ForEach(donorDonations) { donation in
+//                    NavigationLink(value: donation) {
+//                        DonationListItemView(donation: donation)
+//                    }
+                    NavigationLink(destination: DonationDetailView(donation: donation).toolbar(.hidden, for: .tabBar) ,label: {DonationListItemView(donation: donation)})
+                        //                DonationListItemView(donation: donation)
+                }
+//                .navigationDestination(for: Donation.self) { donation in
+//                        DonationDetailsView(donation: donation)
+//                    }
             }
-        } else if let error = donationsError {
-            HStack {
-                Text(error)
-                    .foregroundColor(.red)
-                Spacer()
-                Button(action: onReload) {
-                    Image(systemName: "arrow.clockwise")
+        }
+//    }
+}
+
+struct DonationDetailsView: View {
+    let donation: Donation
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        Form {
+            Section(header: Text("Donation Details")) {
+                LabeledContent("Amount", value: String(format: "$%.2f", donation.amount))
+                LabeledContent("Date", value: donation.donationDate.formatted())
+                LabeledContent("Type", value: donation.donationType.rawValue)
+//                if let campaign = donation.campaignId {
+//                    LabeledContent("Campaign", value: campaign)
+//                }
+            }
+            
+            Section(header: Text("Receipt Status")) {
+                LabeledContent("Email Receipt", value: donation.requestEmailReceipt ? "Requested" : "Not Requested")
+                LabeledContent("Print Receipt", value: donation.requestPrintedReceipt ? "Requested" : "Not Requested")
+            }
+            
+            if let notes = donation.notes {
+                Section(header: Text("Notes")) {
+                    Text(notes)
                 }
             }
-        } else if donorDonations.isEmpty {
-            Text("No donations found")
-                .foregroundColor(.secondary)
-        } else {
-            ForEach(donorDonations) { donation in
-                DonationListItemView(donation: donation)
+        }
+        .navigationTitle("Donation Details")
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    HStack {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                }
             }
         }
     }
 }
-

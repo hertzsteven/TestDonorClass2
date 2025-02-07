@@ -7,6 +7,43 @@
 
     import SwiftUI
     import MessageUI
+struct PrintReceiptView: View {
+    @Environment(\.presentationMode) var presentationMode
+    let receipt: Receipt
+    let onCompletion: () -> Void
+    
+    var body: some View {
+        VStack {
+            Text("Print Receipt")
+                .font(.title)
+            
+            Image(systemName: "printer")
+                .font(.system(size: 50))
+                .padding()
+            
+            Text("Preparing document for printing...")
+                .padding()
+            
+            Button("Generate & Print Receipt") {
+                let donation = DonationInfo(donorName: "John Doe", donationAmount: 100.0, date: "Jan 8, 2025")
+                let receiptPrintService = ReceiptPrintingService()
+                receiptPrintService.printReceipt(for: donation) {
+                    self.presentationMode.wrappedValue.dismiss()
+                    onCompletion()
+                }
+
+//                receiptPrintService.printReceipt(for: donation)
+//                onCompletion()
+            }
+            .padding()
+//            Button("Complete Print") {
+//                
+//                onCompletion()
+//            }
+//            .padding()
+        }
+    }
+}
 
     struct CampaignPickerView: View {
         @EnvironmentObject var campaignObject: CampaignObjectClass
@@ -62,6 +99,7 @@
         @State private var campaignId           : Int? = nil
         @State private var incentiveId          : Int? = nil
         
+        @State private var showErrorAlert: Bool = false
         @State private var showingAlert         = false
         @State private var alertMessage         = ""
         @State private var alertTitle           = ""  // Add this line
@@ -75,6 +113,7 @@
         
         // Add state for showing mail view
         @State private var isShowingMailView = false
+        @State private var isShowingPrintView = false
         @State private var currentReceipt: Receipt?
         
         private var isValidAmount: Bool {
@@ -166,18 +205,42 @@
                         .disabled(!isValidAmount)
                     }
                 }
+                .alert("No email", isPresented: $showErrorAlert) {
+                    Button("OK", role: .cancel) {
+                        if requestPrintedReceipt {
+                             isShowingPrintView = true
+                            showErrorAlert = false
+                        } else {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+                }
+                
                 .alert(alertTitle, isPresented: $showingAlert) {
                     Button("OK", role: .cancel) {
                             // Dismiss view if it was a success alert
                         if !isError {
-                            presentationMode.wrappedValue.dismiss()
+                            if requestEmailReceipt {
+                                if MFMailComposeViewController.canSendMail() {
+                                    isShowingMailView = true
+                                } else {
+                                    alertTitle = "Email Not Available"
+                                    alertMessage = "Email is not set up on this device. The donation was saved successfully."
+                                    isError = true
+                                    showErrorAlert = true
+                                }
+                            } else if requestPrintedReceipt {
+                                    // only requesting a printed receipt
+                                isShowingPrintView = true
+                            }
                         }
                     }
                 } message: {
                     Text(alertMessage)
                 }
-                .sheet(isPresented: $isShowingMailView) {
-                    MailView(
+                
+                .sheet(isPresented: $isShowingPrintView) {
+                    PrintReceiptView(
                         receipt: Receipt(
                             date: Date(),
                             total: Double(amount) ?? 0,
@@ -190,13 +253,51 @@
                             donorName: "\(donor.firstName) \(donor.lastName)",
                             donationType: donationType.rawValue
                         ),
-                        emailRecipient: donor.email ?? "",
                         onCompletion: {
-                            isShowingMailView = false
+                            isShowingPrintView = false
                             presentationMode.wrappedValue.dismiss()
+//                            if requestEmailReceipt {
+//                                isShowingMailView = true
+//                            } else {
+//                                presentationMode.wrappedValue.dismiss()
+//                            }
                         }
                     )
                 }
+                .interactiveDismissDisabled(true)
+                
+                .sheet(isPresented: $isShowingMailView) {
+                    MailView(
+                        receipt: Receipt(
+                            date: Date(),
+                            total: Double(amount) ?? 0,
+                            items: [
+                                ReceiptItem(
+                                    name: selectedCampaign?.name ?? "General Donation",
+                                    price: Double(amount) ?? 0
+                                )
+                            ],
+                            donorName: "\(String(describing: donor.firstName)) \(String(describing: donor.lastName))",
+                            donationType: donationType.rawValue
+                        ),
+                        emailRecipient: donor.email ?? "",
+                        onCompletion: {
+
+                            if requestPrintedReceipt {
+                                                                isShowingPrintView = true
+//                                let donation = DonationInfo(donorName: "John Doe", donationAmount: 100.0, date: "Jan 8, 2025")
+//                                let receiptPrintService = ReceiptPrintingService()
+//                                receiptPrintService.printReceipt(for: donation)
+                                isShowingMailView = false
+//                                presentationMode.wrappedValue.dismiss()
+                            } else {
+                                isShowingMailView = false
+                                presentationMode.wrappedValue.dismiss()
+                            }
+                        }
+                    )
+                }
+                .interactiveDismissDisabled(true)
                 
                 .onAppear {
                         // Load campaigns and incentives when view appears
@@ -276,7 +377,7 @@
                 donationIncentiveId: selectedIncentive?.id,
                 amount: amountValue,
                 donationType: donationType,
-                paymentStatus: .pending,
+                paymentStatus: .completed,
                 requestEmailReceipt: requestEmailReceipt,
                 requestPrintedReceipt: requestPrintedReceipt,
                 notes: notes.isEmpty ? nil : notes,
@@ -289,21 +390,30 @@
                     try await donationObject.addDonation(donation)
                     
                     await MainActor.run {
-                        if requestEmailReceipt {
-                            if MFMailComposeViewController.canSendMail() {
-                                isShowingMailView = true
-                            } else {
-                                alertTitle = "Email Not Available"
-                                alertMessage = "Email is not set up on this device. The donation was saved successfully."
-                                isError = true
-                                showingAlert = true
-                            }
-                        } else {
+                    
+//                        if requestPrintedReceipt {
+////                            isShowingPrintView = true
+//                            let donation = DonationInfo(donorName: "John Doe", donationAmount: 100.0, date: "Jan 8, 2025")
+//                            let receiptPrintService = ReceiptPrintingService()
+//                            receiptPrintService.printReceipt(for: donation)
+//                            presentationMode.wrappedValue.dismiss()
+//                        } else if requestEmailReceipt {
+//                            if MFMailComposeViewController.canSendMail() {
+//                                isShowingMailView = true
+//                            } else {
+//                                alertTitle = "Email Not Available"
+//                                alertMessage = "Email is not set up on this device. The donation was saved successfully."
+//                                isError = true
+//                                showingAlert = true
+//                            }
+//                            
+//                            
+//                        } else {
                             alertTitle = "Success"
                             alertMessage = "Donation of $\(String(format: "%.2f", amountValue)) successfully saved!"
                             isError = false
                             showingAlert = true
-                        }
+//                        }
                     }
                 } catch {
                     await MainActor.run {

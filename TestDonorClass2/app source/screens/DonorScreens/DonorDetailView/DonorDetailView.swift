@@ -30,7 +30,7 @@ struct DonorDetailView: View {
 //
     
     var body: some View {
-        Form {
+         Form {
             Section(header: Text("Personal Information")) {
                 if let salutation = donor.salutation {
                     LabeledContent("Salutation", value: salutation)
@@ -83,8 +83,8 @@ struct DonorDetailView: View {
             Section(header: Text("Donations")) {
                 DonationsListView(
                     isLoadingDonations: isLoadingDonations,
-                    donationsError: donationsError,
-                    donorDonations: donorDonations,
+                    donationsError:     donationsError,
+                    donorDonations:     donorDonations,
                     onReload: {
                         Task {
                             await loadDonations()
