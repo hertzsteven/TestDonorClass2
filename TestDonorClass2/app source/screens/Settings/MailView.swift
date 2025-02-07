@@ -111,6 +111,7 @@
         }
         
     }
+
     // Example Receipt models
     struct Receipt {
         let date: Date

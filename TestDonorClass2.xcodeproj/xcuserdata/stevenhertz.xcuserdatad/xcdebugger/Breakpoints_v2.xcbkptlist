@@ -14,8 +14,8 @@
             filePath = "TestDonorClass2/app source/screens/DonationScreens/DonationEditView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "91"
-            endingLineNumber = "91"
+            startingLineNumber = "20"
+            endingLineNumber = "20"
             landmarkName = "DonationEditView"
             landmarkType = "14">
          </BreakpointContent>
