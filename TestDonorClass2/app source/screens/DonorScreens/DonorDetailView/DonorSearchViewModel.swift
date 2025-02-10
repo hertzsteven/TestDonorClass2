@@ -13,10 +13,15 @@ class DonorSearchViewModel: ObservableObject {
     @Published var searchText = ""
     @Published var donors: [Donor] = []
     @Published var hasSearched = false
+    
+        // MARK: - References
+        private let donorObject: DonorObjectClass
+     
    
     private let allDonors: [Donor]
    
     init(donorObject: DonorObjectClass) {
+        self.donorObject = donorObject
         self.allDonors = MockDonorGenerator.generateMockDonors()
     }
     
@@ -46,7 +51,14 @@ class DonorSearchViewModel: ObservableObject {
 
 // MARK: - Views
 struct DonorSearchView: View {
-    @StateObject private var viewModel = DonorSearchViewModel(donorObject: DonorObjectClass())
+//    @StateObject private var viewModel = DonorSearchViewModel(donorObject: DonorObjectClass())
+    
+    @StateObject private var viewModel: DonorSearchViewModel
+    
+    init(donorObject: DonorObjectClass) {
+        _viewModel = StateObject(wrappedValue: DonorSearchViewModel(donorObject: donorObject))
+    }
+
     
     var body: some View {
 //        NavigationView {
@@ -253,9 +265,25 @@ struct DonorDetailView2: View {
 }
 
 
-// Preview provider
 struct DonorSearchView_Previews: PreviewProvider {
     static var previews: some View {
-        DonorSearchView()
+        // Create a dummy DonorObjectClass instance.
+        // Adjust the initializer if DonorObjectClass requires parameters.
+        let dummyDonorObject = DonorObjectClass()
+        
+        // Wrap in a NavigationView if you want to preview NavigationLinks.
+        NavigationView {
+            DonorSearchView(donorObject: dummyDonorObject)
+        }
+        // Optionally, set a preview device or color scheme:
+        .previewDevice("iPhone 13")
+        .preferredColorScheme(.light) // Change to .dark to preview dark mode.
     }
 }
+
+//// Preview provider
+//struct DonorSearchView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        DonorSearchView()
+//    }
+//}

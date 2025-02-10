@@ -49,7 +49,7 @@ struct MasterTabView: View {
             
             
             NavigationStack {
-                DonorSearchView()
+                DonorSearchView(donorObject: donorObject)
             }
             .tabItem {
                 Label("Donors", systemImage: "person.3")
