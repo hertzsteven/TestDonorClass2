@@ -44,7 +44,8 @@ struct DonorListView: View {
     }
     
     init(donorObject: DonorObjectClass, maintenanceMode: Bool) {
-        _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject, maintenanceMode: maintenanceMode))
+        _viewModel = StateObject(wrappedValue: DonorListViewModel(donorObject: donorObject,
+                                                                  maintenanceMode: maintenanceMode))
     }
     
     var body: some View {
@@ -53,7 +54,8 @@ struct DonorListView: View {
         }
         
         .onAppear {
-            Task { await doOnAppearProcess()
+            Task {
+                await doOnAppearProcess()
             }
         }
         .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
@@ -265,7 +267,6 @@ extension DonorListView {
         } catch {
             print("Error: \(error)")
         }
-        
     }
 }
 

@@ -30,42 +30,16 @@ class DonorListViewModel: ObservableObject {
     func selectDonor(_ donor: Donor?) {
         selectedDonor = donor
     }
-    
-    // MARK: - Search Operations
-    func performSearch() async {
-        isLoading = true
-        do {
-            await MainActor.run { donorObject.loadingState = .notLoaded }
-//            donorObject.loadingState = .notLoaded
-            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                print("Loading all donors in search...")
-//                try await donorObject.loadDonors()
-            } else {
-                print("Loading donors matching search...")
-                try await donorObject.searchDonors(searchText)
-            }
-            await MainActor.run { donorObject.loadingState = .loaded }
-//            donorObject.loadingState = .loaded
-        } catch {
-            // Handle error if needed
-        }
-        isLoading = false
-    }
-    
+        
         // Update performSearch method
     @MainActor
     func performSearch(mode: DonorListView.SearchMode, newValue searchText: String ) async throws {
         print("Performing search... new \(searchText)")
         
             guard !searchText.isEmpty else {
-//                await MainActor.run {
-                    donorObject.loadingState = .notLoaded
+                donorObject.loadingState = .notLoaded
                 await donorObject.clearDonors()
-//                }
-//                donorObject.loadingState = .notLoaded
-//                await MainActor.run { donorObject.clearDonors() }
                 print("Search text empty and number of donors loaded is \(donorObject.donors.count)")
-//                await MainActor.run { donorObject.loadingState = .loaded }
                 donorObject.loadingState = .loaded
                 return
             }
@@ -79,5 +53,4 @@ class DonorListViewModel: ObservableObject {
                 }
             }
         }
-
 }

@@ -19,6 +19,10 @@ struct DonationEditView: View {
         // Add defaultSettings property
     @State private var defaultSettings      : DefaultDonationSettings?
     
+    @State private var amountText: String = ""
+    @State private var donationAmount: Double = 0.0
+    @State private var donationAmount2: Double = 0.0
+    @State private var donationAmount3: Double = 0.0
     @State private var amount               : String = ""
     @State private var donationType         : DonationType = .creditCard
     @State private var notes                : String = ""
@@ -49,21 +53,38 @@ struct DonationEditView: View {
         guard let doubleValue = Double(amount) else { return false }
         return doubleValue > 0
     }
+        // Define your custom formatter
+        let currencyFormatter: NumberFormatter = {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            formatter.locale = Locale.current
+            formatter.maximumFractionDigits = 2
+            formatter.minimumFractionDigits = 2
+            return formatter
+        }()
     
     private var formattedAmount: Binding<String> {
         Binding(
             get: { self.amount },
             set: { newValue in
                 if let number = Double(newValue) {
-                    self.amount = String(format: "%.2f", number)
+//                    self.amount = String(format: "%.2f", number)
                 } else if newValue.isEmpty {
                     self.amount = ""
                 }
             }
         )
     }
-    
-     
+    @State private var twoDecimalPlaces = 0.0
+ 
+    let twoDecimalFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }()
+ 
     var body: some View {
         
         VStack {
@@ -83,17 +104,67 @@ struct DonationEditView: View {
                 }
                 
             }  .padding()
+            
             Form {
+                Section(header: Text("Two Decimal Places")) {
+                    // Formatted with exactly two decimal places
+                    TextField("Enter amount", value: $twoDecimalPlaces, formatter: twoDecimalFormatter)
+                        .keyboardType(.decimalPad)
+                    Text("Value: \(twoDecimalPlaces, specifier: "%.2f")")
+                }
+                
                 
                 Section(header: Text("Donation Details")) {
-                    TextField("Amount", text: formattedAmount)
+                    TextField("Amount", text: $amountText)
                         .keyboardType(.decimalPad)
-                        .onChange(of: amount) { newValue in
-                            if newValue.isEmpty { return }
-                            if let number = Double(newValue) {
-                                self.amount = String(format: "%.2f", number)
+                        .padding()
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        // When editing finishes, update the donationAmount and format the text
+                        .onSubmit {
+                            if let value = Double(amountText) {
+                                donationAmount = value
+                                amountText = String(format: "%.2f", value)
+                            } else {
+                                // Handle invalid input if needed
                             }
                         }
+                    
+                    Text("Donation: \(donationAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))")
+                        .padding()
+                    
+                    
+                    TextField(
+                        "Amount",
+                        value: $donationAmount,
+                        format: .currency(code: Locale.current.currency?.identifier ?? "USD")
+                    )
+                    .keyboardType(.decimalPad)
+                    .padding()
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    
+                    TextField(
+                        "Amount",
+                        value: $donationAmount2,
+                        format: .number
+                    )
+                    .keyboardType(.decimalPad)
+                    .padding()
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    
+                    Text("Donation: \(donationAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))")
+                        .padding()
+                    
+                    
+                    TextField("Amount", text: formattedAmount)
+                        .keyboardType(.decimalPad)
+//                        .onChange(of: amount) { newValue in
+//                            if newValue.isEmpty { return }
+//                            if let number = Double(newValue) {
+//                                self.amount = String(format: "%.2f", number)
+//                            }
+//                        }
                     
                     Picker("Type", selection: $donationType) {
                         ForEach(DonationType.allCases, id: \.self) { type in
@@ -116,25 +187,32 @@ struct DonationEditView: View {
                     TextEditor(text: $notes)
                         .frame(height: 100)
                 }
+                
+                
             }
             
             
             .navigationTitle("New Donation")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        Task {
-                            await saveDonation()
-                        }
-                    }
-                    .disabled(!isValidAmount)
-                }
-            }
+            
+            .toolbar { toolBarCancelSave() }
+            
+            
+//            .toolbar {
+//                ToolbarItem(placement: .navigationBarLeading) {
+//                    Button("Cancel") {
+//                        presentationMode.wrappedValue.dismiss()
+//                    }
+//                }
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    Button("Save") {
+//                        Task {
+//                            await saveDonation()
+//                        }
+//                    }
+//                    .disabled(!isValidAmount)
+//                }
+//            }
+
             .alert("No email", isPresented: $showErrorAlert) {
                 Button("OK", role: .cancel) {
                     if requestPrintedReceipt {
@@ -182,6 +260,12 @@ struct DonationEditView: View {
             
             
             .onAppear {
+                Task {await doOnAppearProcess() }
+            }
+            
+                //  TODO:  Get rid of soon just here hust in case I needed it
+            /*
+            .onAppear {
                     // Load campaigns and incentives when view appears
                 Task {
                     await campaignObject.loadCampaigns()
@@ -192,6 +276,8 @@ struct DonationEditView: View {
                     
                 }
             }
+            */
+            
         }
         
     }
@@ -436,8 +522,53 @@ extension DonationEditView {
  
 }
 
+    // MARK: - Life Cycle Methods
+extension DonationEditView {
+
+    fileprivate func doOnAppearProcess() async {
+        await loadTheData()
+    }
+    
+    fileprivate func doOnDisappearProcess() {
+    }
+    
+    func loadTheData() async {
+        do {
+            await campaignObject.loadCampaigns()
+            await incentiveObject.loadIncentives()
+                // Load and apply default settings
+            await loadAndApplyDefaultSettings()
+        } catch {
+            print("Error: \(error)")
+        }
+    }
+}
+
+    //  MARK: -  toolbar builder
+
+    //  MARK: -  funcs that build tool bar
+    extension DonationEditView  {
+        
+        @ToolbarContentBuilder
+        func toolBarCancelSave() -> some ToolbarContent {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Save") {
+                    Task {
+                        await saveDonation()
+                    }
+                }
+                .disabled(!isValidAmount)
+            }
+        }
+    }
+
 #Preview {
-    NavigationView {
+//            NavigationView {
         DonationEditView(donor: Donor(
             firstName: "John",
             lastName: "Doe"
@@ -447,5 +578,5 @@ extension DonationEditView {
         .environmentObject(DonationIncentiveObjectClass())
         .environmentObject(DefaultDonationSettingsViewModel())
         .environmentObject(DonationObjectClass())
-    }
+//            }
 }

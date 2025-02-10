@@ -6,10 +6,8 @@
     //
 
 import SwiftUI
+
 struct MasterTabView: View {
-        //    init() {
-        //        Thread.sleep(forTimeInterval: 20.0)
-        //    }
     
     @EnvironmentObject private var donorObject: DonorObjectClass
     @EnvironmentObject private var donationObject: DonationObjectClass
@@ -20,18 +18,14 @@ struct MasterTabView: View {
     var body: some View {
         
         TabView {
-            
-                //            NavigationView {
+
             DonorListView(donorObject: donorObject, maintenanceMode: false)
-                //                    .task {
-                //                        await donorObject.loadDonors()
-                //                    }
-            
-                //            }
                 .tabItem {
                     Label("Donations", systemImage: "dollarsign")
                 }
                 .tag(0)
+            
+
             NavigationView {
                 MaintenanceView(campaignObject: campaignObject,
                                 incentiveObject: incentiveObject,
@@ -42,31 +36,54 @@ struct MasterTabView: View {
                 Label("Maintenance", systemImage: "square.grid.3x1.folder.badge.plus")
             }
             .tag(1)
-                // NEW TAB for batch donations:
-                NavigationView {
-                    BatchDonationView()
-                }
-                .navigationViewStyle(.stack)  // forces single-column layout on iPad
-                .tabItem {
-                    Label("Batch Donations", systemImage: "tablecells.badge.ellipsis")
-                }
-//                .tag(2)
+            
 
-                //            StubPersonView()
-                //                .tabItem {
-                //                    Label("Stub Person", systemImage: "person")
-                //                }
+            NavigationView {
+                BatchDonationView()
+            }
+            .navigationViewStyle(.stack)  // forces single-column layout on iPad
+            .tabItem {
+                Label("Batch Donations", systemImage: "tablecells.badge.ellipsis")
+            }
                 //                .tag(2)
+            
+            
+            NavigationStack {
+                DonorSearchView()
+            }
+            .tabItem {
+                Label("Donors", systemImage: "person.3")
+            }
+            .tag(4)
+            
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
                 .tag(3)
-//            CSVHandlerView()
-//                .tabItem {
-//                    Label("Load Data", systemImage: "pencil")
-//                }
-//                .tag(4)
+            
+                // New Tab for DonationEditView
+            DonationEditView(donor: Donor(
+                firstName: "John",
+                lastName: "Doe"
+            ))
+            .environmentObject(DonorObjectClass())
+            .environmentObject(CampaignObjectClass())
+            .environmentObject(DonationIncentiveObjectClass())
+            .environmentObject(DefaultDonationSettingsViewModel())
+            .environmentObject(DonationObjectClass())
+            .tabItem {
+                Label("Edit Donation", systemImage: "square.and.pencil")
+            }
+            .tag(4)
+            
+
+
+                //            CSVHandlerView()
+                //                .tabItem {
+                //                    Label("Load Data", systemImage: "pencil")
+                //                }
+                //                .tag(4)
         }
     }
     

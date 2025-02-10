@@ -5,163 +5,152 @@
     //  Created by Steven Hertz on 12/24/24.
     //
 
-    import Foundation
-    import GRDB
+import Foundation
+import GRDB
 
-    class DonorObjectClass: ObservableObject {
-        // MARK: - Published Properties
-        @Published var donors: [Donor] = []
-        @Published var errorMessage: String?
-        @Published var loadingState: LoadingState = .loaded
-        @Published var lastUpdatedDonor: Donor? = nil  // Add this property
-
-        
-        // MARK: - Private Properties
-        private let repository: any DonorSpecificRepositoryProtocol
-
-        
+class DonorObjectClass: ObservableObject {
+    @Published var donors: [Donor] = []
+    @Published var errorMessage: String?
+    @Published var loadingState: LoadingState = .loaded
+    @Published var lastUpdatedDonor: Donor? = nil  // Add this property
+    
+    private let repository: any DonorSpecificRepositoryProtocol
+    
         // MARK: - Initialization
-        init(repository: DonorRepository = DonorRepository()) {
-            self.repository = repository
+    init(repository: DonorRepository = DonorRepository()) {
+        self.repository = repository
+    }
+}
+
+
+    //  MARK: -  Retreive Donors
+extension DonorObjectClass {
+    func getDonor(_ id: Int) async throws -> Donor? {
+        let donor = try await repository.getOne(id)
+        return donor
+    }
+    
+    
+        // MARK: - Search Operations
+    func searchDonors(_ searchText: String) async throws {
+        if searchText.isEmpty {
+            await MainActor.run {
+                self.donors = []
+            }
+            return
+        }
+        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 3 {
+            return
         }
         
-        @MainActor
-        func refreshDonor(_ donor: Donor) {
-            self.lastUpdatedDonor = donor
+        let results = try await repository.findByName(searchText)
+        await MainActor.run {
+            self.donors = results
         }
+    }
+    
+        // Add method for searching by ID
+    @MainActor
+    func searchDonorById(_ id: Int) async {
+        updateLoadingState(.loading)
+        do {
+            if let donor = try await repository.getDonorById(id) {
+                self.donors = [donor]
+                self.loadingState = .loaded
+            } else {
+                self.donors = []
+                self.loadingState = .loaded
+            }
+        } catch {
+            self.loadingState = .error(error.localizedDescription)
+        }
+    }
+}
+
+
+    //  MARK: -  Loading and clearing
+extension DonorObjectClass {
+    
+    func loadDonors() async {
+        print("Starting to load donors")
         
-        // MARK: - Data Loading
-        func clearDonors() async  {
-            print("Starting to clear donors")
-            await MainActor.run { loadingState = .loading }
-            let fetchedDonors = [Donor]()
+        await MainActor.run { loadingState = .loading }
+        
+        do {
+            let fetchedDonors = try await repository.getAll()
+                //                let fetchedDonors =    [Donor]()
+            print("Fetched donors count: \(fetchedDonors.count)")
             await MainActor.run {
                 self.donors = fetchedDonors
                 self.loadingState = .loaded
-                print("Cleared donors array count: \(self.donors.count)")
+                print("Updated donors array count: \(self.donors.count)")
             }
-        }
-        
-        func loadDonors() async {
-            print("Starting to load donors")
-//            guard loadingState == .notLoaded else {
-//                print("Skipping load - current state: \(loadingState)")
-//                return
-//            }
-            
-            await MainActor.run { loadingState = .loading }
-            
-//            try? await Task.sleep(for: .seconds(1))
-            do {
-                let fetchedDonors = try await repository.getAll()
-//                let fetchedDonors =    [Donor]()
-                print("Fetched donors count: \(fetchedDonors.count)")
-                await MainActor.run {
-                    self.donors = fetchedDonors
-                    self.loadingState = .loaded
-                    print("Updated donors array count: \(self.donors.count)")
-                }
-            } catch {
-                print("Error loading donors: \(error.localizedDescription)")
-                await MainActor.run {
-                    self.loadingState = .error(error.localizedDescription)
-                    self.errorMessage = error.localizedDescription
-                }
-            }
-        }
-        
-        // MARK: - CRUD Operations
-        func addDonor(_ donor: Donor) async throws {
-            dump(donor)
-            try await repository.insert(donor)
-//            let fetchedDonors = try await repository.getAll()
-//            await MainActor.run {
-//                self.donors = fetchedDonors
-//            }
-        }
-        
-        func updateDonor(_ donor: Donor) async throws {
-            try await repository.update(donor)
-//            await MainActor.run {
-//                if let index = donors.firstIndex(where: { $0.id == donor.id }) {
-//                    donors[index] = donor
-//                }
-//            }
-        }
-        
-        func deleteDonor(_ donor: Donor) async throws {
-            try await repository.delete(donor)
+        } catch {
+            print("Error loading donors: \(error.localizedDescription)")
             await MainActor.run {
-                donors.removeAll { $0.id == donor.id }
+                self.loadingState = .error(error.localizedDescription)
+                self.errorMessage = error.localizedDescription
             }
         }
-        
-        func getDonor(_ id: Int) async throws -> Donor? {
-            let donor = try await repository.getOne(id)
-            return donor
+    }
+    
+    func clearDonors() async  {
+        print("Starting to clear donors")
+        await MainActor.run { loadingState = .loading }
+        let fetchedDonors = [Donor]()
+        await MainActor.run {
+            self.donors = fetchedDonors
+            self.loadingState = .loaded
+            print("Cleared donors array count: \(self.donors.count)")
         }
-        
-        func getCount() async throws -> Int {
-            let count = try await repository.getCount()
-            return count
-        }
-        
-        // MARK: - Search Operations
-        func searchDonors(_ searchText: String) async throws {
-            if searchText.isEmpty {
-//                await loadDonors()
-                await MainActor.run {
-                    self.donors = []
-                }
-                return
-            }
-            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 3 {
-                return
-            }
+    }
+}
 
-            let results = try await repository.findByName(searchText)
-            await MainActor.run {
-                self.donors = results
-            }
+
+    // MARK: - CRUD Operations
+extension DonorObjectClass {
+    
+    func addDonor(_ donor: Donor) async throws {
+        dump(donor)
+        try await repository.insert(donor)
+    }
+    
+    func updateDonor(_ donor: Donor) async throws {
+        try await repository.update(donor)
+    }
+    
+    func deleteDonor(_ donor: Donor) async throws {
+        try await repository.delete(donor)
+        await MainActor.run {
+            donors.removeAll { $0.id == donor.id }
         }
-              
-        // Add method for searching by ID
-        @MainActor
-        func searchDonorById(_ id: Int) async {
-            updateLoadingState(.loading)
-            do {
-                if let donor = try await repository.getDonorById(id) {
-//                    await MainActor.run {
-                        self.donors = [donor]
-                        self.loadingState = .loaded
-//                    }
-                } else {
-//                    await MainActor.run {
-                        self.donors = []
-                        self.loadingState = .loaded
-//                    }
-                }
-            } catch {
-//                await MainActor.run {
-                    self.loadingState = .error(error.localizedDescription)
-//                }
-            }
-        }
-        
-        
-    //    // MARK: - Analytics
-    //    func getTotalDonations(for donor: Donor) async throws -> Double {
-    //        try await repository.getTotalDonationsAmount(forDonorId: donor.id)
-    //    }
+    }
+}
+
+
+    //  MARK: -  Helper Functions
+extension DonorObjectClass {
+    @MainActor
+    func refreshDonor(_ donor: Donor) {
+        self.lastUpdatedDonor = donor
+    }
+    
+    
+    func getCount() async throws -> Int {
+        let count = try await repository.getCount()
+        return count
+    }
+    
     
     @MainActor
     private func updateLoadingState(_ loadingState: LoadingState) {
         self.loadingState = loadingState
     }
-        
-    // MARK: - Error Handling
+    
+        // MARK: - Error Handling
     @MainActor
     func clearError() {
         errorMessage = nil
     }
 }
+
