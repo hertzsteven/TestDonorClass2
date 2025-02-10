@@ -47,6 +47,36 @@ class DonorSearchViewModel: ObservableObject {
         donors = []
         hasSearched = false
     }
+
+    @MainActor
+    func clearDonors() {
+//        searchText = ""
+        donors = []
+//        hasSearched = false
+    }
+    
+        // Update performSearch method
+    @MainActor
+    func performSearch(mode: DonorListView.SearchMode, newValue searchText: String ) async throws {
+        hasSearched = true
+        guard !searchText.isEmpty else {
+            donorObject.loadingState = .notLoaded
+            await clearDonors()
+            print("Search text empty and number of donors loaded is \(donorObject.donors.count)")
+            donorObject.loadingState = .loaded
+            return
+        }
+        
+        switch mode {
+        case .name:
+           let ds =  try await donorObject.searchDonorsWithReturn(searchText)
+            donors = ds
+        case .id:
+            if let id = Int(searchText) {
+                let ds =      try  await donorObject.searchDonorById(id)
+            }
+        }
+    }
 }
 
 // MARK: - Views
@@ -96,7 +126,15 @@ struct DonorSearchView: View {
               }
             
                 Button(action: {
-                viewModel.searchForDonors()
+                    Task {
+                        do {
+                            try await viewModel.performSearch(mode: .name, newValue: viewModel.searchText)
+                        }
+                        catch {
+                            print("Error searching: \(error)")
+                        }
+                    }
+//                viewModel.searchForDonors()
             }) {
                 Text("Search")
                     .padding(.horizontal, 12)
@@ -130,6 +168,7 @@ struct DonorSearchView: View {
         }
         .frame(maxHeight: .infinity)
     }
+    
     private var donorList2: some View {
         List(viewModel.donors, id: \.uuid) { donor in
             NavigationLink(destination: DonationEditView(donor: donor)) {

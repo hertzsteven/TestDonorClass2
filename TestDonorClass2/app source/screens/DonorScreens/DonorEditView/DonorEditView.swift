@@ -286,7 +286,6 @@ extension DonorEditView {
         }
     }
     
-    
 }
 
 // MARK: - Toolbars

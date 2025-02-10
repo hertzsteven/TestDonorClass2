@@ -12,13 +12,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>250</string>
+					<string>172</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>249</string>
+					<string>171</string>
 					<key>Timestamp</key>
-					<string>760836786.624812</string>
+					<string>760903902.025768</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -27,27 +27,283 @@
 					<key>payload</key>
 					<dict>
 						<key>relative-path</key>
-						<string>TestDonorClass2/app source/screens/DonationScreens/DonationEditView.swift</string>
+						<string>TestDonorClass2/app source/screens/DonorScreens/DonorDetailView/DonorSearchViewModel.swift</string>
 					</dict>
 				</dict>
 			</dict>
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>          
+				<string>    private var donorList2: some View {
 </string>
 				<key>leading</key>
-				<string>            }
-            
+				<string>    }
+    
 </string>
 				<key>trailing</key>
-				<string>            .sheet(isPresented: $isShowingPrintView) {
-                doPrintReceipt()
-            }
+				<string>        List(viewModel.donors, id: \.uuid) { donor in
+            NavigationLink(destination: DonationEditView(donor: donor)) {
+                DonorRowView2(donor: donor)
 </string>
 			</dict>
+			<key>title</key>
+			<string>DonorList2</string>
 			<key>type</key>
 			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>137</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>136</string>
+					<key>Timestamp</key>
+					<string>760903902.025755</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>TestDonorClass2/app source/screens/DonorScreens/DonorDetailView/DonorSearchViewModel.swift</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>//                viewModel.searchForDonors()
+</string>
+				<key>leading</key>
+				<string>                        }
+                    }
+</string>
+				<key>trailing</key>
+				<string>            }) {
+                Text("Search")
+                    .padding(.horizontal, 12)
+</string>
+			</dict>
+			<key>title</key>
+			<string>button do search</string>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+		<dict>
+			<key>children</key>
+			<array>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>0</string>
+							<key>EndingLineNumber</key>
+							<string>97</string>
+							<key>StartingColumnNumber</key>
+							<string>2</string>
+							<key>StartingLineNumber</key>
+							<string>96</string>
+							<key>Timestamp</key>
+							<string>760917024.470866</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/screens/DonationScreens/DonationEditView.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>                Section(header: Text("Two Decimal Places")) {
+</string>
+						<key>leading</key>
+						<string>            
+            Form {
+//</string>
+						<key>trailing</key>
+						<string>//                    // Formatted with exactly two decimal places
+//                    TextField("Enter amount", value: $twoDecimalPlaces, formatter: twoDecimalFormatter)
+//                        .keyboardType(.decimalPad)
+</string>
+					</dict>
+					<key>title</key>
+					<string>Amount Section</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/screens/DonationScreens/DonationEditView.swift</string>
+							</dict>
+						</dict>
+						<key>type</key>
+						<string>DVTDocumentLocation</string>
+					</dict>
+					<key>title</key>
+					<string>settings set</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>0</string>
+							<key>EndingLineNumber</key>
+							<string>264</string>
+							<key>StartingColumnNumber</key>
+							<string>0</string>
+							<key>StartingLineNumber</key>
+							<string>263</string>
+							<key>Timestamp</key>
+							<string>760917609.211928</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/screens/DonationScreens/DonationEditView.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>            self.twoDecimalPlaces  = settings.amount ?? 0.00
+</string>
+						<key>leading</key>
+						<string>        await MainActor.run {
+                // Apply the settings to our form
+</string>
+						<key>trailing</key>
+						<string>            self.donationType = settings.donationType ?? .creditCard
+            self.requestEmailReceipt = settings.requestEmailReceipt
+            self.requestPrintedReceipt = settings.requestPrintedReceipt
+</string>
+					</dict>
+					<key>title</key>
+					<string>setting set</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>0</string>
+							<key>EndingLineNumber</key>
+							<string>302</string>
+							<key>StartingColumnNumber</key>
+							<string>0</string>
+							<key>StartingLineNumber</key>
+							<string>301</string>
+							<key>Timestamp</key>
+							<string>760917609.211911</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/screens/DonationScreens/DonationEditView.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>//            amount: amountValue,
+</string>
+						<key>leading</key>
+						<string>            donationIncentiveId: selectedIncentive?.id,
+            amount: twoDecimalPlaces,
+</string>
+						<key>trailing</key>
+						<string>            donationType: donationType,
+            paymentStatus: .completed,
+            requestEmailReceipt: requestEmailReceipt,
+</string>
+					</dict>
+					<key>title</key>
+					<string>adding donation</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+			</array>
+			<key>title</key>
+			<string>DonationEdit</string>
+			<key>type</key>
+			<string>group</string>
+		</dict>
+		<dict>
+			<key>query-specification</key>
+			<dict>
+				<key>anchoring</key>
+				<string>word</string>
+				<key>match-case</key>
+				<integer>1</integer>
+				<key>query</key>
+				<string>text</string>
+				<key>scope</key>
+				<dict>
+					<key>named-scopes</key>
+					<array/>
+					<key>type</key>
+					<string>scope-chooser-compound-scope</string>
+					<key>workspace-location-predicates</key>
+					<array>
+						<dict>
+							<key>path-components</key>
+							<array>
+								<string>TestDonorClass2.xcodeproj</string>
+							</array>
+							<key>rule</key>
+							<string>workspace-location</string>
+						</dict>
+					</array>
+				</dict>
+				<key>term</key>
+				<dict>
+					<key>text</key>
+					<string>amount</string>
+				</dict>
+			</dict>
+			<key>type</key>
+			<string>batch-find-query</string>
 		</dict>
 	</array>
 </dict>

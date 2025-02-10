@@ -20,9 +20,6 @@ struct DonationEditView: View {
     @State private var defaultSettings      : DefaultDonationSettings?
     
     @State private var amountText: String = ""
-    @State private var donationAmount: Double = 0.0
-    @State private var donationAmount2: Double = 0.0
-    @State private var donationAmount3: Double = 0.0
     @State private var amount               : String = ""
     @State private var donationType         : DonationType = .creditCard
     @State private var notes                : String = ""
@@ -50,18 +47,9 @@ struct DonationEditView: View {
     @State private var currentReceipt: Receipt?
     
     private var isValidAmount: Bool {
-        guard let doubleValue = Double(amount) else { return false }
-        return doubleValue > 0
+//        guard let doubleValue = Double(amount) else { return false }
+        return twoDecimalPlaces  > 0
     }
-        // Define your custom formatter
-        let currencyFormatter: NumberFormatter = {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .currency
-            formatter.locale = Locale.current
-            formatter.maximumFractionDigits = 2
-            formatter.minimumFractionDigits = 2
-            return formatter
-        }()
     
     private var formattedAmount: Binding<String> {
         Binding(
@@ -106,59 +94,21 @@ struct DonationEditView: View {
             }  .padding()
             
             Form {
-                Section(header: Text("Two Decimal Places")) {
-                    // Formatted with exactly two decimal places
-                    TextField("Enter amount", value: $twoDecimalPlaces, formatter: twoDecimalFormatter)
-                        .keyboardType(.decimalPad)
-                    Text("Value: \(twoDecimalPlaces, specifier: "%.2f")")
-                }
+//                Section(header: Text("Two Decimal Places")) {
+//                    // Formatted with exactly two decimal places
+//                    TextField("Enter amount", value: $twoDecimalPlaces, formatter: twoDecimalFormatter)
+//                        .keyboardType(.decimalPad)
+//                    Text("Value: \(twoDecimalPlaces, specifier: "%.2f")")
+//                }
                 
                 
                 Section(header: Text("Donation Details")) {
-                    TextField("Amount", text: $amountText)
+                    
+                    TextField("Enter amount", value: $twoDecimalPlaces, formatter: twoDecimalFormatter)
                         .keyboardType(.decimalPad)
-                        .padding()
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        // When editing finishes, update the donationAmount and format the text
-                        .onSubmit {
-                            if let value = Double(amountText) {
-                                donationAmount = value
-                                amountText = String(format: "%.2f", value)
-                            } else {
-                                // Handle invalid input if needed
-                            }
-                        }
                     
-                    Text("Donation: \(donationAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))")
-                        .padding()
-                    
-                    
-                    TextField(
-                        "Amount",
-                        value: $donationAmount,
-                        format: .currency(code: Locale.current.currency?.identifier ?? "USD")
-                    )
-                    .keyboardType(.decimalPad)
-                    .padding()
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                    
-                    TextField(
-                        "Amount",
-                        value: $donationAmount2,
-                        format: .number
-                    )
-                    .keyboardType(.decimalPad)
-                    .padding()
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                    
-                    Text("Donation: \(donationAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))")
-                        .padding()
-                    
-                    
-                    TextField("Amount", text: formattedAmount)
-                        .keyboardType(.decimalPad)
+//                    TextField("Amount", text: formattedAmount)
+//                        .keyboardType(.decimalPad)
 //                        .onChange(of: amount) { newValue in
 //                            if newValue.isEmpty { return }
 //                            if let number = Double(newValue) {
@@ -193,6 +143,7 @@ struct DonationEditView: View {
             
             
             .navigationTitle("New Donation")
+            .navigationBarBackButtonHidden(true)
             
             .toolbar { toolBarCancelSave() }
             
@@ -236,10 +187,14 @@ struct DonationEditView: View {
                                 alertMessage = "Email is not set up on this device. The donation was saved successfully."
                                 isError = true
                                 showErrorAlert = true
+                                presentationMode.wrappedValue.dismiss()
                             }
                         } else if requestPrintedReceipt {
                                 // only requesting a printed receipt
                             isShowingPrintView = true
+                        }
+                        else {
+                            presentationMode.wrappedValue.dismiss()
                         }
                     }
                 }
@@ -306,7 +261,7 @@ struct DonationEditView: View {
         
         await MainActor.run {
                 // Apply the settings to our form
-            self.amount = String(defaultDonationSettingsViewModel.settings.amount ?? 0)
+            self.twoDecimalPlaces  = settings.amount ?? 0.00
             self.donationType = settings.donationType ?? .creditCard
             self.requestEmailReceipt = settings.requestEmailReceipt
             self.requestPrintedReceipt = settings.requestPrintedReceipt
@@ -329,21 +284,22 @@ struct DonationEditView: View {
     }
     
     private func saveDonation() async {
-        guard let amountValue = Double(amount) else {
-            await MainActor.run {
-                alertTitle = "Error"
-                alertMessage = "Please enter a valid amount"
-                isError = true
-                showingAlert = true
-            }
-            return
-        }
+//        guard let amountValue = Double(amount) else {
+//            await MainActor.run {
+//                alertTitle = "Error"
+//                alertMessage = "Please enter a valid amount"
+//                isError = true
+//                showingAlert = true
+//            }
+//            return
+//        }
         
         let donation = Donation(
             donorId: donor.id,
             campaignId: selectedCampaign?.id,
             donationIncentiveId: selectedIncentive?.id,
-            amount: amountValue,
+            amount: twoDecimalPlaces,
+//            amount: amountValue,
             donationType: donationType,
             paymentStatus: .completed,
             requestEmailReceipt: requestEmailReceipt,
@@ -378,7 +334,7 @@ struct DonationEditView: View {
                         //
                         //                        } else {
                     alertTitle = "Success"
-                    alertMessage = "Donation of $\(String(format: "%.2f", amountValue)) successfully saved!"
+                    alertMessage = "Donation of $\(String(format: "%.2f", twoDecimalPlaces)) successfully saved!"
                     isError = false
                     showingAlert = true
                         //                        }
@@ -402,11 +358,11 @@ extension DonationEditView {
     fileprivate var receipt: Receipt {
         return Receipt(
             date: Date(),
-            total: Double(amount) ?? 0,
+            total: Double(twoDecimalPlaces) ?? 0,
             items: [
                 ReceiptItem(
                     name: selectedCampaign?.name ?? "General Donation",
-                    price: Double(amount) ?? 0
+                    price: Double(twoDecimalPlaces) ?? 0
                 )
             ],
             donorName: "\(donor.firstName ?? "") \(donor.lastName ?? "") \(donor.company ?? "")",
@@ -448,11 +404,11 @@ extension DonationEditView {
         return MailView(
             receipt: Receipt(
                 date: Date(),
-                total: Double(amount) ?? 0,
+                total: Double(twoDecimalPlaces) ?? 0,
                 items: [
                     ReceiptItem(
                         name: selectedCampaign?.name ?? "General Donation",
-                        price: Double(amount) ?? 0
+                        price: Double(twoDecimalPlaces) ?? 0
                     )
                 ],
                 donorName: "\(String(describing: donor.firstName)) \(String(describing: donor.lastName))",
@@ -480,11 +436,11 @@ extension DonationEditView {
         return PrintReceiptView(
             receipt: Receipt(
                 date: Date(),
-                total: Double(amount) ?? 0,
+                total: Double(twoDecimalPlaces) ?? 0,
                 items: [
                     ReceiptItem(
                         name: selectedCampaign?.name ?? "General Donation",
-                        price: Double(amount) ?? 0
+                        price: Double(twoDecimalPlaces) ?? 0
                     )
                 ],
                 donorName: "\(donor.firstName) \(donor.lastName)",
@@ -501,11 +457,11 @@ extension DonationEditView {
         
         let receipt = Receipt(
             date: Date(),
-            total: Double(amount) ?? 0,
+            total: Double(twoDecimalPlaces) ?? 0,
             items: [
                 ReceiptItem(
                     name: selectedCampaign?.name ?? "General Donation",
-                    price: Double(amount) ?? 0
+                    price: Double(twoDecimalPlaces) ?? 0
                 )
             ],
             donorName: "\(donor.firstName ?? "") \(donor.lastName ?? "") \(donor.company ?? "")",

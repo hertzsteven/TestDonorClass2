@@ -49,6 +49,22 @@ extension DonorObjectClass {
         }
     }
     
+        // MARK: - Search Operations
+    func searchDonorsWithReturn(_ searchText: String) async throws -> [Donor] {
+        if searchText.isEmpty {
+
+            return []
+        }
+        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 3 {
+            return []
+        }
+        
+        let donors = try await repository.findByName(searchText)
+        
+        return donors
+        
+    }
+    
         // Add method for searching by ID
     @MainActor
     func searchDonorById(_ id: Int) async {
