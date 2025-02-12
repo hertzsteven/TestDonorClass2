@@ -26,7 +26,13 @@ struct PrintReceiptView: View {
                 .padding()
             
             Button("Generate & Print Receipt") {
-                let donation = DonationInfo(donorName: "John Doe", donationAmount: 100.0, date: "Jan 8, 2025")
+                    // Convert the date to string using DateFormatter
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateStyle = .medium
+                let dateString = dateFormatter.string(from: receipt.date)
+                
+                
+                let donation = DonationInfo(donorName: receipt.donorName, donationAmount: receipt.total, date: dateString)
                 let receiptPrintService = ReceiptPrintingService()
                 receiptPrintService.printReceipt(for: donation) {
                     self.presentationMode.wrappedValue.dismiss()

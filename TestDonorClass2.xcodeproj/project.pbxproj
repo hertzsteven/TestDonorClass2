@@ -12,6 +12,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		466EC0CC2D5C1B8E00E4E0F5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46FD884C2D1AFB1D0070DA16 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 466EC0BA2D5C1B8D00E4E0F5;
+			remoteInfo = formacfull;
+		};
+		466EC0D62D5C1B8E00E4E0F5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46FD884C2D1AFB1D0070DA16 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 466EC0BA2D5C1B8D00E4E0F5;
+			remoteInfo = formacfull;
+		};
 		46FD88652D1AFB1E0070DA16 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 46FD884C2D1AFB1D0070DA16 /* Project object */;
@@ -29,6 +43,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		466AFA0B2D5C11AD00FCDB39 /* mactestdonor.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mactestdonor.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		466EC0BB2D5C1B8D00E4E0F5 /* formacfull.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = formacfull.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		466EC0CB2D5C1B8E00E4E0F5 /* formacfullTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = formacfullTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		466EC0D52D5C1B8E00E4E0F5 /* formacfullUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = formacfullUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		466EC0EA2D5C1CD200E4E0F5 /* ioscodeformac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ioscodeformac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		46FD88542D1AFB1D0070DA16 /* TestDonorClass2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestDonorClass2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		46FD88642D1AFB1E0070DA16 /* TestDonorClass2Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestDonorClass2Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		46FD886E2D1AFB1E0070DA16 /* TestDonorClass2UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TestDonorClass2UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -45,6 +64,31 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		466AFA0C2D5C11AD00FCDB39 /* mactestdonor */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = mactestdonor;
+			sourceTree = "<group>";
+		};
+		466EC0BC2D5C1B8D00E4E0F5 /* formacfull */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = formacfull;
+			sourceTree = "<group>";
+		};
+		466EC0CE2D5C1B8E00E4E0F5 /* formacfullTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = formacfullTests;
+			sourceTree = "<group>";
+		};
+		466EC0D82D5C1B8E00E4E0F5 /* formacfullUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = formacfullUITests;
+			sourceTree = "<group>";
+		};
+		466EC0EB2D5C1CD200E4E0F5 /* ioscodeformac */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ioscodeformac;
+			sourceTree = "<group>";
+		};
 		46FD88562D1AFB1D0070DA16 /* TestDonorClass2 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -66,6 +110,41 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		466AFA082D5C11AD00FCDB39 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0B82D5C1B8D00E4E0F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0C82D5C1B8E00E4E0F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0D22D5C1B8E00E4E0F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0E72D5C1CD200E4E0F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		46FD88512D1AFB1D0070DA16 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -98,6 +177,11 @@
 				46FD88562D1AFB1D0070DA16 /* TestDonorClass2 */,
 				46FD88672D1AFB1E0070DA16 /* TestDonorClass2Tests */,
 				46FD88712D1AFB1E0070DA16 /* TestDonorClass2UITests */,
+				466AFA0C2D5C11AD00FCDB39 /* mactestdonor */,
+				466EC0BC2D5C1B8D00E4E0F5 /* formacfull */,
+				466EC0CE2D5C1B8E00E4E0F5 /* formacfullTests */,
+				466EC0D82D5C1B8E00E4E0F5 /* formacfullUITests */,
+				466EC0EB2D5C1CD200E4E0F5 /* ioscodeformac */,
 				46FD88552D1AFB1D0070DA16 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -108,6 +192,11 @@
 				46FD88542D1AFB1D0070DA16 /* TestDonorClass2.app */,
 				46FD88642D1AFB1E0070DA16 /* TestDonorClass2Tests.xctest */,
 				46FD886E2D1AFB1E0070DA16 /* TestDonorClass2UITests.xctest */,
+				466AFA0B2D5C11AD00FCDB39 /* mactestdonor.xctest */,
+				466EC0BB2D5C1B8D00E4E0F5 /* formacfull.app */,
+				466EC0CB2D5C1B8E00E4E0F5 /* formacfullTests.xctest */,
+				466EC0D52D5C1B8E00E4E0F5 /* formacfullUITests.xctest */,
+				466EC0EA2D5C1CD200E4E0F5 /* ioscodeformac.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -115,6 +204,118 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		466AFA0A2D5C11AD00FCDB39 /* mactestdonor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 466AFA112D5C11AD00FCDB39 /* Build configuration list for PBXNativeTarget "mactestdonor" */;
+			buildPhases = (
+				466AFA072D5C11AD00FCDB39 /* Sources */,
+				466AFA082D5C11AD00FCDB39 /* Frameworks */,
+				466AFA092D5C11AD00FCDB39 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				466AFA0C2D5C11AD00FCDB39 /* mactestdonor */,
+			);
+			name = mactestdonor;
+			packageProductDependencies = (
+			);
+			productName = mactestdonor;
+			productReference = 466AFA0B2D5C11AD00FCDB39 /* mactestdonor.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		466EC0BA2D5C1B8D00E4E0F5 /* formacfull */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 466EC0E32D5C1B8E00E4E0F5 /* Build configuration list for PBXNativeTarget "formacfull" */;
+			buildPhases = (
+				466EC0B72D5C1B8D00E4E0F5 /* Sources */,
+				466EC0B82D5C1B8D00E4E0F5 /* Frameworks */,
+				466EC0B92D5C1B8D00E4E0F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				466EC0BC2D5C1B8D00E4E0F5 /* formacfull */,
+			);
+			name = formacfull;
+			packageProductDependencies = (
+			);
+			productName = formacfull;
+			productReference = 466EC0BB2D5C1B8D00E4E0F5 /* formacfull.app */;
+			productType = "com.apple.product-type.application";
+		};
+		466EC0CA2D5C1B8E00E4E0F5 /* formacfullTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 466EC0E42D5C1B8E00E4E0F5 /* Build configuration list for PBXNativeTarget "formacfullTests" */;
+			buildPhases = (
+				466EC0C72D5C1B8E00E4E0F5 /* Sources */,
+				466EC0C82D5C1B8E00E4E0F5 /* Frameworks */,
+				466EC0C92D5C1B8E00E4E0F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				466EC0CD2D5C1B8E00E4E0F5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				466EC0CE2D5C1B8E00E4E0F5 /* formacfullTests */,
+			);
+			name = formacfullTests;
+			packageProductDependencies = (
+			);
+			productName = formacfullTests;
+			productReference = 466EC0CB2D5C1B8E00E4E0F5 /* formacfullTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		466EC0D42D5C1B8E00E4E0F5 /* formacfullUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 466EC0E52D5C1B8E00E4E0F5 /* Build configuration list for PBXNativeTarget "formacfullUITests" */;
+			buildPhases = (
+				466EC0D12D5C1B8E00E4E0F5 /* Sources */,
+				466EC0D22D5C1B8E00E4E0F5 /* Frameworks */,
+				466EC0D32D5C1B8E00E4E0F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				466EC0D72D5C1B8E00E4E0F5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				466EC0D82D5C1B8E00E4E0F5 /* formacfullUITests */,
+			);
+			name = formacfullUITests;
+			packageProductDependencies = (
+			);
+			productName = formacfullUITests;
+			productReference = 466EC0D52D5C1B8E00E4E0F5 /* formacfullUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		466EC0E92D5C1CD200E4E0F5 /* ioscodeformac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 466EC0F62D5C1CD300E4E0F5 /* Build configuration list for PBXNativeTarget "ioscodeformac" */;
+			buildPhases = (
+				466EC0E62D5C1CD200E4E0F5 /* Sources */,
+				466EC0E72D5C1CD200E4E0F5 /* Frameworks */,
+				466EC0E82D5C1CD200E4E0F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				466EC0EB2D5C1CD200E4E0F5 /* ioscodeformac */,
+			);
+			name = ioscodeformac;
+			packageProductDependencies = (
+			);
+			productName = ioscodeformac;
+			productReference = 466EC0EA2D5C1CD200E4E0F5 /* ioscodeformac.app */;
+			productType = "com.apple.product-type.application";
+		};
 		46FD88532D1AFB1D0070DA16 /* TestDonorClass2 */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 46FD88782D1AFB1E0070DA16 /* Build configuration list for PBXNativeTarget "TestDonorClass2" */;
@@ -192,9 +393,26 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1610;
+				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
+					466AFA0A2D5C11AD00FCDB39 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					466EC0BA2D5C1B8D00E4E0F5 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					466EC0CA2D5C1B8E00E4E0F5 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 466EC0BA2D5C1B8D00E4E0F5;
+					};
+					466EC0D42D5C1B8E00E4E0F5 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 466EC0BA2D5C1B8D00E4E0F5;
+					};
+					466EC0E92D5C1CD200E4E0F5 = {
+						CreatedOnToolsVersion = 16.2;
+					};
 					46FD88532D1AFB1D0070DA16 = {
 						CreatedOnToolsVersion = 16.1;
 						LastSwiftMigration = 1610;
@@ -230,11 +448,51 @@
 				46FD88532D1AFB1D0070DA16 /* TestDonorClass2 */,
 				46FD88632D1AFB1E0070DA16 /* TestDonorClass2Tests */,
 				46FD886D2D1AFB1E0070DA16 /* TestDonorClass2UITests */,
+				466AFA0A2D5C11AD00FCDB39 /* mactestdonor */,
+				466EC0BA2D5C1B8D00E4E0F5 /* formacfull */,
+				466EC0CA2D5C1B8E00E4E0F5 /* formacfullTests */,
+				466EC0D42D5C1B8E00E4E0F5 /* formacfullUITests */,
+				466EC0E92D5C1CD200E4E0F5 /* ioscodeformac */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		466AFA092D5C11AD00FCDB39 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0B92D5C1B8D00E4E0F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0C92D5C1B8E00E4E0F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0D32D5C1B8E00E4E0F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0E82D5C1CD200E4E0F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		46FD88522D1AFB1D0070DA16 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -259,6 +517,41 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		466AFA072D5C11AD00FCDB39 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0B72D5C1B8D00E4E0F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0C72D5C1B8E00E4E0F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0D12D5C1B8E00E4E0F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		466EC0E62D5C1CD200E4E0F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		46FD88502D1AFB1D0070DA16 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -283,6 +576,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		466EC0CD2D5C1B8E00E4E0F5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 466EC0BA2D5C1B8D00E4E0F5 /* formacfull */;
+			targetProxy = 466EC0CC2D5C1B8E00E4E0F5 /* PBXContainerItemProxy */;
+		};
+		466EC0D72D5C1B8E00E4E0F5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 466EC0BA2D5C1B8D00E4E0F5 /* formacfull */;
+			targetProxy = 466EC0D62D5C1B8E00E4E0F5 /* PBXContainerItemProxy */;
+		};
 		46FD88662D1AFB1E0070DA16 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 46FD88532D1AFB1D0070DA16 /* TestDonorClass2 */;
@@ -296,6 +599,230 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		466AFA0F2D5C11AD00FCDB39 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.mactestdonor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		466AFA102D5C11AD00FCDB39 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.mactestdonor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		466EC0DD2D5C1B8E00E4E0F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = formacfull/formacfull.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"formacfull/Preview Content\"";
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.formacfull;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		466EC0DE2D5C1B8E00E4E0F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = formacfull/formacfull.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"formacfull/Preview Content\"";
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.formacfull;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		466EC0DF2D5C1B8E00E4E0F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.formacfullTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/formacfull.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/formacfull";
+			};
+			name = Debug;
+		};
+		466EC0E02D5C1B8E00E4E0F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.formacfullTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/formacfull.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/formacfull";
+			};
+			name = Release;
+		};
+		466EC0E12D5C1B8E00E4E0F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.formacfullUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = formacfull;
+			};
+			name = Debug;
+		};
+		466EC0E22D5C1B8E00E4E0F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.formacfullUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = formacfull;
+			};
+			name = Release;
+		};
+		466EC0F72D5C1CD300E4E0F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ioscodeformac/ioscodeformac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ioscodeformac/Preview Content\"";
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.ioscodeformac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		466EC0F82D5C1CD300E4E0F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ioscodeformac/ioscodeformac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ioscodeformac/Preview Content\"";
+				DEVELOPMENT_TEAM = MZ552MTEJZ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dia.ioscodeformac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		46FD88762D1AFB1E0070DA16 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -559,6 +1086,51 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		466AFA112D5C11AD00FCDB39 /* Build configuration list for PBXNativeTarget "mactestdonor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				466AFA0F2D5C11AD00FCDB39 /* Debug */,
+				466AFA102D5C11AD00FCDB39 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		466EC0E32D5C1B8E00E4E0F5 /* Build configuration list for PBXNativeTarget "formacfull" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				466EC0DD2D5C1B8E00E4E0F5 /* Debug */,
+				466EC0DE2D5C1B8E00E4E0F5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		466EC0E42D5C1B8E00E4E0F5 /* Build configuration list for PBXNativeTarget "formacfullTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				466EC0DF2D5C1B8E00E4E0F5 /* Debug */,
+				466EC0E02D5C1B8E00E4E0F5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		466EC0E52D5C1B8E00E4E0F5 /* Build configuration list for PBXNativeTarget "formacfullUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				466EC0E12D5C1B8E00E4E0F5 /* Debug */,
+				466EC0E22D5C1B8E00E4E0F5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		466EC0F62D5C1CD300E4E0F5 /* Build configuration list for PBXNativeTarget "ioscodeformac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				466EC0F72D5C1CD300E4E0F5 /* Debug */,
+				466EC0F82D5C1CD300E4E0F5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		46FD884F2D1AFB1D0070DA16 /* Build configuration list for PBXProject "TestDonorClass2" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

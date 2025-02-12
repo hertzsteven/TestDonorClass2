@@ -12,13 +12,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>172</string>
+					<string>334</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>171</string>
+					<string>334</string>
 					<key>Timestamp</key>
-					<string>760903902.025768</string>
+					<string>760931656.9461631</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -34,17 +34,13 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>    private var donorList2: some View {
-</string>
+				<string></string>
 				<key>leading</key>
-				<string>    }
-    
+				<string>        }
+    }
 </string>
 				<key>trailing</key>
-				<string>        List(viewModel.donors, id: \.uuid) { donor in
-            NavigationLink(destination: DonationEditView(donor: donor)) {
-                DonorRowView2(donor: donor)
-</string>
+				<string></string>
 			</dict>
 			<key>title</key>
 			<string>DonorList2</string>
@@ -59,13 +55,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>137</string>
+					<string>334</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>136</string>
+					<string>334</string>
 					<key>Timestamp</key>
-					<string>760903902.025755</string>
+					<string>760931656.946063</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -81,17 +77,13 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>//                viewModel.searchForDonors()
-</string>
+				<string></string>
 				<key>leading</key>
-				<string>                        }
-                    }
+				<string>        }
+    }
 </string>
 				<key>trailing</key>
-				<string>            }) {
-                Text("Search")
-                    .padding(.horizontal, 12)
-</string>
+				<string></string>
 			</dict>
 			<key>title</key>
 			<string>button do search</string>
@@ -109,13 +101,13 @@
 							<key>EndingColumnNumber</key>
 							<string>0</string>
 							<key>EndingLineNumber</key>
-							<string>97</string>
+							<string>560</string>
 							<key>StartingColumnNumber</key>
-							<string>2</string>
+							<string>0</string>
 							<key>StartingLineNumber</key>
-							<string>96</string>
+							<string>560</string>
 							<key>Timestamp</key>
-							<string>760917024.470866</string>
+							<string>760921276.209332</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -131,17 +123,13 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>                Section(header: Text("Two Decimal Places")) {
-</string>
+						<string></string>
 						<key>leading</key>
-						<string>            
-            Form {
-//</string>
-						<key>trailing</key>
-						<string>//                    // Formatted with exactly two decimal places
-//                    TextField("Enter amount", value: $twoDecimalPlaces, formatter: twoDecimalFormatter)
-//                        .keyboardType(.decimalPad)
+						<string>        }
+    }
 </string>
+						<key>trailing</key>
+						<string></string>
 					</dict>
 					<key>title</key>
 					<string>Amount Section</string>
@@ -177,13 +165,13 @@
 							<key>EndingColumnNumber</key>
 							<string>0</string>
 							<key>EndingLineNumber</key>
-							<string>264</string>
+							<string>560</string>
 							<key>StartingColumnNumber</key>
 							<string>0</string>
 							<key>StartingLineNumber</key>
-							<string>263</string>
+							<string>560</string>
 							<key>Timestamp</key>
-							<string>760917609.211928</string>
+							<string>760921276.2093199</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -199,17 +187,13 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>            self.twoDecimalPlaces  = settings.amount ?? 0.00
-</string>
+						<string></string>
 						<key>leading</key>
-						<string>        await MainActor.run {
-                // Apply the settings to our form
+						<string>        }
+    }
 </string>
 						<key>trailing</key>
-						<string>            self.donationType = settings.donationType ?? .creditCard
-            self.requestEmailReceipt = settings.requestEmailReceipt
-            self.requestPrintedReceipt = settings.requestPrintedReceipt
-</string>
+						<string></string>
 					</dict>
 					<key>title</key>
 					<string>setting set</string>
@@ -224,13 +208,13 @@
 							<key>EndingColumnNumber</key>
 							<string>0</string>
 							<key>EndingLineNumber</key>
-							<string>302</string>
+							<string>560</string>
 							<key>StartingColumnNumber</key>
 							<string>0</string>
 							<key>StartingLineNumber</key>
-							<string>301</string>
+							<string>560</string>
 							<key>Timestamp</key>
-							<string>760917609.211911</string>
+							<string>760921276.2093379</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -246,17 +230,13 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>//            amount: amountValue,
-</string>
+						<string></string>
 						<key>leading</key>
-						<string>            donationIncentiveId: selectedIncentive?.id,
-            amount: twoDecimalPlaces,
+						<string>        }
+    }
 </string>
 						<key>trailing</key>
-						<string>            donationType: donationType,
-            paymentStatus: .completed,
-            requestEmailReceipt: requestEmailReceipt,
-</string>
+						<string></string>
 					</dict>
 					<key>title</key>
 					<string>adding donation</string>
@@ -304,6 +284,53 @@
 			</dict>
 			<key>type</key>
 			<string>batch-find-query</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>55</string>
+					<key>StartingColumnNumber</key>
+					<string>1</string>
+					<key>StartingLineNumber</key>
+					<string>54</string>
+					<key>Timestamp</key>
+					<string>760932690.613307</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>TestDonorClass2/app source/forPrinting/DonationInfo.swift</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>   private func createReceiptPDF(for donation: DonationInfo) -&gt; URL? {
+</string>
+				<key>leading</key>
+				<string>/// ✅ Generates a formatted receipt PDF using `NSAttributedString`
+//    func createReceiptPDF(donorName: String, donationAmount: Double, date: String) -&gt; URL? {
+ </string>
+				<key>trailing</key>
+				<string>        let pageSize = CGSize(width: 612, height: 792) // 8.5" x 11"
+        let pdfFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("receipt.pdf")
+        
+</string>
+			</dict>
+			<key>title</key>
+			<string>make the receipt</string>
+			<key>type</key>
+			<string>bookmark</string>
 		</dict>
 	</array>
 </dict>

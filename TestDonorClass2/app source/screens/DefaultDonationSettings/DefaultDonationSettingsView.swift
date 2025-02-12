@@ -7,19 +7,31 @@ struct DefaultDonationSettingsView: View {
     @EnvironmentObject var incentiveObject: DonationIncentiveObjectClass
     @Environment(\.dismiss) var dismiss
     
+    @State private var twoDecimalPlaces = 0.0 // {
+//        didSet {
+//            viewModel.settings.amount = twoDecimalPlaces
+//        }
+//    }
+     
+    let twoDecimalFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+//        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }()
+    
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Default Amount")) {
                     HStack {
                         Text("$")
-                        TextField("Amount",
-                                  value: Binding(
-                                    get: { viewModel.settings.amount ?? 0 },
-                                    set: { viewModel.settings.amount = $0 }
-                                  ),
-                                  format: .number)
-                            .keyboardType(.decimalPad)
+                        TextField("Enter amount",
+                                  value: $twoDecimalPlaces,
+                                  formatter: twoDecimalFormatter)
+                        .keyboardType(.decimalPad)
+                    
                     }
                 }
                 
@@ -74,6 +86,7 @@ struct DefaultDonationSettingsView: View {
                 
                 Section {
                     Button("Save Default Settings") {
+                        viewModel.settings.amount = twoDecimalPlaces
                         Task {
                             if await !viewModel.saveSettings() {
                                 showingError = true
@@ -111,6 +124,7 @@ struct DefaultDonationSettingsView: View {
         }
         .onAppear {
             // Load campaigns and incentives when view appears
+            twoDecimalPlaces = viewModel.settings.amount ?? 0.00
             Task {
                 await campaignObject.loadCampaigns()
                 await incentiveObject.loadIncentives()

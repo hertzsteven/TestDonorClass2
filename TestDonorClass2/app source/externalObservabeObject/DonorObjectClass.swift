@@ -52,7 +52,6 @@ extension DonorObjectClass {
         // MARK: - Search Operations
     func searchDonorsWithReturn(_ searchText: String) async throws -> [Donor] {
         if searchText.isEmpty {
-
             return []
         }
         if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 3 {
@@ -80,6 +79,24 @@ extension DonorObjectClass {
         } catch {
             self.loadingState = .error(error.localizedDescription)
         }
+    }
+
+    @MainActor
+    func searchDonorByIdWithReturn(_ id: Int) async throws -> Donor? {
+        updateLoadingState(.loading)
+        var donor: Donor? = nil
+        do {
+            if let theDonor = try await repository.getDonorById(id) {
+                self.loadingState = .loaded
+                donor = theDonor
+                return donor
+            } else {
+                throw NSError(domain: "Donor not found", code: 404, userInfo: nil) as Error
+            }
+        } catch {
+            self.loadingState = .error(error.localizedDescription)
+        }
+        return donor
     }
 }
 

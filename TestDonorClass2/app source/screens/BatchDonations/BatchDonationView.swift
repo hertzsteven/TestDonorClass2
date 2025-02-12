@@ -23,6 +23,8 @@ struct BatchDonationView: View {
     // If you want your focus to jump from row to row:
     @FocusState private var focusedRowID: UUID?
     
+    
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Global donation amount across all rows
@@ -36,7 +38,7 @@ struct BatchDonationView: View {
                     .frame(width: 100)
                
             }
-            .padding(.top)
+            .padding()
             
             // Optional column headers
             HStack {
@@ -118,50 +120,16 @@ struct BatchDonationView: View {
                        }
                 }
                 Button("Save Batch") {
-
-                    var successfulDonationsCount    = 0
-                    var totalDonationAmount: Double = 0
-                    var failedDonationsCount        = 0
-
-                    for i in viewModel.rows.indices where viewModel.rows[i].donorID != nil {
-                        let currentRow = viewModel.rows[i]
-                        let donorIDString = currentRow.donorID.map(String.init) ?? "(none)"
-                        
-                        // If the row's override is blank, use the globalDonation
-                        let donationAmount = (currentRow.donationOverride == 0.0)
-                        ? viewModel.globalDonation
-                        : currentRow.donationOverride
-                        
-                        let campaignID = selectedCampaign?.id ?? nil
-                        let donorID = viewModel.rows[i].donorID
-                        print("DonorID: \(donorIDString), Amount: \(donationAmount)")
-
-                        Task {
-                            let donation = Donation(donorId:        donorID,
-                                                    campaignId:     campaignID,
-                                                    amount:         donationAmount,
-                                                    donationType:   .check)
-                            do {
-                                try await viewModel.addDonation(donation)
-                                viewModel.rows[i].processStatus = .success
-                                successfulDonationsCount += 1
-                                totalDonationAmount += donationAmount
-                            } catch {
-                                print("Error adding donation: \(error)")
-                                failedDonationsCount += 1
-                                viewModel.rows[i].processStatus = .failure(message: error.localizedDescription)
-                            }
-                        }
-                    }
-                    print("Successful Donations: \(successfulDonationsCount)")
-                    print("Total Donation Amount: \(totalDonationAmount)")
-                    print("-------------------------")
-                    print("failed: \(failedDonationsCount)")
+                    saveBatchDonations()
                 }
             }
                 .padding(.bottom)
 //            }
         }
+        .toolbar {
+            SaveCancelToolBar()
+        }
+        
         .onAppear {
             Task {
                 await campaignObject.loadCampaigns()
@@ -178,143 +146,97 @@ struct BatchDonationView: View {
         .navigationTitle("Batch Donations")
     }
     
-
 }
 
-
-// MARK: - ViewModel
-class BatchDonationViewModel: ObservableObject {
-    
-    enum RowProcessStatus {
-        case none
-        case success
-        case failure(message: String)
-    }
-    
-    @Published var globalDonation: Double = 10.0
-    
-    // Each row in the list
-    @Published var rows: [RowEntry] = []
-    
-    // Keep track of which row we should focus next
-    @Published var focusedRowID: UUID? = nil
-        // MARK: - Private Properties
-        private let repository: any DonorSpecificRepositoryProtocol
-        private let donationRepository: any DonationSpecificRepositoryProtocol
+extension BatchDonationView {
+    fileprivate func saveBatchDonations() {
         
-//        // MARK: - Initialization
-//        init(repository: DonorRepository = DonorRepository()) {
-//            self.repository = repository
-//        }
-    init(repository: DonorRepository = DonorRepository(), donationRepository: DonationRepository = DonationRepository()) {
-        self.repository = repository
-        self.donationRepository = donationRepository
-            // Start with one row
-        rows.append(RowEntry())
-    }
-    
-    struct RowEntry: Identifiable {
-        let id = UUID()
-        var donorID: Int? = nil
-        var displayInfo: String = ""
-        var donationOverride:  Double = 0.0
-        var isValidDonor: Bool = false
-        var processStatus: RowProcessStatus = .none
-    }
-    
-    /// Adds a new blank row at the bottom
-    func addRow() {
-        rows.append(RowEntry())
-    }
-    
-    
-    func getDonor(_ id: Int) async throws -> Donor? {
-        let donor = try await repository.getOne(id)
-        return donor
-    }
-    
-    func addDonation(_ donation: Donation) async throws {
-        try await donationRepository.insert(donation)
-    }
-    
-    /// Attempt to find a donor by ID, then mark the row with success/failure.
-    /// Pass in `DonorObjectClass` so we can call the real DB.
-    func findDonor(for rowID: UUID) async {
-        guard let rowIndex = rows.firstIndex(where: { $0.id == rowID }) else { return }
-        guard let donorID = rows[rowIndex].donorID else { return }
+        guard !viewModel.rows.isEmpty else {
+            return
+        }
         
-        do {
-            // Attempt a real DB fetch:
-            if let matchedDonor = try await repository.getOne(donorID) {
-//            if let matchedDonor = try await donorObject.getDonor(donorID) {
-                let displayName = "\(matchedDonor.company ?? "") \(matchedDonor.lastName ?? "") \(matchedDonor.firstName ?? "")"
-                let address = matchedDonor.address ?? ""
-                
-                // Update row
-                await MainActor.run {
-                    rows[rowIndex].displayInfo = "\(displayName) | \(address)"
-                    rows[rowIndex].donationOverride = globalDonation
-                    rows[rowIndex].isValidDonor = true
-                }
-                
-                // Now add a new row and shift focus to it
-                await MainActor.run {
-                    addRow()
-                    focusedRowID = rows.last?.id
-                }
-            } else {
-                // If not found
-                await MainActor.run {
-                    rows[rowIndex].displayInfo = "Donor not found"
-                    rows[rowIndex].donationOverride = 0.0
-                    rows[rowIndex].isValidDonor = false
+        var successfulDonationsCount    = 0
+        var totalDonationAmount: Double = 0
+        var failedDonationsCount        = 0
+        
+        for i in viewModel.rows.indices where viewModel.rows[i].donorID != nil {
+            let currentRow = viewModel.rows[i]
+            let donorIDString = currentRow.donorID.map(String.init) ?? "(none)"
+            
+                // If the row's override is blank, use the globalDonation
+            let donationAmount = (currentRow.donationOverride == 0.0)
+            ? viewModel.globalDonation
+            : currentRow.donationOverride
+            
+            let campaignID = selectedCampaign?.id ?? nil
+            let donorID = viewModel.rows[i].donorID
+            print("DonorID: \(donorIDString), Amount: \(donationAmount)")
+            
+            Task {
+                let donation = Donation(donorId:        donorID,
+                                        campaignId:     campaignID,
+                                        amount:         donationAmount,
+                                        donationType:   .check)
+                do {
+                    try await viewModel.addDonation(donation)
+                    viewModel.rows[i].processStatus = .success
+                    successfulDonationsCount += 1
+                    totalDonationAmount += donationAmount
+                } catch {
+                    print("Error adding donation: \(error)")
+                    failedDonationsCount += 1
+                    viewModel.rows[i].processStatus = .failure(message: error.localizedDescription)
                 }
             }
-        } catch {
-            // Database error or something else
-            await MainActor.run {
-                rows[rowIndex].displayInfo = "Error: \(error.localizedDescription)"
-                rows[rowIndex].donationOverride = 0.0
-                rows[rowIndex].isValidDonor = false
+        }
+        print("Successful Donations: \(successfulDonationsCount)")
+        print("Total Donation Amount: \(totalDonationAmount)")
+        print("-------------------------")
+        print("failed: \(failedDonationsCount)")
+    }
+}
+
+    //  MARK: -  funcs that build tool bar
+    extension BatchDonationView {
+        @ToolbarContentBuilder
+        func SaveCancelToolBar() -> some ToolbarContent {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Cancel") {
+                    viewModel.cleearBatch()
+//                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Save") {
+                    saveBatchDonations()
+                }
+//                .disabled(!isValidAmount)
             }
         }
     }
-    
-    /// Saves each row as a new donation in the DB (optional).
-//    func saveBatch(donorObject: DonorObjectClass,
-//                   donationObject: DonationObjectClass) async {
-//        for row in rows {
-//            guard row.isValidDonor,
-//                  let donorID = row.donorID,
-//                  let matchedDonor = try? await donorObject.getDonor(donorID)
-//            else { continue }
-//            
-//            let donationAmt = (row.donationOverride == 0.0)
-//                ? globalDonation
-//                : row.donationOverride
-//            
-////            let donationAmt = Double(donationAmtText) ?? 0.0
-//            
-//            // Create a new donation
-//            var newDonation = Donation(
-//                donorId: matchedDonor.id,
-//                amount: donationAmt,
-//                donationType: .cash,  // or .check, etc.
-//                donationDate: Date()
-//            )
-//            
-//            do {
-//                // Insert into your DB
-//                try await donationObject.addDonation(newDonation)
-//            } catch {
-//                print("Failed saving donation for donor \(donorID): \(error)")
-//            }
-//        }
-//        
-//        // Optionally, clear or reset
-//        await MainActor.run {
-//            rows = [RowEntry()] // back to one empty row
-//        }
-//    }
-}
 
+
+    // Your imports remain the same
+
+    // All previous code remains the same
+
+    // Replace the existing preview with this one
+    #Preview {
+        let donorObject = DonorObjectClass()
+         let campaignObject = CampaignObjectClass()
+         let donationObject = DonationObjectClass()
+         
+         // Initialize objects with any required setup
+         // Add any necessary default data here if needed
+         
+         return NavigationStack {
+             BatchDonationView()
+                 .environmentObject(donorObject)
+                 .environmentObject(campaignObject)
+                 .environmentObject(donationObject)
+         }
+
+    }
+
+    // End of file
+    // End of file

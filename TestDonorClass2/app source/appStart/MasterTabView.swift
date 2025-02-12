@@ -40,6 +40,7 @@ struct MasterTabView: View {
 
             NavigationView {
                 BatchDonationView()
+                    .environmentObject(donorObject)
             }
             .navigationViewStyle(.stack)  // forces single-column layout on iPad
             .tabItem {
@@ -67,11 +68,11 @@ struct MasterTabView: View {
                 firstName: "John",
                 lastName: "Doe"
             ))
-            .environmentObject(DonorObjectClass())
-            .environmentObject(CampaignObjectClass())
-            .environmentObject(DonationIncentiveObjectClass())
-            .environmentObject(DefaultDonationSettingsViewModel())
-            .environmentObject(DonationObjectClass())
+            .environmentObject(donorObject)
+            .environmentObject(campaignObject)
+            .environmentObject(incentiveObject)
+            .environmentObject(defaultDonationSettingsViewModel)
+            .environmentObject(donationObject)
             .tabItem {
                 Label("Edit Donation", systemImage: "square.and.pencil")
             }

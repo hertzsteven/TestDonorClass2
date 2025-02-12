@@ -17,6 +17,9 @@ struct OrganizationInfo {
     let state: String
     let zip: String
     let ein: String
+    let website: String?
+    let email: String?
+    let phone: String?
 
     /// A computed property to format the organization details.
     var formattedInfo: String {

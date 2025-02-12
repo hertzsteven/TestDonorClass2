@@ -24,7 +24,10 @@ struct DefaultOrganizationProvider: OrganizationProvider {
             city: "New York",
             state: "New York",
             zip: "11234",
-            ein: "11-3345423"
+            ein: "11-3345423",
+            website: "www.unitedtiberias.com",
+            email: "info@unitedtiberias.com",
+            phone: "212-555-1234"
         )
     }
 }
@@ -37,7 +40,10 @@ struct SpecialOrganizationProvider: OrganizationProvider {
             city: "Scranton",
             state: "PA",
             zip: "98766",
-            ein: "11-3345423"
+            ein: "11-3345423",
+            website: "www.unitedtiberias.com",
+            email: "info@unitedtiberias.com",
+            phone: "212-555-1234"
         )
     }
 }

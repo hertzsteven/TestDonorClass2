@@ -133,8 +133,8 @@ final class ReceiptPrintingService {
             Your generous donation helps us to continue our mission.
             
             If you have any questions regarding this receipt, please contact us:
-            Email: support@organization.com
-            Phone: (123) 456-7890
+            Email: \(String(describing: organizationProvider.organizationInfo.email))
+            Phone: \(String(describing: organizationProvider.organizationInfo.phone))
             """
                 let messageAttributes: [NSAttributedString.Key: Any] = [
                     .font: font,
@@ -148,7 +148,7 @@ final class ReceiptPrintingService {
                 
                     // 🔹 Footer
                 let footerText = """
-            Organization Name
+            \(organizationProvider.organizationInfo.name)
             This receipt is valid for tax purposes.
             """
                 let footerAttributes: [NSAttributedString.Key: Any] = [

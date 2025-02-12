@@ -17,7 +17,13 @@ struct SettingsView: View {
         // User Preferences
     @AppStorage("organizationName") private var organizationName = ""
     @AppStorage("organizationEmail") private var organizationEmail = ""
-    @AppStorage("taxId") private var taxId = ""
+        @AppStorage("addressLine1") private var addressLine1 = ""
+        @AppStorage("city") private var city = ""
+        @AppStorage("state") private var state = ""
+        @AppStorage("zip") private var zip = ""
+        @AppStorage("ein") private var ein = ""
+        @AppStorage("website") private var website = ""
+        @AppStorage("phone") private var phone = ""
     
     var body: some View {
         NavigationStack {
@@ -43,10 +49,17 @@ struct SettingsView: View {
                 
                 Section("Organization Information") {
                     TextField("Organization Name", text: $organizationName)
-                    TextField("Organization Email", text: $organizationEmail)
+                    TextField("Address", text: $addressLine1)
+                    TextField("City", text: $city)
+                    TextField("State", text: $state)
+                    TextField("ZIP Code", text: $zip)
+                    TextField("EIN", text: $ein)
+                    TextField("Website", text: $website)
+                    TextField("Email", text: $organizationEmail)
                         .textInputAutocapitalization(.never)
                         .keyboardType(.emailAddress)
-                    TextField("Tax ID", text: $taxId)
+                    TextField("Phone", text: $phone)
+                        .keyboardType(.phonePad)
                 }
                 
                 Section("Database") {

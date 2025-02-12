@@ -171,8 +171,6 @@ extension DonorListView {
         
         NavigationSplitView {
             VStack {
-                
-                
                     // Buttons for Search and Clear
                 HStack {
                     Button(action: {
