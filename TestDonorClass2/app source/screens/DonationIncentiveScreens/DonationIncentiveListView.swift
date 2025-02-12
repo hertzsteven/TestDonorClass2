@@ -76,7 +76,8 @@
                     )
                 } else {
                     ForEach(incentiveObject.incentives) { incentive in
-                        NavigationLink(destination: DonationIncentiveDetailView(incentive: incentive)) {
+                        NavigationLink(destination: DonationIncentiveDetailView(incentive: incentive))
+                        {
                             DonationIncentiveRowView(incentive: incentive)
                         }
                         .swipeActions(edge: .trailing) {

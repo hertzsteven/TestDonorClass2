@@ -205,7 +205,7 @@
                                     alertMessage = "Email is not set up on this device. The donation was saved successfully."
                                     isError = true
                                     showErrorAlert = true
-                                    presentationMode.wrappedValue.dismiss()
+//                                    presentationMode.wrappedValue.dismiss()
                                 }
                             } else if requestPrintedReceipt {
                                     // only requesting a printed receipt

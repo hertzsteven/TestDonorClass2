@@ -1,13 +1,13 @@
-    //
-    //  CampaignListView.swift
-    //  TestDonorClass2
-    //
-    //  Created by Steven Hertz
-    //
+//
+//  CampaignListView.swift
+//  TestDonorClass2
+//
+//  Created by Steven Hertz
+//
 
 import SwiftUI
 
-    // MARK: - Main List View
+// MARK: - Main List View
 struct CampaignListView: View {
     @EnvironmentObject var campaignObject: CampaignObjectClass
     @StateObject private var viewModel: CampaignListViewModel
@@ -15,65 +15,95 @@ struct CampaignListView: View {
     
     @State private var columnVisibility = NavigationSplitViewVisibility.all
     
-        // Alert handling properties
+    // Alert handling properties
     @State private var showAlert = false      // Controls alert visibility
     @State private var alertMessage = ""      // Alert message content
+    
+    @State private var searchText = ""
+    @State private var isSearching = false
     
     init(campaignObject: CampaignObjectClass) {
         _viewModel = StateObject(wrappedValue: CampaignListViewModel(campaignObject: campaignObject))
     }
     
     var body: some View {
-        Group {
-            switch campaignObject.loadingState {
-            case .notLoaded:
-                LoadingView(message: "Initializing...")
+        
+        VStack {
+            
+            HStack {
+                TextField("Search campaigns", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .disabled(isSearching)
                 
-            case .loading:
-                LoadingView(message: "Loading campaigns...")
-                
-            case .loaded:
-                campaignList
-                
-            case .error(let message):
-                ErrorView(message: message) {
+                Button(action: {
                     Task {
-                        await campaignObject.loadCampaigns()
+                        isSearching = true
+                        await viewModel.performSearch(with: searchText)
+                        isSearching = false
                     }
+                }) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.blue)
                 }
+                .disabled(isSearching)
             }
+            .padding()
+            
+            campaignList
         }
+        
+        //        Group {
+        //            switch campaignObject.loadingState {
+        //            case .notLoaded:
+        //                LoadingView(message: "Initializing...")
+        //
+        //            case .loading:
+        //                LoadingView(message: "Loading campaigns...")
+        //
+        //            case .loaded:
+        //                    campaignList
+        //
+        //
+        //            case .error(let message):
+        //                ErrorView(message: message) {
+        //                    Task {
+        //                        await campaignObject.loadCampaigns()
+        //                    }
+        //                }
+        //            }
+        //        }
         .navigationTitle("Campaigns")
-        .searchable(text: $viewModel.searchText)
-        .onChange(of: viewModel.searchText) { _ in
-            Task {
-                await viewModel.performSearch()
-            }
-        }
+        //        .searchable(text: $viewModel.searchText)
+        //        .onChange(of: viewModel.searchText) { _ in
+        //            Task {
+        //                await viewModel.performSearch()
+        //            }
+        //        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { showingAddCampaign = true }) {
                     Label("Add Campaign", systemImage: "plus")
                 }
             }
-            ToolbarItem(placement: .bottomBar) {
-                Button(action: { toggleSidebar() }) {
-                    Label("Sidebar", systemImage: "sidebar.left")
-                }
-                
-            }
+            
         }
         .sheet(isPresented: $showingAddCampaign) {
             CampaignEditView(mode: .add)
         }
-            // Error alert configuration
+        // Error alert configuration
         .alert("Error", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
-        .onDisappear {
-            toggleSidebar()
+        .onAppear {
+            print("Enter campaign list view")
+            Task {
+                // Only load if not already loaded
+                if case .notLoaded = campaignObject.loadingState {
+                    await campaignObject.loadCampaigns()
+                }
+            }
         }
     }
     
@@ -82,7 +112,11 @@ struct CampaignListView: View {
             if campaignObject.campaigns.isEmpty {
                 EmptyStateView(
                     message: "No campaigns found",
-                    action: { Task { await campaignObject.loadCampaigns() }},
+                    action: {
+                        Task {
+                            await campaignObject.loadCampaigns()
+                        }
+                    },
                     actionTitle: "Refresh"
                 )
             } else {
@@ -119,11 +153,10 @@ struct CampaignListView: View {
 }
 
 
-    // MARK: - Preview Provider
+// MARK: - Preview Provider
 #Preview {
     NavigationView {
         CampaignListView(campaignObject: CampaignObjectClass())
             .environmentObject(CampaignObjectClass())
     }
 }
-
