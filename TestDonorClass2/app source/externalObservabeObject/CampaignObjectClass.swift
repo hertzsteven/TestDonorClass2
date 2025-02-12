@@ -108,4 +108,8 @@ class CampaignObjectClass: ObservableObject {
     func clearError() {
         errorMessage = nil
     }
+    @MainActor
+    func setNotLoaded() {
+        loadingState = .notLoaded
+    }
 }

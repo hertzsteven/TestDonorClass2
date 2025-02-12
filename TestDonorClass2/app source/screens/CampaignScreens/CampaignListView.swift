@@ -13,22 +13,32 @@ struct CampaignListView: View {
     @StateObject private var viewModel: CampaignListViewModel
     @State private var showingAddCampaign = false
     
-    @State private var columnVisibility = NavigationSplitViewVisibility.all
-    
     // Alert handling properties
     @State private var showAlert = false      // Controls alert visibility
     @State private var alertMessage = ""      // Alert message content
     
     @State private var searchText = ""
     @State private var isSearching = false
+    @State private var isRefreshing = false  // Add this for refresh state
     
     init(campaignObject: CampaignObjectClass) {
         _viewModel = StateObject(wrappedValue: CampaignListViewModel(campaignObject: campaignObject))
     }
-    
-    var body: some View {
         
+    var body: some View {
         VStack {
+            Picker("Filter", selection: $viewModel.selectedFilter) {
+                ForEach(CampaignFilter.allCases, id: \.self) { filter in
+                    Text(filter.rawValue).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .onChange(of: viewModel.selectedFilter) { _ in
+                Task {
+                    await refreshCampaigns()
+                }
+            }
             
             HStack {
                 TextField("Search campaigns", text: $searchText)
@@ -38,6 +48,7 @@ struct CampaignListView: View {
                 Button(action: {
                     Task {
                         isSearching = true
+                        viewModel.setNotLoaded()
                         await viewModel.performSearch(with: searchText)
                         isSearching = false
                     }
@@ -50,35 +61,11 @@ struct CampaignListView: View {
             .padding()
             
             campaignList
+                .refreshable {  
+                    await refreshCampaigns()
+                }
         }
-        
-        //        Group {
-        //            switch campaignObject.loadingState {
-        //            case .notLoaded:
-        //                LoadingView(message: "Initializing...")
-        //
-        //            case .loading:
-        //                LoadingView(message: "Loading campaigns...")
-        //
-        //            case .loaded:
-        //                    campaignList
-        //
-        //
-        //            case .error(let message):
-        //                ErrorView(message: message) {
-        //                    Task {
-        //                        await campaignObject.loadCampaigns()
-        //                    }
-        //                }
-        //            }
-        //        }
         .navigationTitle("Campaigns")
-        //        .searchable(text: $viewModel.searchText)
-        //        .onChange(of: viewModel.searchText) { _ in
-        //            Task {
-        //                await viewModel.performSearch()
-        //            }
-        //        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { showingAddCampaign = true }) {
@@ -86,26 +73,49 @@ struct CampaignListView: View {
                 }
             }
             
+            // Add refresh button
+//            ToolbarItem(placement: .navigationBarTrailing) {
+//                Button(action: {
+//                    Task {
+//                        await refreshCampaigns()
+//                    }
+//                }) {
+//                    Label("Refresh", systemImage: "arrow.clockwise")
+//                        .opacity(isRefreshing ? 0.5 : 1.0)
+//                }
+//                .disabled(isRefreshing)
+//            }
         }
         .sheet(isPresented: $showingAddCampaign) {
             CampaignEditView(mode: .add)
         }
-        // Error alert configuration
         .alert("Error", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
         .onAppear {
-            print("Enter campaign list view")
+            print("-- Enter campaign list view")
             Task {
-                // Only load if not already loaded
-                if case .notLoaded = campaignObject.loadingState {
-                    await campaignObject.loadCampaigns()
-                }
+                // Set not loaded state and perform fresh load
+                viewModel.setNotLoaded()
+                await viewModel.loadCampaigns()
             }
         }
     }
+    
+    private func refreshCampaigns() async {
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        viewModel.setNotLoaded()
+        if !searchText.isEmpty {
+            await viewModel.performSearch(with: searchText)
+        } else {
+            await viewModel.loadCampaigns()
+        }
+        isRefreshing = false
+    }
+
     
     private var campaignList: some View {
         List {
@@ -114,7 +124,8 @@ struct CampaignListView: View {
                     message: "No campaigns found",
                     action: {
                         Task {
-                            await campaignObject.loadCampaigns()
+                            viewModel.setNotLoaded()
+                            await viewModel.loadCampaigns()
                         }
                     },
                     actionTitle: "Refresh"
@@ -144,14 +155,8 @@ struct CampaignListView: View {
             }
         }
     }
-    
-    private func toggleSidebar() {
-        withAnimation {
-            columnVisibility = (columnVisibility == .all) ? .detailOnly : .all
-        }
-    }
-}
 
+}
 
 // MARK: - Preview Provider
 #Preview {
