@@ -118,6 +118,7 @@
                     initialStateView
                 }
             }
+            .toolbar(.hidden, for: .tabBar)
             .toolbar {
                 
                 ToolbarItem(placement: .principal) {

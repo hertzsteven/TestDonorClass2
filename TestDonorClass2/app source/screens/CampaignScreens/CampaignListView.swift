@@ -25,6 +25,13 @@ struct CampaignListView: View {
         _viewModel = StateObject(wrappedValue: CampaignListViewModel(campaignObject: campaignObject))
     }
         
+    fileprivate func refreshAll() async {
+        viewModel.selectedFilter = .all
+        searchText = ""
+        viewModel.setNotLoaded()
+        await viewModel.loadCampaigns(forceLoad: true)
+    }
+    
     var body: some View {
         VStack {
             Picker("Filter", selection: $viewModel.selectedFilter) {
@@ -36,7 +43,11 @@ struct CampaignListView: View {
             .padding(.horizontal)
             .onChange(of: viewModel.selectedFilter) { _ in
                 Task {
-                    await refreshCampaigns()
+                    print("the search text is: \(searchText)")
+                    isSearching = true
+                    viewModel.setNotLoaded()
+                    await viewModel.performSearch(with: searchText)
+                    isSearching = false
                 }
             }
             
@@ -65,8 +76,8 @@ struct CampaignListView: View {
                 .background(Color(.systemBackground))
             
             campaignList
-                .refreshable {  
-                    await refreshCampaigns()
+                .refreshable {
+                    await refreshAll()
                 }
         }
         .navigationTitle("Campaigns")
@@ -77,18 +88,17 @@ struct CampaignListView: View {
                 }
             }
             
-            // Add refresh button
-//            ToolbarItem(placement: .navigationBarTrailing) {
-//                Button(action: {
-//                    Task {
-//                        await refreshCampaigns()
-//                    }
-//                }) {
-//                    Label("Refresh", systemImage: "arrow.clockwise")
-//                        .opacity(isRefreshing ? 0.5 : 1.0)
-//                }
-//                .disabled(isRefreshing)
-//            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                   Task {
+                        await refreshAll()
+                    }
+                }) {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                        .opacity(isRefreshing ? 0.5 : 1.0)
+                }
+                .disabled(isRefreshing)
+            }
         }
         .sheet(isPresented: $showingAddCampaign) {
             CampaignEditView(mode: .add)
@@ -108,18 +118,6 @@ struct CampaignListView: View {
         }
     }
     
-    private func refreshCampaigns() async {
-        guard !isRefreshing else { return }
-        isRefreshing = true
-        viewModel.setNotLoaded()
-        if !searchText.isEmpty {
-            await viewModel.performSearch(with: searchText)
-        } else {
-            await viewModel.loadCampaigns()
-        }
-        isRefreshing = false
-    }
-
     
     private var campaignList: some View {
         List {

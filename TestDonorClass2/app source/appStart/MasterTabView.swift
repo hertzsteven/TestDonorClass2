@@ -47,13 +47,13 @@ struct MasterTabView: View {
             .tag(1)
             
             
-//            NavigationStack {
-//                DonorSearchView(donorObject: donorObject)
-//            }
-//            .tabItem {
-//                Label("Donors", systemImage: "person.3")
-//            }
-//            .tag(4)
+            NavigationStack {
+                DonorSearchView(donorObject: donorObject)
+            }
+            .tabItem {
+                Label("Donors", systemImage: "person.3")
+            }
+            .tag(4)
             
             SettingsView()
                 .tabItem {

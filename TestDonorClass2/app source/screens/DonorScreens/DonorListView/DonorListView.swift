@@ -271,7 +271,7 @@ extension DonorListView {
                     }
                     Spacer()
                 case false:
-                    GroupBox(label: Label("Managing Donors", systemImage: "Managing Donors")) {
+                    GroupBox(label: Label("Managing Donors", systemImage: "gear")) {
                             //                        Text("Managing Donation Incentives")
                             //                            .font(.headline)
                         VStack(alignment: .leading) {

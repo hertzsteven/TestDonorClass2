@@ -24,27 +24,50 @@ class CampaignListViewModel: ObservableObject {
         self.campaignObject = campaignObject
     }
     
-    func loadCampaigns() async {
+    func loadCampaigns(forceLoad: Bool = false) async {
+        guard campaignObject.allLoadedCampaigns.isEmpty || forceLoad else {
+            refreshCampaignFromLoaded()
+            print("It seems like there are already campaigns loaded. Just Refreshing")
+            return
+        }
         await campaignObject.loadCampaigns()
-        filterCampaigns()
+//        filterCampaigns()
     }
     
     func performSearch(with stext: String) async {
         // If empty, load all campaigns
+
         if stext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            await loadCampaigns()
-            return
+            await refreshCampaignFromLoaded()
+        } else {
+            await campaignObject.searchCampaigns(stext)
         }
-        await campaignObject.searchCampaigns(stext)
         filterCampaigns()
+    }
+    
+//    func performSearch(with stext: String) async {
+//        // If empty, load all campaigns
+//        if stext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedFilter == .all {
+//            await refreshCampaignFromLoaded()
+//            return
+//        }
+////        refreshCampaignFromLoaded()
+//        await campaignObject.searchCampaigns(stext)
+//        filterCampaigns()
+//    }
+    
+    func refreshCampaignFromLoaded() {
+        campaignObject.refreshCampaignsFromLoaded()
     }
     
     func setNotLoaded() {
         campaignObject.setNotLoaded()
     }
     
-    private func filterCampaigns() {
-        guard selectedFilter != .all else { return }
+    func filterCampaigns() {
+        guard selectedFilter != .all else {
+            return
+        }
         
         let filteredCampaigns = campaignObject.campaigns.filter { campaign in
             switch selectedFilter {
