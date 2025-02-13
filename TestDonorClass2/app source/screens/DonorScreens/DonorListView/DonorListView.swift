@@ -167,34 +167,107 @@ extension DonorListView {
 }
 
 extension DonorListView {
+    
+    fileprivate func SearchModeSegmented() -> some View {
+        return Picker("Search Mode", selection: $searchMode) {
+            ForEach(SearchMode.allCases, id: \.self) { mode in
+                Text(mode.rawValue).tag(mode)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+    
+    fileprivate func SearchButton() -> some View {
+        return // Buttons for Search and Clear
+        HStack {
+            Button(action: {
+                Task {
+                    isSearchingForDonor.toggle()
+                    try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                    isSearchingForDonor.toggle()
+                }
+            }) {
+                Text("Search")
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .padding(.horizontal, 12)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+            }
+        }
+        .padding([.horizontal])
+    }
+    
+    fileprivate func groupBoxInstructions() -> some View {
+        return GroupBox("For Selected Donor") {
+            VStack(alignment: .leading, spacing:8) {
+                HStack {
+                    Label {
+                        Text("Enter Donation").font(.callout)
+                    } icon: {
+                        Image(systemName: "dollarsign.circle").foregroundStyle(.blue)
+                            .font(.system(size: 20, weight: .none, design: .default))
+                    }
+                }
+                .padding(.top, 4)
+                
+                HStack {
+                    Label {
+                        Text("See Information").font(.callout)
+                    } icon: {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(.blue)
+                            .font(.system(size: 18, weight: .none, design: .default))
+                    }
+                    Spacer()
+                }
+                
+                Text("Setup")
+                    .font(.system(size: 18, weight: .medium, design: .default))
+                    .padding(.top, 8)
+                HStack {
+                    Label {
+                        Text("Default Donation").font(.callout)
+                    } icon: {
+                        Image(systemName: "gear")
+                            .foregroundStyle(.blue)
+                            .font(.system(size: 20, weight: .none, design: .default))
+                    }
+                }
+                HStack {
+                    Label {
+                        Text("Add Donor").font(.callout)
+                    } icon: {
+                        Image(systemName: "plus")
+                            .foregroundStyle(.blue)
+                            .font(.system(size: 20, weight: .none, design: .default))
+                    }
+                }
+            }
+        }
+     }
+
     var newDonorList: some View {
         
         NavigationSplitView {
             VStack {
-                    // Buttons for Search and Clear
-                HStack {
-                    Button(action: {
-                        Task {
-                            isSearchingForDonor.toggle()
-                            try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
-                            isSearchingForDonor.toggle()
-                        }
-                    }) {
-                        Text("Search")
-                            .frame(maxWidth: .infinity, minHeight: 36)
-                            .padding(.horizontal, 12)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                }
-                .padding([.horizontal])
+                SearchButton()
+                
+                SearchModeSegmented()
+                
                 switch donorObject.donors.isEmpty || clearTheDonors {
                 case true:
                     if isSearchingForDonor {
                         ProgressView()
                     } else {
-                        Text("Please search for a donor").tint(.gray)
+                        VStack {
+                            Text("Please search for a donor").tint(.gray)
+                            groupBoxInstructions()
+                                .padding()
+                                .background(Color(.systemBackground))
+                        }
                     }
                     Spacer()
                 case false:
@@ -331,18 +404,18 @@ extension DonorListView {
                 
             }
         }
-        ToolbarItem(placement: .bottomBar) {
-            if donorObject.loadingState == .loaded {
-                Picker("Search Mode", selection: $searchMode) {
-                    ForEach(SearchMode.allCases, id: \.self) { mode in
-                        Text(mode.rawValue).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-            }
-        }
+//        ToolbarItem(placement: .bottomBar) {
+//            if donorObject.loadingState == .loaded {
+//                Picker("Search Mode", selection: $searchMode) {
+//                    ForEach(SearchMode.allCases, id: \.self) { mode in
+//                        Text(mode.rawValue).tag(mode)
+//                    }
+//                }
+//                .pickerStyle(.segmented)
+//                .padding(.horizontal)
+//                .padding(.vertical, 8)
+//            }
+//        }
     }
         //
     @ToolbarContentBuilder

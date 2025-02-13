@@ -28,14 +28,14 @@ struct MaintenanceView: View {
     var body: some View {
 //        NavigationView {
             List {
-                Section("Donor Management") {
-                 NavigationLink("Donors") {
-                     DonorListView(donorObject: donorObject, maintenanceMode: true)
-                         .task {
-                             await donorObject.loadDonors()
-                         }
-                    }
-                }
+//                Section("Donor Management") {
+//                 NavigationLink("Donors") {
+//                     DonorListView(donorObject: donorObject, maintenanceMode: true)
+//                         .task {
+//                             await donorObject.loadDonors()
+//                         }
+//                    }
+//                }
                 
                 Section("Donation Management") {
                  NavigationLink("Donations") {

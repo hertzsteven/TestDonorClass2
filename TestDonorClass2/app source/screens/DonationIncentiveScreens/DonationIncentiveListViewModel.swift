@@ -1,27 +1,75 @@
-    //
-    // DonationIncentiveListViewModel.swift
-    // TestDonorClass2
-    //
+//
+// DonationIncentiveListViewModel.swift
+// TestDonorClass2
+//
 
-    import Foundation
+import Foundation
 
-    @MainActor
+enum DonationIncentiveFilter: String, CaseIterable {
+    case all = "All"
+    case active = "Active"
+    case inactive = "Inactive"
+    case archived = "Archived"
+}
+
+@MainActor
 class DonationIncentiveListViewModel: ObservableObject {
     @Published var searchText = ""
-    let incentiveObject: DonationIncentiveObjectClass
+    @Published var selectedFilter: DonationIncentiveFilter = .all
+    private let incentiveObject: DonationIncentiveObjectClass
+    @Published var isSearching = false
     
     init(incentiveObject: DonationIncentiveObjectClass) {
         self.incentiveObject = incentiveObject
     }
     
-    func performSearch() async {
-        guard !searchText.isEmpty else {
-            await incentiveObject.loadIncentives()
+    func loadIncentives() async {
+        await incentiveObject.loadIncentives()
+        filterIncentives()
+    }
+    
+    func performSearch(with searchText: String) async {
+        // If empty, load all incentives
+        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            await loadIncentives()
             return
         }
         await incentiveObject.searchIncentives(searchText)
+        filterIncentives()
     }
     
+    func performSearch() async {
+        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            await loadIncentives()
+            return
+        }
+        await incentiveObject.searchIncentives(searchText)
+        filterIncentives()
+    }
+    
+    func setNotLoaded() {
+        incentiveObject.setNotLoaded()
+    }
+    
+    private func filterIncentives() {
+        guard selectedFilter != .all else { return }
+        
+        let filteredIncentives = incentiveObject.incentives.filter { incentive in
+            switch selectedFilter {
+            case .active:
+                return incentive.status == .active
+            case .inactive:
+                return incentive.status == .inactive
+            case .archived:
+                return incentive.status == .archived
+            case .all:
+                return true
+            }
+        }
+        
+        incentiveObject.incentives = filteredIncentives
+    }
+
 //    func canDeleteIncentive(_ incentive: DonationIncentive) async -> Bool {
 //        do {
 //                // Get all donations that reference this incentive

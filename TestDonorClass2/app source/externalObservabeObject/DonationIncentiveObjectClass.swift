@@ -52,7 +52,11 @@ class DonationIncentiveObjectClass: ObservableObject {
         await MainActor.run { loadingState = .loading }
         
         do {
-            let filteredIncentives = try await repository.findByName(query)
+            let allIncentives = try await repository.getAll()
+            let filteredIncentives = allIncentives.filter { incentive in
+                incentive.name.localizedCaseInsensitiveContains(query)
+            }
+            
             await MainActor.run {
                 self.incentives = filteredIncentives
                 self.loadingState = .loaded
@@ -69,6 +73,11 @@ class DonationIncentiveObjectClass: ObservableObject {
         let inUse = try await repository.isIncentiveInUse(id)
         print("Incentive in use: \(inUse)")
         return inUse
+    }
+    
+    @MainActor
+    func setNotLoaded() {
+        loadingState = .notLoaded
     }
 
     
@@ -100,8 +109,12 @@ class DonationIncentiveObjectClass: ObservableObject {
     
     // MARK: - Error Handling
     @MainActor
+    func clearIncentives() {
+        incentives.removeAll()
+    }
+    
+    @MainActor
     func clearError() {
         errorMessage = nil
     }
 }
-

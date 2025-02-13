@@ -60,6 +60,10 @@ struct CampaignListView: View {
             }
             .padding()
             
+            InfoBannerView(title: "Managing Campaigns" )
+                .padding()
+                .background(Color(.systemBackground))
+            
             campaignList
                 .refreshable {  
                     await refreshCampaigns()
