@@ -35,8 +35,6 @@ class CampaignListViewModel: ObservableObject {
     }
     
     func performSearch(with stext: String) async {
-        // If empty, load all campaigns
-
         if stext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             await refreshCampaignFromLoaded()
         } else {

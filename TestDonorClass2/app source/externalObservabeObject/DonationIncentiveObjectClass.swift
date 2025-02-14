@@ -14,6 +14,7 @@ class DonationIncentiveObjectClass: ObservableObject {
     
     // MARK: - Private Properties
     private let repository: any DonationIncentiveSpecificRepositoryProtocol
+    var allLoadedDonationIncentives: [DonationIncentive] = []
     
     // MARK: - Initialization
     init(repository: DonationIncentiveRepository = DonationIncentiveRepository()) {
@@ -31,10 +32,11 @@ class DonationIncentiveObjectClass: ObservableObject {
         await MainActor.run { loadingState = .loading }
         
         do {
-            let fetchedIncentives = try await repository.getAll()
-            print("Fetched incentives count: \(fetchedIncentives.count)")
+            allLoadedDonationIncentives = try await repository.getAll()
+            print("Fetched incentives count: \(allLoadedDonationIncentives.count)")
+            await refreshDonationIncentivesFromLoaded()
             await MainActor.run {
-                self.incentives = fetchedIncentives
+//                self.incentives = fetchedIncentives
                 self.loadingState = .loaded
                 print("Updated incentives array count: \(self.incentives.count)")
             }
@@ -52,13 +54,18 @@ class DonationIncentiveObjectClass: ObservableObject {
         await MainActor.run { loadingState = .loading }
         
         do {
-            let allIncentives = try await repository.getAll()
-            let filteredIncentives = allIncentives.filter { incentive in
-                incentive.name.localizedCaseInsensitiveContains(query)
+            var filteredIncentivess : [DonationIncentive] = []
+            if !query.isEmpty {
+                filteredIncentivess = allLoadedDonationIncentives.filter { incentive in
+                    incentive.name.localizedCaseInsensitiveContains(query)
+                }
+            }else {
+                filteredIncentivess = allLoadedDonationIncentives
             }
             
+            
             await MainActor.run {
-                self.incentives = filteredIncentives
+                self.incentives = filteredIncentivess
                 self.loadingState = .loaded
             }
         } catch {
@@ -85,14 +92,16 @@ class DonationIncentiveObjectClass: ObservableObject {
     // MARK: - CRUD Operations
     func addIncentive(_ incentive: DonationIncentive) async throws {
         try await repository.insert(incentive)
-        let fetchedIncentives = try await repository.getAll()
-        await MainActor.run {
-            self.incentives = fetchedIncentives
-        }
+        allLoadedDonationIncentives = try await repository.getAll()
+        await refreshDonationIncentivesFromLoaded()
+
     }
     
     func updateIncentive(_ incentive: DonationIncentive) async throws {
         try await repository.update(incentive)
+        if let index = allLoadedDonationIncentives.firstIndex(where: { $0.id == incentive.id }) {
+            allLoadedDonationIncentives[index] = incentive
+        }
         await MainActor.run {
             if let index = incentives.firstIndex(where: { $0.id == incentive.id }) {
                 incentives[index] = incentive
@@ -102,6 +111,7 @@ class DonationIncentiveObjectClass: ObservableObject {
     
     func deleteIncentive(_ incentive: DonationIncentive) async throws {
         try await repository.delete(incentive)
+        allLoadedDonationIncentives.removeAll() { $0.id == incentive.id }
         await MainActor.run {
             incentives.removeAll { $0.id == incentive.id }
         }
@@ -114,7 +124,15 @@ class DonationIncentiveObjectClass: ObservableObject {
     }
     
     @MainActor
+    func refreshDonationIncentivesFromLoaded() {
+        incentives.removeAll()
+        incentives = allLoadedDonationIncentives
+    }
+
+    @MainActor
     func clearError() {
         errorMessage = nil
     }
+    
+
 }

@@ -59,7 +59,6 @@ class CampaignObjectClass: ObservableObject {
         
         do {
             var filteredCampaigns : [Campaign] = []
-//            let allCampaigns = try await repository.getAll()
             if !query.isEmpty {
                 filteredCampaigns = allLoadedCampaigns.filter { campaign in
                     campaign.name.localizedCaseInsensitiveContains(query) ||
@@ -88,9 +87,7 @@ class CampaignObjectClass: ObservableObject {
         try await repository.insert(campaign)
         allLoadedCampaigns = try await repository.getAll()
         await refreshCampaignsFromLoaded()
-//        await MainActor.run {
-//            self.campaigns = allLoadedCampaigns
-//        }
+
     }
     
     func updateCampaign(_ campaign: Campaign) async throws {

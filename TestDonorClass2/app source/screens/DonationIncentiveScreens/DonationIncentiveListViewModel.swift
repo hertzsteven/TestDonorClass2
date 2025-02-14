@@ -22,21 +22,44 @@ class DonationIncentiveListViewModel: ObservableObject {
     init(incentiveObject: DonationIncentiveObjectClass) {
         self.incentiveObject = incentiveObject
     }
+  
     
-    func loadIncentives() async {
-        await incentiveObject.loadIncentives()
-        filterIncentives()
-    }
-    
-    func performSearch(with searchText: String) async {
-        // If empty, load all incentives
-        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            await loadIncentives()
+    func loadIncentives(forceLoad: Bool = false) async {
+        guard incentiveObject.allLoadedDonationIncentives.isEmpty || forceLoad else {
+            refreshIncentiveFromLoaded()
+            print("It seems like there are already DonationIncentives loaded. Just Refreshing")
             return
         }
-        await incentiveObject.searchIncentives(searchText)
+        await incentiveObject.loadIncentives()
+    }
+
+    func refreshIncentiveFromLoaded() {
+        incentiveObject.refreshDonationIncentivesFromLoaded()
+    }
+    
+//    func loadIncentives() async {
+//        await incentiveObject.loadIncentives()
+//        filterIncentives()
+//    }
+    
+    func performSearch(with stext: String) async {
+        if stext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            await refreshIncentiveFromLoaded()
+        } else {
+            await incentiveObject.searchIncentives(stext)
+        }
         filterIncentives()
     }
+    
+//    func performSearch(with searchText: String) async {
+//        // If empty, load all incentives
+//        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+//            await loadIncentives()
+//            return
+//        }
+//        await incentiveObject.searchIncentives(searchText)
+//        filterIncentives()
+//    }
     
     func performSearch() async {
         if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -46,7 +69,7 @@ class DonationIncentiveListViewModel: ObservableObject {
         await incentiveObject.searchIncentives(searchText)
         filterIncentives()
     }
-    
+//    
     func setNotLoaded() {
         incentiveObject.setNotLoaded()
     }

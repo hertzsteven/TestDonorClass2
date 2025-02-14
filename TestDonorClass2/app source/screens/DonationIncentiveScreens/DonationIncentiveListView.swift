@@ -13,88 +13,122 @@ struct DonationIncentiveListView: View {
     @State private var deleteErrorMessage = ""
     @State private var isRefreshing = false
     
+    @State private var searchText = ""
+    @State private var isSearching = false
+    
     init(incentiveObject: DonationIncentiveObjectClass) {
         _viewModel = StateObject(wrappedValue: DonationIncentiveListViewModel(incentiveObject: incentiveObject))
     }
     
     var body: some View {
-        Group {
-            VStack {
-                // Add filter picker
-                Picker("Filter", selection: $viewModel.selectedFilter) {
-                    ForEach(DonationIncentiveFilter.allCases, id: \.self) { filter in
-                        Text(filter.rawValue).tag(filter)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .onChange(of: viewModel.selectedFilter) { _ in
-                    Task {
-                        await refreshIncentives()
-                    }
-                }
-                
-                // Add search field
-                HStack {
-                    TextField("Search incentives", text: $viewModel.searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .disabled(viewModel.isSearching)
-                    
-                    Button(action: {
-                        Task {
-                            viewModel.isSearching = true
-                            viewModel.setNotLoaded()
-                            await viewModel.performSearch(with: viewModel.searchText)
-                            viewModel.isSearching = false
-                        }
-                    }) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.blue)
-                    }
-                    .disabled(viewModel.isSearching)
-                }
-                .padding()
-                
-                switch incentiveObject.loadingState {
-                case .notLoaded:
-                    LoadingView(message: "Initializing...")
-                    
-                case .loading:
-                    LoadingView(message: "Loading incentives...")
-                    
-                case .loaded:
-                    VStack(spacing: 0) {
-                        InfoBannerView(title: "Managing Donation Incentives")
-                            .padding()
-                            .background(Color(.systemBackground))
-                        
-                        incentiveList
-                            .refreshable {
-                                await refreshIncentives()
-                            }
-                    }
-                    
-                case .error(let message):
-                    ErrorView(message: message) {
-                        Task {
-                            await incentiveObject.loadIncentives()
-                        }
-                    }
-                }
+//        Group {
+        
+        VStack(spacing: 16) {
+            IncentiveFilterView(selectedFilter: $viewModel.selectedFilter) {
+                await performSearch()
             }
+            
+            //                Picker("Filter", selection: $viewModel.selectedFilter) {
+            //                    ForEach(DonationIncentiveFilter.allCases, id: \.self) { filter in
+            //                        Text(filter.rawValue).tag(filter)
+            //                    }
+            //                }
+            //                .pickerStyle(.segmented)
+            //                .padding(.horizontal)
+            //                .onChange(of: viewModel.selectedFilter) { _ in
+            //                    Task {
+            //                        await refreshIncentives()
+            //                    }
+            //                }
+            
+            
+            IncentiveSearchBar(searchText: $searchText,
+                               isSearching: $isSearching,
+                               onSearch: performSearch)
+            
+            
+            InfoBannerView(title: "Managing Incentives")
+                .padding(.horizontal)
+                .background(Color(.systemBackground))
+            
+            IncentiveListContent(
+                incentives: incentiveObject.incentives,
+                onRefresh: refreshAll,
+                onDelete: handleDelete
+            )
+            
+            // Add search field
+            //                HStack {
+            //                    TextField("Search incentives", text: $searchText)
+            //                        .textFieldStyle(RoundedBorderTextFieldStyle())
+            //                        .disabled(viewModel.isSearching)
+            //
+            //                    Button(action: {
+            //                        Task {
+            //                            viewModel.isSearching = true
+            //                            viewModel.setNotLoaded()
+            //                            await viewModel.performSearch(with: viewModel.searchText)
+            //                            viewModel.isSearching = false
+            //                        }
+            //                    }) {
+            //                        Image(systemName: "magnifyingglass")
+            //                            .foregroundColor(.blue)
+            //                    }
+            //                    .disabled(viewModel.isSearching)
+            //                }
+            //                .padding()
+            
+            //                switch incentiveObject.loadingState {
+            //                case .notLoaded:
+            //                    LoadingView(message: "Initializing...")
+            //
+            //                case .loading:
+            //                    LoadingView(message: "Loading incentives...")
+            //
+            //                case .loaded:
+            //                    VStack(spacing: 0) {
+            //                        InfoBannerView(title: "Managing Donation Incentives")
+            //                            .padding()
+            //                            .background(Color(.systemBackground))
+            //
+            //                        incentiveList
+            //                            .refreshable {
+            //                                await refreshIncentives()
+            //                            }
+            //                    }
+            //
+            //                case .error(let message):
+            //                    ErrorView(message: message) {
+            //                        Task {
+            //                            await incentiveObject.loadIncentives()
+            //                        }
+            //                    }
+            //                }
+            
+            //        }
+            //        }
         }
         .navigationTitle("Donation Incentives")
-        .searchable(text: $viewModel.searchText)
-        .onChange(of: viewModel.searchText) { _ in
-            Task {
-                await viewModel.performSearch()
-            }
-        }
+//        .searchable(text: $viewModel.searchText)
+//        .onChange(of: viewModel.searchText) { _ in
+//            Task {
+//                await viewModel.performSearch()
+//            }
+//        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { showingAddIncentive = true }) {
                     Label("Add Incentive", systemImage: "plus")
                 }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    Task { await refreshAll() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                        .opacity(isSearching ? 0.5 : 1.0)
+                }
+                .disabled(isSearching)
             }
         }
         .sheet(isPresented: $showingAddIncentive) {
@@ -105,12 +139,15 @@ struct DonationIncentiveListView: View {
         } message: {
             Text(deleteErrorMessage)
         }
-        .onAppear {
-            Task {
-                viewModel.setNotLoaded()
-                await viewModel.loadIncentives()
-            }
+        .task {
+            await loadInitialData()
         }
+//        .onAppear {
+//            Task {
+//                viewModel.setNotLoaded()
+//                await viewModel.loadIncentives()
+//            }
+//        }
     }
     
     private var incentiveList: some View {
@@ -159,6 +196,26 @@ struct DonationIncentiveListView: View {
         }
     }
     
+    private func loadInitialData() async {
+        viewModel.setNotLoaded()
+        await viewModel.loadIncentives()
+    }
+    
+    private func refreshAll() async {
+        viewModel.selectedFilter = .all
+        searchText = ""
+        viewModel.setNotLoaded()
+        await viewModel.loadIncentives(forceLoad: true)
+    }
+ 
+    
+    private func performSearch() async {
+        isSearching = true
+        viewModel.setNotLoaded()
+        await viewModel.performSearch(with: searchText)
+        isSearching = false
+    }
+
     private func handleDelete(at indexSet: IndexSet) {
         Task {
             if let index = indexSet.first {
