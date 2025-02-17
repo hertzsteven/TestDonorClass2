@@ -21,31 +21,14 @@ struct DonationIncentiveListView: View {
     }
     
     var body: some View {
-//        Group {
-        
         VStack(spacing: 16) {
             IncentiveFilterView(selectedFilter: $viewModel.selectedFilter) {
                 await performSearch()
             }
             
-            //                Picker("Filter", selection: $viewModel.selectedFilter) {
-            //                    ForEach(DonationIncentiveFilter.allCases, id: \.self) { filter in
-            //                        Text(filter.rawValue).tag(filter)
-            //                    }
-            //                }
-            //                .pickerStyle(.segmented)
-            //                .padding(.horizontal)
-            //                .onChange(of: viewModel.selectedFilter) { _ in
-            //                    Task {
-            //                        await refreshIncentives()
-            //                    }
-            //                }
-            
-            
             IncentiveSearchBar(searchText: $searchText,
                                isSearching: $isSearching,
                                onSearch: performSearch)
-            
             
             InfoBannerView(title: "Managing Incentives")
                 .padding(.horizontal)
@@ -56,65 +39,9 @@ struct DonationIncentiveListView: View {
                 onRefresh: refreshAll,
                 onDelete: handleDelete
             )
-            
-            // Add search field
-            //                HStack {
-            //                    TextField("Search incentives", text: $searchText)
-            //                        .textFieldStyle(RoundedBorderTextFieldStyle())
-            //                        .disabled(viewModel.isSearching)
-            //
-            //                    Button(action: {
-            //                        Task {
-            //                            viewModel.isSearching = true
-            //                            viewModel.setNotLoaded()
-            //                            await viewModel.performSearch(with: viewModel.searchText)
-            //                            viewModel.isSearching = false
-            //                        }
-            //                    }) {
-            //                        Image(systemName: "magnifyingglass")
-            //                            .foregroundColor(.blue)
-            //                    }
-            //                    .disabled(viewModel.isSearching)
-            //                }
-            //                .padding()
-            
-            //                switch incentiveObject.loadingState {
-            //                case .notLoaded:
-            //                    LoadingView(message: "Initializing...")
-            //
-            //                case .loading:
-            //                    LoadingView(message: "Loading incentives...")
-            //
-            //                case .loaded:
-            //                    VStack(spacing: 0) {
-            //                        InfoBannerView(title: "Managing Donation Incentives")
-            //                            .padding()
-            //                            .background(Color(.systemBackground))
-            //
-            //                        incentiveList
-            //                            .refreshable {
-            //                                await refreshIncentives()
-            //                            }
-            //                    }
-            //
-            //                case .error(let message):
-            //                    ErrorView(message: message) {
-            //                        Task {
-            //                            await incentiveObject.loadIncentives()
-            //                        }
-            //                    }
-            //                }
-            
-            //        }
-            //        }
+
         }
         .navigationTitle("Donation Incentives")
-//        .searchable(text: $viewModel.searchText)
-//        .onChange(of: viewModel.searchText) { _ in
-//            Task {
-//                await viewModel.performSearch()
-//            }
-//        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { showingAddIncentive = true }) {
@@ -142,12 +69,6 @@ struct DonationIncentiveListView: View {
         .task {
             await loadInitialData()
         }
-//        .onAppear {
-//            Task {
-//                viewModel.setNotLoaded()
-//                await viewModel.loadIncentives()
-//            }
-//        }
     }
     
     private var incentiveList: some View {
