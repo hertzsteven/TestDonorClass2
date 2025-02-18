@@ -48,9 +48,9 @@ struct MaintenanceView: View {
                 Section("Incentive Management") {
                  NavigationLink("Incentives") {
                      DonationIncentiveListView(incentiveObject: incentiveObject)
-                         .task {
-                             await incentiveObject.loadIncentives()
-                         }
+//                         .task {
+//                             await incentiveObject.loadIncentives()
+//                         }
                     }
                 }
                 

@@ -9,6 +9,7 @@ struct IncentiveListContent: View {
     let incentives: [DonationIncentive]
     let onRefresh: () async -> Void
     let onDelete: (IndexSet) async -> Void
+    @Binding var returnedFromDetail: Bool
     
     var body: some View {
         List {
@@ -24,9 +25,16 @@ struct IncentiveListContent: View {
                 )
             } else {
                 ForEach(incentives) { incentive in
-                    NavigationLink(destination: DonationIncentiveDetailView(incentive: incentive)) {
-                        DonationIncentiveRowView(incentive: incentive)
-                    }
+                    NavigationLink(
+                        destination: DonationIncentiveDetailView(incentive: incentive)
+                            .onAppear {returnedFromDetail = true},
+//                            .onDisappear {
+//                                returnedFromDetail = true
+//                            },
+                        label: {
+                            DonationIncentiveRowView(incentive: incentive)
+                        }
+                    )
                 }
                 .onDelete { indexSet in
                     Task {
@@ -40,4 +48,3 @@ struct IncentiveListContent: View {
         }
     }
 }
-

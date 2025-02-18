@@ -13,6 +13,8 @@ struct DonationIncentiveListView: View {
     @State private var deleteErrorMessage = ""
     @State private var isRefreshing = false
     
+    @State private var returnedFromDetail = false
+    
     @State private var searchText = ""
     @State private var isSearching = false
     
@@ -37,7 +39,8 @@ struct DonationIncentiveListView: View {
             IncentiveListContent(
                 incentives: incentiveObject.incentives,
                 onRefresh: refreshAll,
-                onDelete: handleDelete
+                onDelete: handleDelete,
+                returnedFromDetail: $returnedFromDetail
             )
 
         }
@@ -118,8 +121,17 @@ struct DonationIncentiveListView: View {
     }
     
     private func loadInitialData() async {
-        viewModel.setNotLoaded()
-        await viewModel.loadIncentives()
+//        defer {
+//            returnedFromDetail = false
+//        }
+        print("-- Loading initial data returnedFromDetail: \(returnedFromDetail)")
+        if !returnedFromDetail {
+            print("-- before viewmodelsetnotloaded")
+            viewModel.setNotLoaded()
+            await viewModel.loadIncentives()
+        } else {
+            print("-- Not loading initial data because returnedFromDetail is true")
+        }
     }
     
     private func refreshAll() async {
