@@ -5,11 +5,13 @@
 //  Created by Steven Hertz on 2/18/25.
 //
 
-
 import SwiftUI
     // MARK: - Views
     struct DonorSearchView: View {
         //    @StateObject private var viewModel = DonorSearchViewModel(donorObject: DonorObjectClass())
+        
+        // Add property for tab selection
+        @Binding var selectedTab: Int
         
         @State private var scannedCode: String = ""
         @State private var isShowingScanner: Bool = false
@@ -25,13 +27,17 @@ import SwiftUI
         
         @State private var isShowingSheet = false
         
-        init(donorObject: DonorObjectClass) {
+        @State private var isTabBarHidden = true
+        @Environment(\.dismiss) private var dismiss
+        
+        init(donorObject: DonorObjectClass, selectedTab: Binding<Int> = .constant(0)) {
+//        init(donorObject: DonorObjectClass, ) {
             _viewModel = StateObject(wrappedValue: DonorSearchViewModel(donorObject: donorObject))
+            _selectedTab = selectedTab
         }
         
         
         var body: some View {
-            //        NavigationView {
             VStack {
                 searchBar
                 if viewModel.hasSearched {
@@ -44,8 +50,17 @@ import SwiftUI
                     initialStateView
                 }
             }
-            .toolbar(.hidden, for: .tabBar)
+            .toolbar(isTabBarHidden ? .hidden : .visible, for: .tabBar)
             .toolbar {
+                
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        // Show tab bar when canceling
+                        isTabBarHidden = false
+                        selectedTab = 0
+                        dismiss()
+                    }
+                }
                 
                 ToolbarItem(placement: .principal) {
                     Picker("Search Mode", selection: $searchMode) {
@@ -89,10 +104,10 @@ import SwiftUI
                 }
             }
             
-            //            .navigationTitle("Donors")
-            //        }
+            .onAppear {
+                isTabBarHidden = true
+            }
         }
-        
         
         private var searchBar: some View {
             HStack {
@@ -246,16 +261,30 @@ import SwiftUI
 
     struct DonorSearchView_Previews: PreviewProvider {
         static var previews: some View {
-            // Create a dummy DonorObjectClass instance.
-            // Adjust the initializer if DonorObjectClass requires parameters.
+            // Create a dummy DonorObjectClass instance
             let dummyDonorObject = DonorObjectClass()
             
-            // Wrap in a NavigationView if you want to preview NavigationLinks.
-            NavigationStack {
-                DonorSearchView(donorObject: dummyDonorObject)
+            // Create a State wrapper for the selectedTab binding
+            StatefulPreviewWrapper(initialValue: 0) { selectedTab in
+                NavigationStack {
+                    DonorSearchView(donorObject: dummyDonorObject, selectedTab: selectedTab)
+                }
             }
-            // Optionally, set a preview device or color scheme:
             .previewDevice("iPhone 13")
-            .preferredColorScheme(.light) // Change to .dark to preview dark mode.
+            .preferredColorScheme(.light)
+        }
+    }
+
+    struct StatefulPreviewWrapper<Value, Content: View>: View {
+        @State var value: Value
+        var content: (Binding<Value>) -> Content
+
+        init(initialValue: Value, content: @escaping (Binding<Value>) -> Content) {
+            _value = State(initialValue: initialValue)
+            self.content = content
+        }
+
+        var body: some View {
+            content($value)
         }
     }

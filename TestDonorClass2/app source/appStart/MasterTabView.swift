@@ -15,9 +15,11 @@ struct MasterTabView: View {
     @EnvironmentObject private var incentiveObject : DonationIncentiveObjectClass
     @EnvironmentObject private var defaultDonationSettingsViewModel: DefaultDonationSettingsViewModel
     
+    @State private var selectedTab: Int = 0
+    
     var body: some View {
         
-        TabView {
+        TabView(selection: $selectedTab) {
 
             DonorListView(donorObject: donorObject, maintenanceMode: false)
                 .tabItem {
@@ -48,7 +50,7 @@ struct MasterTabView: View {
             
             
             NavigationStack {
-                DonorSearchView(donorObject: donorObject)
+                DonorSearchView(donorObject: donorObject, selectedTab: $selectedTab)
             }
             .tabItem {
                 Label("Donors", systemImage: "person.3")
