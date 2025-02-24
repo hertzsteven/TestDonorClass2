@@ -364,16 +364,19 @@ extension DonorListView {
                 Text(viewModel.maintenanceMode ? "Information" : "Donations")
                     .foregroundColor(.gray)
                     .font(.caption)
+                    .animation(.easeInOut, value: viewModel.maintenanceMode)
             }
             ToolbarItemGroup {
                 if viewModel.maintenanceMode {
                     Button { showingAddDonor = true } label: {
                         Text(Image(systemName: "plus"))
                     }
+                    .transition(.scale.combined(with: .opacity))
                 } else {
                     Button(action: { showingDefaults = true }) {
                         Label("Defaults", systemImage: "gear")
                     }
+                    .transition(.scale.combined(with: .opacity))
                 }
                 
                 if searchMode == .id {
@@ -385,13 +388,48 @@ extension DonorListView {
                     }
                 }
                 
-                
-                
                 Button {
                     viewModel.maintenanceMode.toggle()
                 }  label: {
-                    Text(viewModel.maintenanceMode ? Image(systemName: "info.circle") : Image(systemName: "dollarsign.circle"))
+                    HStack(spacing: 8) {
+                        Image(systemName: viewModel.maintenanceMode ? "info.circle.fill" : "info.circle")
+                            .foregroundColor(.blue)
+                            .imageScale(.large)
+                        
+                        Image(systemName: !viewModel.maintenanceMode ? "dollarsign.circle.fill" : "dollarsign.circle")
+                            .foregroundColor(.blue)
+                            .imageScale(.large)
+                    }
                 }
+
+//                Button {
+//                    viewModel.maintenanceMode.toggle()
+//                }  label: {
+//                    HStack(spacing: 8) {
+//                        Image(systemName: "info.circle")
+//                            .foregroundColor(.blue)
+//                            .background(
+//                                Circle()
+//                                    .stroke(viewModel.maintenanceMode ? Color.blue : Color.clear, lineWidth: 2)
+//                                    .padding(-4)
+//                            )
+//                        
+//                        Image(systemName: "dollarsign.circle")
+//                            .foregroundColor(.blue)
+//                            .background(
+//                                Circle()
+//                                    .stroke(!viewModel.maintenanceMode ? Color.blue : Color.clear, lineWidth: 2)
+//                                    .padding(-4)
+//                            )
+//                    }
+//                }
+
+                
+//                Button {
+//                    viewModel.maintenanceMode.toggle()
+//                }  label: {
+//                    Text(viewModel.maintenanceMode ? Image(systemName: "info.circle") : Image(systemName: "dollarsign.circle"))
+//                }
                 
             }
         }
