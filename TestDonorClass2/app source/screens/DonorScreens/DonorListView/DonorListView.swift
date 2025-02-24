@@ -59,7 +59,7 @@ struct DonorListView: View {
             }
         }
         .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
-        .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name" : "Search by ID")
+        .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name or company" : "Search by ID")
         
         .sheet(isPresented: $isShowingScanner) {
             BarcodeScannerView(scannedCode: $scannedCode)
@@ -285,6 +285,12 @@ extension DonorListView {
                     List(selection: $selectedDonorID) {
                         
                         ForEach($donorObject.donors) { $donor in
+//                            NavigationLink {
+//
+//                            } label: {
+//                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+//                            }
+
                             NavigationLink(value: donor) {
                                 DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
                             }

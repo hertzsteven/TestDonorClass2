@@ -10,6 +10,7 @@ struct DonationIncentiveDetailView: View {
     @State private var showingEditSheet = false
     let incentive: DonationIncentive
     
+    
     var body: some View {
         List {
             Section(header: Text("Incentive Information")) {
@@ -23,6 +24,7 @@ struct DonationIncentiveDetailView: View {
                         .font(.body)
                 }
             }
+            
             
             Section(header: Text("System Information")) {
                 DetailRow(title: "Created", value: incentive.createdAt.formatted())
@@ -40,6 +42,12 @@ struct DonationIncentiveDetailView: View {
         .toolbar(.hidden, for: .tabBar)
         .sheet(isPresented: $showingEditSheet) {
             DonationIncentiveEditView(mode: .edit(incentive))
+        }
+        .onAppear {
+            print("DonationIncentiveDetailView appeared")
+        }
+        .onDisappear {
+            print("DonationIncentiveDetailView disappeared")
         }
     }
 }
