@@ -23,7 +23,7 @@ struct MasterTabView: View {
 
             DonorListView(donorObject: donorObject, maintenanceMode: false)
                 .tabItem {
-                    Label("Donations", systemImage: "dollarsign")
+                    Label("Donor Hub", systemImage: "dollarsign")
                 }
                 .tag(0)
             

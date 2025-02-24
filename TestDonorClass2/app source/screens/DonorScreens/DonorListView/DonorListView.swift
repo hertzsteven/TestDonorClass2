@@ -264,9 +264,9 @@ extension DonorListView {
                     } else {
                         VStack {
                             Text("Please search for a donor").tint(.gray)
-                            groupBoxInstructions()
-                                .padding()
-                                .background(Color(.systemBackground))
+//                            groupBoxInstructions()
+//                                .padding()
+//                                .background(Color(.systemBackground))
                         }
                     }
                     Spacer()
@@ -308,8 +308,8 @@ extension DonorListView {
                         .environmentObject(donationObject)
                         .toolbar(.hidden, for: .tabBar)
                 } else {
-                    Text("Select a donor")
-                }
+                    DonorInstructionsView()
+                         .padding(32)                }
                 
             } else {
                 if let donorID = selectedDonorID,
@@ -318,7 +318,8 @@ extension DonorListView {
                         .environmentObject(donationObject)
                         .toolbar(.hidden, for: .tabBar)
                 } else {
-                    Text("Select a donor")
+                    DonorInstructionsView()
+                         .padding(32)
                         .toolbar(.visible, for: .tabBar)
                 }
             }
