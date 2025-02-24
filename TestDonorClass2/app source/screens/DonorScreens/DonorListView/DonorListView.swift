@@ -1,13 +1,13 @@
-    //
-    //  DonorListView.swift
-    //  TestDonorClass2
-    //
-    //  Created by Steven Hertz on 12/24/24.
-    //
+//
+//  DonorListView.swift
+//  TestDonorClass2
+//
+//  Created by Steven Hertz on 12/24/24.
+//
 
 import SwiftUI
 
-    // MARK: - Main List View
+// MARK: - Main List View
 struct DonorListView: View {
     
     @EnvironmentObject var donorObject        : DonorObjectClass
@@ -26,14 +26,14 @@ struct DonorListView: View {
     @State var clearTheDonors: Bool    = false
     @State var isSearchingForDonor: Bool = false
     
-        // Alert handling properties
+    // Alert handling properties
     @State private var showAlert       = false
     @State private var alertMessage    = ""
     
     @State  var selectedDonor: Donor?  = nil
     @State private var selectedDonorID: Donor.ID?  // Which donor is currently selected?
     
-        /// A new donor used for the "Add Donor" flow (since we need a binding).
+    /// A new donor used for the "Add Donor" flow (since we need a binding).
     @State private var blankDonor       = Donor()
     
     @State private var donorCount: Int = 0
@@ -71,13 +71,13 @@ struct DonorListView: View {
         
         .onChange(of: scannedCode) { newValue in
             if !newValue.isEmpty {
-                    //                isShowingResultSheet = true
+                //                isShowingResultSheet = true
                 print("Scanned code: \(newValue)")
                 $viewModel.searchText.wrappedValue = newValue
                 Task {
                     try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
                 }
-                    //                Task { await handleScannedCode(code: newValue) }
+                //                Task { await handleScannedCode(code: newValue) }
             }
         }
         .sheet(isPresented: $isShowingResultSheet) {
@@ -98,17 +98,17 @@ struct DonorListView: View {
         .onChange(of: searchMode) { viewModel.searchText = "" }
         
         .toolbar { toolBarListDonors() }
-            //            ToolbarItemGroup(placement: .navigationBarTrailing) {
-            //                Button(action: { showingAddDonor = true }) {
-            //                    Label("Add Donor", systemImage: "plus")
-            //                }
-            //
-            //                if !viewModel.maintenanceMode {
-            //                    Button(action: { showingDefaults = true }) {
-            //                        Label("Defaults", systemImage: "gear")
-            //                    }
-            //                }
-            //            }
+        //            ToolbarItemGroup(placement: .navigationBarTrailing) {
+        //                Button(action: { showingAddDonor = true }) {
+        //                    Label("Add Donor", systemImage: "plus")
+        //                }
+        //
+        //                if !viewModel.maintenanceMode {
+        //                    Button(action: { showingDefaults = true }) {
+        //                        Label("Defaults", systemImage: "gear")
+        //                    }
+        //                }
+        //            }
         
         
         .alert("Error", isPresented: $showAlert) {
@@ -122,7 +122,7 @@ struct DonorListView: View {
         }
         .sheet(isPresented: $showingDefaults) {
             DefaultDonationSettingsView()
-                //                .environmentObject(defaultDonationSettingsViewModel)
+            //                .environmentObject(defaultDonationSettingsViewModel)
         }
     }
     
@@ -153,13 +153,13 @@ extension DonorListView {
             do {
                 try await viewModel.performSearch(mode: searchMode, newValue: newValue)
             } catch {
-                    // Handle specific errors
+                // Handle specific errors
                 print("Search failed: \(error)")
-                    // You might want to:
-                    // - Update UI to show error state
-                    // - Log the error
-                    // - Show an alert to the user
-                    // await handleSearchError(error)
+                // You might want to:
+                // - Update UI to show error state
+                // - Log the error
+                // - Show an alert to the user
+                // await handleSearchError(error)
             }
             clearTheDonors = false
         }
@@ -247,7 +247,7 @@ extension DonorListView {
                 }
             }
         }
-     }
+    }
 
     var newDonorList: some View {
         
@@ -301,34 +301,15 @@ extension DonorListView {
             }
             .toolbar { toolBarTrailLeftPane() }
         } detail: {
-            if viewModel.maintenanceMode {
-                if let donorID = selectedDonorID,
-                   let theDonorIdx = donorObject.donors.firstIndex(where: { $0.id == donorID }) {
-                    DonorDetailView(donor: $donorObject.donors[theDonorIdx])
-                        .environmentObject(donationObject)
-                        .toolbar(.hidden, for: .tabBar)
-                } else {
-                    DonorInstructionsView()
-                         .padding(32)                }
-                
-            } else {
-                if let donorID = selectedDonorID,
-                   let theDonorIdx = donorObject.donors.firstIndex(where: { $0.id == donorID }) {
-                    DonationEditView(donor: donorObject.donors[theDonorIdx])
-                        .environmentObject(donationObject)
-                        .toolbar(.hidden, for: .tabBar)
-                } else {
-                    DonorInstructionsView()
-                         .padding(32)
-                        .toolbar(.visible, for: .tabBar)
-                }
-            }
-            
+            DonorDetailContainer(
+                donorID: selectedDonorID,
+                isMaintenanceMode: viewModel.maintenanceMode
+            )
         }
     }
 }
 
-    // MARK: - Life Cycle Methods
+// MARK: - Life Cycle Methods
 extension DonorListView {
     
     fileprivate func doOnDisappearProcess() {
@@ -348,22 +329,22 @@ extension DonorListView {
     }
 }
 
-    // MARK: - Toolbars
+// MARK: - Toolbars
 extension DonorListView {
-        //    private var toolbarContent: some ToolbarContent {
-        //        ToolbarItem(placement: .navigationBarLeading) {
-        //            Button("Cancel") {
-        //                presentationMode.wrappedValue.dismiss()
-        //            }
-        //        }
-        //
-        //        ToolbarItem(placement: .navigationBarTrailing) {
-        //            Button("Save") {
-        //                print("llll")
-        //            }
-        //            .disabled(true)
-        //        }
-        //    }
+    //    private var toolbarContent: some ToolbarContent {
+    //        ToolbarItem(placement: .navigationBarLeading) {
+    //            Button("Cancel") {
+    //                presentationMode.wrappedValue.dismiss()
+    //            }
+    //        }
+    //
+    //        ToolbarItem(placement: .navigationBarTrailing) {
+    //            Button("Save") {
+    //                print("llll")
+    //            }
+    //            .disabled(true)
+    //        }
+    //    }
     
     
     @ToolbarContentBuilder
@@ -379,14 +360,17 @@ extension DonorListView {
                 .buttonStyle(.plain)
             }
         }else {
+            ToolbarItem(placement: .topBarLeading) {
+                Text(viewModel.maintenanceMode ? "Information" : "Donations")
+                    .foregroundColor(.gray)
+                    .font(.caption)
+            }
             ToolbarItemGroup {
                 if viewModel.maintenanceMode {
                     Button { showingAddDonor = true } label: {
                         Text(Image(systemName: "plus"))
                     }
-                    
                 } else {
-                    
                     Button(action: { showingDefaults = true }) {
                         Label("Defaults", systemImage: "gear")
                     }
@@ -442,7 +426,7 @@ extension DonorListView {
 }
 
 #Preview {
-        // Create a donor object with mock data
+    // Create a donor object with mock data
     let donorObject: DonorObjectClass = {
         let object = DonorObjectClass()
         object.donors = [
@@ -475,7 +459,7 @@ extension DonorListView {
         return object
     }()
     
-        // Create donation object
+    // Create donation object
     let donationObject = DonationObjectClass()
     
     return NavigationView {
