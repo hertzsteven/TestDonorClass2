@@ -36,6 +36,7 @@ struct MasterTabView: View {
             .tabItem {
                 Label("Batch Donations", systemImage: "tablecells.badge.ellipsis")
             }
+            .tag(1)
             
             NavigationView {
                 MaintenanceView(campaignObject: campaignObject,
@@ -46,9 +47,9 @@ struct MasterTabView: View {
             .tabItem {
                 Label("Maintenance", systemImage: "square.grid.3x1.folder.badge.plus")
             }
-            .tag(1)
+            .tag(2)
             
-            
+            /*
             NavigationStack {
                 DonorSearchView(donorObject: donorObject, selectedTab: $selectedTab)
             }
@@ -56,12 +57,14 @@ struct MasterTabView: View {
                 Label("Donors", systemImage: "person.3")
             }
             .tag(4)
-            
+            */
+             
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
                 .tag(3)
+
             
                 // New Tab for DonationEditView
 //            DonationEditView(donor: Donor(
@@ -77,8 +80,6 @@ struct MasterTabView: View {
 //                Label("Edit Donation", systemImage: "square.and.pencil")
 //            }
 //            .tag(4)
-            
-
 
                 //            CSVHandlerView()
                 //                .tabItem {

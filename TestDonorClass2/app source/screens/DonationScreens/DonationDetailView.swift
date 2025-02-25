@@ -73,13 +73,13 @@ struct DonationDetailView: View {
                 }
             }
         }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Edit") {
-                    loadDonorAndShowEdit()
-                }
-            }
-        }
+//        .toolbar {
+//            ToolbarItem(placement: .navigationBarTrailing) {
+//                Button("Edit") {
+//                    loadDonorAndShowEdit()
+//                }
+//            }
+//        }
         .sheet(isPresented: $showingEditSheet) {
             if let donor = donor {
                 NavigationView {

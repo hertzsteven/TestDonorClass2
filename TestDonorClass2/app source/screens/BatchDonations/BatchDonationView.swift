@@ -5,7 +5,6 @@
 //  Created by Steven Hertz on 1/30/25.
 //
 
-
 import SwiftUI
 
 struct BatchDonationView: View {
@@ -14,7 +13,6 @@ struct BatchDonationView: View {
     
     @EnvironmentObject var campaignObject: CampaignObjectClass
 
-    
     @StateObject private var viewModel = BatchDonationViewModel()
 
     @State private var selectedCampaign: Campaign?
@@ -29,27 +27,29 @@ struct BatchDonationView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Global donation amount across all rows
             HStack {
-                CampaignPickerView(selectedCampaign: $selectedCampaign)
-                Text("Global Amount:")
-                TextField("Enter global donation",
+                Text("Amount:")
+                    .padding(.leading, 16)
+                TextField("Enter Donation",
                           value: $viewModel.globalDonation, format: .number)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .keyboardType(.decimalPad)
                     .frame(width: 100)
-               
+                CampaignPickerView(selectedCampaign: $selectedCampaign)
+                    .padding(.leading, 16)
             }
-            .padding()
+            
             
             // Optional column headers
             HStack {
-                Text("Code")
+                Text("Donor ID")
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 16)
                 Text("Donor Information")
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text("Donation")
-                    .frame(width: 80, alignment: .leading)
-                Text("Find")
-                    .frame(width: 50, alignment: .center)
+                Text("Amount")
+                    .frame(width: 70, alignment: .leading)
+                Text("Action")
+                    .frame(width: 80, alignment: .center)
             }
             .font(.headline)
             .padding(.horizontal)
@@ -72,7 +72,7 @@ struct BatchDonationView: View {
                         // Donor Code (ID) text field
                         TextField("Donor ID", value: $row.donorID, formatter: NumberFormatter())
                             .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(maxWidth: .infinity)
+                            .frame(width: 80)
                             .focused($focusedRowID, equals: row.id)
 
                         // Donor Information text
@@ -87,44 +87,34 @@ struct BatchDonationView: View {
                             .frame(width: 80)
                             .disabled(!row.isValidDonor)
 
-                        // Find button
-                        Button {
-                            Task {
-                                await viewModel.findDonor(for: row.id)
-                                // Move focus to the row ID we just appended
-                                focusedRowID = viewModel.focusedRowID
+                        // Replace the Find button with conditional button
+                        if row.isValidDonor {
+                            Button {
+                                viewModel.rows.removeAll(where: { $0.id == row.id })
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
                             }
-                        } label: {
-                            Image(systemName: "magnifyingglass")
+                            .frame(width: 50)
+                        } else {
+                            Button {
+                                Task {
+                                    await viewModel.findDonor(for: row.id)
+                                    // Move focus to the row ID we just appended
+                                    focusedRowID = viewModel.focusedRowID
+                                }
+                            } label: {
+                                Image(systemName: "magnifyingglass")
+                            }
+                            .frame(width: 50)
+                            .disabled(row.donorID == nil)
                         }
-                        .frame(width: 50)
-                        .disabled(row.donorID == nil)
                     }
                 }
             }
             .onChange(of: viewModel.focusedRowID) { newID in
                 focusedRowID = newID
             }
-
-            // Optionally, a button to finalize & save all rows into the donation table:
-            HStack {
-                Spacer()
-                Button("advanced Batch") {
-                    for row in viewModel.rows  where row.donorID != nil {
-                           let donorIDString = row.donorID.map(String.init) ?? "(none)"
-                        let donationAmount = (row.donationOverride == 0.0)
-                               ? viewModel.globalDonation
-                               : row.donationOverride
-                           
-                           print("DonorID: \(donorIDString), Amount: \(donationAmount)")
-                       }
-                }
-                Button("Save Batch") {
-                    saveBatchDonations()
-                }
-            }
-                .padding(.bottom)
-//            }
         }
         .toolbar {
             SaveCancelToolBar()
@@ -160,6 +150,7 @@ extension BatchDonationView {
         var failedDonationsCount        = 0
         
         for i in viewModel.rows.indices where viewModel.rows[i].donorID != nil {
+            print("Processing row \(i)")
             let currentRow = viewModel.rows[i]
             let donorIDString = currentRow.donorID.map(String.init) ?? "(none)"
             

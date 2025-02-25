@@ -300,6 +300,7 @@ extension DonorListView {
                 }
             }
             .toolbar { toolBarTrailLeftPane() }
+            .navigationTitle("Donor Hub")
         } detail: {
             DonorDetailContainer(
                 donorID: selectedDonorID,
@@ -413,7 +414,7 @@ extension DonorListView {
 //                                    .stroke(viewModel.maintenanceMode ? Color.blue : Color.clear, lineWidth: 2)
 //                                    .padding(-4)
 //                            )
-//                        
+//
 //                        Image(systemName: "dollarsign.circle")
 //                            .foregroundColor(.blue)
 //                            .background(
