@@ -16,6 +16,8 @@ struct BatchDonationView: View {
     @StateObject private var viewModel = BatchDonationViewModel()
 
     @State private var selectedCampaign: Campaign?
+    @State private var selectedDonationType: DonationType = .check
+    @State private var selectedPaymentStatus: PaymentStatus = .completed
 
 
     // If you want your focus to jump from row to row:
@@ -34,8 +36,38 @@ struct BatchDonationView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .keyboardType(.decimalPad)
                     .frame(width: 100)
-                CampaignPickerView(selectedCampaign: $selectedCampaign)
-                    .padding(.leading, 16)
+                    .padding(.trailing, 12)
+                
+                Text("Campaign")
+                    .padding(.trailing, -10)
+                Picker("Campaign", selection: $selectedCampaign) {
+                    Text("None").tag(nil as Campaign?)
+                        //
+                    ForEach(campaignObject.campaigns.filter { $0.id ?? 100 > 99 }) { campaign in
+                            //                    ForEach(campaignObject.campaigns) { campaign in
+                        Text(campaign.name).tag(campaign  as Campaign?)
+                    }
+                }
+
+//                CampaignPickerView(selectedCampaign: $selectedCampaign)
+//                    .padding(.leading, 16)
+                
+                // Add Donation Type Picker
+                Picker("Type", selection: $viewModel.globalDonationType) {
+                    ForEach(DonationType.allCases, id: \.self) { type in
+                        Text(type.rawValue).tag(type)
+                    }
+                }
+                .frame(width: 100)
+                
+                // Add Payment Status Picker
+                Picker("Status", selection: $viewModel.globalPaymentStatus) {
+                    ForEach([PaymentStatus.completed, .pending, .failed], id: \.self) { status in
+                        Text(status.rawValue).tag(status)
+                    }
+                }
+                .frame(width: 180)
+
             }
             
             
@@ -79,7 +111,25 @@ struct BatchDonationView: View {
                         Text(row.displayInfo)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .foregroundColor(row.isValidDonor ? .primary : .red)
-
+                        
+                        // Add Donation Type Override picker - only show when donor is valid
+                        if row.isValidDonor {
+                            Picker("", selection: $row.donationTypeOverride) {
+                                ForEach(DonationType.allCases, id: \.self) { type in
+                                    Text(type.rawValue).tag(type)
+                                }
+                            }
+                            .frame(width: 170)
+                            
+                            // Add Payment Status Override picker - only show when donor is valid
+                            Picker("", selection: $row.paymentStatusOverride) {
+                                ForEach([PaymentStatus.completed, .pending, .failed], id: \.self) { status in
+                                    Text(status.rawValue).tag(status)
+                                }
+                            }
+                            .frame(width: 170)
+                        }
+                        
                         // Donation text field
                         TextField("Amount", value: $row.donationOverride, format: .number)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -161,13 +211,19 @@ extension BatchDonationView {
             
             let campaignID = selectedCampaign?.id ?? nil
             let donorID = viewModel.rows[i].donorID
+            let paymentStatus = viewModel.rows[i].paymentStatusOverride 
+            let donationType = viewModel.rows[i].donationTypeOverride
+            
             print("DonorID: \(donorIDString), Amount: \(donationAmount)")
             
             Task {
-                let donation = Donation(donorId:        donorID,
-                                        campaignId:     campaignID,
-                                        amount:         donationAmount,
-                                        donationType:   .check)
+                let donation = Donation(
+                    donorId: donorID,
+                    campaignId: campaignID,
+                    amount: donationAmount,
+                    donationType: donationType,
+                    paymentStatus: paymentStatus
+                )
                 do {
                     try await viewModel.addDonation(donation)
                     viewModel.rows[i].processStatus = .success

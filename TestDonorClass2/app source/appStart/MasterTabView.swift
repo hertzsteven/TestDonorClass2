@@ -61,7 +61,8 @@ struct MasterTabView: View {
              
             SettingsView()
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape")
+                    Image(systemName: "gearshape")
+//                    Label("Settings", systemImage: "gearshape")
                 }
                 .tag(3)
 
