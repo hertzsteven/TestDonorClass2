@@ -14,7 +14,7 @@ struct MyHeaderStyle: ViewModifier {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.leading, 20)
             .padding(.bottom, 8)
-            .padding(.top, 50) // Reduced from 50 for better spacing
+            .padding(.top, 15) // Reduced from 50 for better spacing
             .font(.title2)
             .fontWeight(.bold)
             .foregroundColor(.primary) // Add to ensure visibility

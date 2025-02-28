@@ -15,7 +15,6 @@ struct Category: Identifiable, Hashable {
     let name: String
     let color: Color
     let image: Image
-    let count: Int
     
     static func == (lhs: Category, rhs: Category) -> Bool {
         lhs.id == rhs.id

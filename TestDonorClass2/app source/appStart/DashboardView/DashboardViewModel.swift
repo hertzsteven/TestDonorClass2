@@ -22,60 +22,54 @@ class DashboardViewModel {
     let sections: [DashboardSection]
     
     init() {
-        // Device Management Categories
-        let deviceCategories: [Category] = [
-            Category(name: "Devices", 
-                    color: .blue, 
-                    image: Image(systemName: "ipad.and.iphone"), 
-                    count: 5),
-            Category(name: "Categories", 
-                    color: .green, 
-                    image: Image(systemName: "folder.fill"), 
-                    count: 12)
+        // Donor Management Categories
+        let donorCategories: [Category] = [
+            Category(name: "Donor Hub",
+                    color: .blue,
+                    image: Image(systemName: "dollarsign")),
+            Category(name: "Batch Donations",
+                    color: .green,
+                    image: Image(systemName: "tablecells.badge.ellipsis")),
         ]
         
-        // Application Management Categories
-        let appCategories: [Category] = [
-            Category(name: "Apps", 
-                    color: .red, 
-                    image: Image(systemName: "apps.ipad"), 
-                    count: 3),
-            Category(name: "NavigateToStudentAppProfile", 
-                    color: .purple, 
-                    image: Image(systemName: "person.3.sequence.fill"), 
-                    count: 8)
+        // Management Categories
+        let managementCategories: [Category] = [
+            Category(name: "Campaigns",
+                    color: .purple,
+                    image: Image(systemName: "flag.filled")),
+            Category(name: "Incentives",
+                    color: .orange,
+                    image: Image(systemName: "gift.fill"))
         ]
         
         // User Management Categories
         let userCategories: [Category] = [
             Category(name: "Classes", 
                     color: .orange, 
-                    image: Image(systemName: "person.3.sequence.fill"), 
-                    count: 2),
-            Category(name: "Students", 
+                    image: Image(systemName: "person.3.sequence.fill")),
+            Category(name: "Students",
                     color: .yellow, 
-                    image: Image(systemName: "person.crop.square"), 
-                    count: 6)
+                    image: Image(systemName: "person.crop.square")) 
         ]
         
         // Combine all categories in order
-        self.categories = deviceCategories + appCategories + userCategories
+        self.categories = donorCategories + managementCategories + userCategories
         
         // Define sections based on the combined array
         self.sections = [
             DashboardSection(
-                title: "Device Management",
+                title: "Donor Donation Management",
                 startIndex: 0,
-                count: deviceCategories.count
+                count: donorCategories.count
             ),
             DashboardSection(
-                title: "Application Management",
-                startIndex: deviceCategories.count,
-                count: appCategories.count
+                title: "Campaign & Incentives",
+                startIndex: donorCategories.count,
+                count: managementCategories.count
             ),
             DashboardSection(
                 title: "User Management",
-                startIndex: deviceCategories.count + appCategories.count,
+                startIndex: donorCategories.count + managementCategories.count,
                 count: userCategories.count
             )
         ]

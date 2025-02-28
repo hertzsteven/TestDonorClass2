@@ -17,6 +17,12 @@ struct DashboardView: View {
     @State private var showingSettings = false
     @State private var showingHelp = false
     
+    @EnvironmentObject private var donorObject: DonorObjectClass
+    @EnvironmentObject private var donationObject: DonationObjectClass
+    @EnvironmentObject private var campaignObject: CampaignObjectClass
+    @EnvironmentObject private var incentiveObject: DonationIncentiveObjectClass
+    @EnvironmentObject private var defaultDonationSettingsViewModel: DefaultDonationSettingsViewModel
+    
     var backGroundView: some View {
         Color(.systemGray6)
             .opacity(0.8)
@@ -35,9 +41,31 @@ struct DashboardView: View {
                     sections: viewModel.sections
                 )
                 .navigationTitle("United Tiberias: Dashboard")
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        VStack {
+                            Text("United Tiberias: Dashboard")
+                                .font(.headline)
+                            Text("Management System")
+                                .font(.subheadline)
+                        }
+                    }
+                }
             }
             .navigationDestination(for: Category.self) { category in
-                Text("Detail view for \(category.name)")
+                switch category.name {
+                case "Donor Hub":
+                    DonorListView(donorObject: donorObject, maintenanceMode: false)
+                case "Batch Donations":
+                    BatchDonationView()
+                        .environmentObject(donorObject)
+                case "Campaigns":
+                    CampaignListView(campaignObject: campaignObject)
+                case "Incentives":
+                    DonationIncentiveListView(incentiveObject: incentiveObject)
+                default:
+                    Text("Detail view for \(category.name)")
+                }
             }
             .toolbar(content: doToolbarTraing)
             .sheet(isPresented: $showingSettings) {
