@@ -134,5 +134,8 @@ class DonationIncentiveObjectClass: ObservableObject {
         errorMessage = nil
     }
     
+    func getTotalIncentiveCount() async throws -> Int {
+        return try await repository.getCount()
+    }
 
 }

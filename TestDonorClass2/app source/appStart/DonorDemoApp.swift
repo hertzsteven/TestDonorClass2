@@ -35,8 +35,9 @@
         
         var body: some Scene {
             WindowGroup {
+                LaunchScreenManager() 
 //                DashboardView()
-                MasterTabView()
+//                MasterTabView()
                 .environmentObject(donorObject)
                 .environmentObject(donationObject)
                 .environmentObject(campaignObject)

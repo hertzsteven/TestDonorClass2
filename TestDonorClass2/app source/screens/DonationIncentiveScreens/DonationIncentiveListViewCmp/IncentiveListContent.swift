@@ -10,20 +10,26 @@ struct IncentiveListContent: View {
     let onRefresh: () async -> Void
     let onDelete: (IndexSet) async -> Void
     @Binding var returnedFromDetail: Bool
-    
+    @Binding var showingAddIncentive: Bool
+
     var body: some View {
         List {
-            if incentives.isEmpty {
-                EmptyStateView(
-                    message: "No donation incentives found",
-                    action: {
-                        Task {
-                            await onRefresh()
-                        }
-                    },
-                    actionTitle: "Refresh"
-                )
-            } else {
+//            if incentives.isEmpty {
+//                EmptyIncentiveStateView(onAddNew: {
+//                    showingAddIncentive = true
+//                })
+//                .frame(maxHeight: .infinity)
+//                EmptyStateView(
+//                    message: "No donation incentives found",
+//                    action: {
+//                        Task {
+//                            await onRefresh()
+//                        }
+//                    },
+//                    actionTitle: "Refresh"
+//                )
+//            } else {
+                
                 ForEach(incentives) { incentive in
                     NavigationLink(
                         destination: DonationIncentiveDetailView(incentive: incentive)
@@ -41,7 +47,7 @@ struct IncentiveListContent: View {
                         await onDelete(indexSet)
                     }
                 }
-            }
+//            }
         }
         .refreshable {
             await onRefresh()

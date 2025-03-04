@@ -24,7 +24,7 @@ struct CampaignListView: View {
                              isSearching: $isSearching,
                              onSearch: performSearch)
             
-            InfoBannerView(title: "Managing Campaigns")
+            InfoBannerView(title: "Managing Campaigns", type: "campaign")
                 .padding(.horizontal)
                 .background(Color(.systemBackground))
             

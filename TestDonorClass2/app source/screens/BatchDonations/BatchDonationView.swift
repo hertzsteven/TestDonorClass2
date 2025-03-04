@@ -19,6 +19,10 @@ struct BatchDonationView: View {
     @State private var selectedDonationType: DonationType = .check
     @State private var selectedPaymentStatus: PaymentStatus = .completed
 
+    // 1. First, add these state variables to your BatchDonationView
+    @State private var showingDonorSearch = false
+    @State private var currentRowID: UUID? = nil
+
 
     // If you want your focus to jump from row to row:
     @FocusState private var focusedRowID: UUID?
@@ -147,17 +151,46 @@ struct BatchDonationView: View {
                             }
                             .frame(width: 50)
                         } else {
-                            Button {
-                                Task {
-                                    await viewModel.findDonor(for: row.id)
-                                    // Move focus to the row ID we just appended
-                                    focusedRowID = viewModel.focusedRowID
+                            
+                            // Improved menu implementation that disables the menu when appropriate
+                            Menu {
+                                // Option 1: Search by ID (existing functionality)
+                                Button {
+                                    Task {
+                                        await viewModel.findDonor(for: row.id)
+                                        focusedRowID = viewModel.focusedRowID
+                                    }
+                                } label: {
+                                    Label("Find by ID", systemImage: "number")
+                                }
+                                .disabled(row.donorID == nil)
+                                
+                                // Option 2: Search by name/address
+                                Button {
+                                    currentRowID = row.id
+                                    showingDonorSearch = true
+                                } label: {
+                                    Label("Search by Name", systemImage: "magnifyingglass")
                                 }
                             } label: {
-                                Image(systemName: "magnifyingglass")
+                                Image(systemName: "ellipsis.circle")
+                                    .foregroundColor(.blue)
                             }
                             .frame(width: 50)
-                            .disabled(row.donorID == nil)
+                            // Disable the entire menu if we're in an invalid state
+                            .disabled(row.id == nil)
+                            
+//                            Button {
+//                                Task {
+//                                    await viewModel.findDonor(for: row.id)
+//                                    // Move focus to the row ID we just appended
+//                                    focusedRowID = viewModel.focusedRowID
+//                                }
+//                            } label: {
+//                                Image(systemName: "magnifyingglass")
+//                            }
+//                            .frame(width: 50)
+//                            .disabled(row.donorID == nil)
                         }
                     }
                 }
@@ -176,6 +209,29 @@ struct BatchDonationView: View {
             }
         }
 
+        .sheet(isPresented: $showingDonorSearch, onDismiss: {
+            // Clear the currentRowID when the sheet is dismissed
+            currentRowID = nil
+        }) {
+            DonorSearchSelectionView { selectedDonor in
+                if let rowID = currentRowID {
+                    Task {
+                        await viewModel.setDonorFromSearch(selectedDonor, for: rowID)
+                    }
+                }
+            }
+            .environmentObject(donorObject)
+        }
+//        .sheet(isPresented: $showingDonorSearch) {
+//            if let rowID = currentRowID {
+//                DonorSearchSelectionView { selectedDonor in
+//                    Task {
+//                        await viewModel.setDonorFromSearch(selectedDonor, for: rowID)
+//                    }
+//                }
+//                .environmentObject(donorObject)
+//            }
+//        }
 //        .padding(.horizontal)
             // Optional: load donors or do any setup
 //            .task {
@@ -185,6 +241,7 @@ struct BatchDonationView: View {
 //            }
         .navigationTitle("Batch Donations")
     }
+    
     
 }
 

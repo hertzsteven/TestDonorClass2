@@ -32,9 +32,12 @@ struct DashboardView: View {
     
     var body: some View {
         NavigationStack(path: $path) {
+            
+            
             ZStack {
                 
                 backGroundView
+                
                 
                 GridOfCategoriesSubView(
                     categories: viewModel.categories,
@@ -44,8 +47,14 @@ struct DashboardView: View {
                 .toolbar {
                     ToolbarItem(placement: .principal) {
                         VStack {
-                            Text("United Tiberias: Dashboard")
-                                .font(.headline)
+                            HStack {
+                                Text("United Tiberias: Dashboard")
+                                    .font(.headline)
+                                Image("orhtorahlogo")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30, height: 30)
+                            }
                             Text("Management System")
                                 .font(.subheadline)
                         }
@@ -63,6 +72,10 @@ struct DashboardView: View {
                     CampaignListView(campaignObject: campaignObject)
                 case "Incentives":
                     DonationIncentiveListView(incentiveObject: incentiveObject)
+//                case "Classes":
+//                    DonorMaintenanceView()
+////                        .environmentObject(donorObject)
+//                        .environmentObject(donationObject)
                 default:
                     Text("Detail view for \(category.name)")
                 }

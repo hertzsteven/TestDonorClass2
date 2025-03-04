@@ -40,7 +40,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "39B567A0-6CA5-4DC5-A381-8B4162AFFFE4"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "TestDonorClass2/app source/screens/BatchDonations/BatchDonationViewModel.swift"

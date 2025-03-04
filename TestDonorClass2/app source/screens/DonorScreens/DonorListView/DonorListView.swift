@@ -178,6 +178,21 @@ extension DonorListView {
         .padding(.horizontal)
         .padding(.vertical, 8)
     }
+ 
+    fileprivate func SearchComponent() -> some View {
+        ImprovedSearchBar(
+            searchText: $viewModel.searchText,
+            isSearching: $isSearchingForDonor,
+            placeholder: searchMode == .name ? "Search by name or company" : "Search by ID",
+            onSearch: {
+                Task {
+                    isSearchingForDonor = true
+                    try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                    isSearchingForDonor = false
+                }
+            }
+        )
+    }
     
     fileprivate func SearchButton() -> some View {
         return // Buttons for Search and Clear
@@ -255,6 +270,8 @@ extension DonorListView {
             VStack {
                 SearchButton()
                 
+                SearchComponent()
+                
                 SearchModeSegmented()
                 
                 switch donorObject.donors.isEmpty || clearTheDonors {
@@ -262,14 +279,21 @@ extension DonorListView {
                     if isSearchingForDonor {
                         ProgressView()
                     } else {
-                        VStack {
-                            Text("Please search for a donor").tint(.gray)
-//                            groupBoxInstructions()
-//                                .padding()
-//                                .background(Color(.systemBackground))
-                        }
+                        EnhancedEmptyStateView()
+                        Spacer()
                     }
-                    Spacer()
+//                case true:
+//                    if isSearchingForDonor {
+//                        ProgressView()
+//                    } else {
+//                        VStack {
+//                            Text("Please search for a donor").tint(.gray)
+////                            groupBoxInstructions()
+////                                .padding()
+////                                .background(Color(.systemBackground))
+//                        }
+//                    }
+//                    Spacer()
                 case false:
                     GroupBox(label: Label("Managing Donors", systemImage: "gear")) {
                             //                        Text("Managing Donation Incentives")
@@ -300,7 +324,7 @@ extension DonorListView {
                 }
             }
             .toolbar { toolBarTrailLeftPane() }
-            .navigationTitle("Donor Hub")
+//            .navigationTitle("Donor Hub")
         } detail: {
             DonorDetailContainer(
                 donorID: selectedDonorID,

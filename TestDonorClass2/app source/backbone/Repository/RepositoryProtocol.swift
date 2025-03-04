@@ -73,6 +73,8 @@ protocol DonationIncentiveSpecificRepositoryProtocol: RepositoryProtocol where M
     func findByName(_ searchText: String) async throws -> [DonationIncentive]
     
     func isIncentiveInUse(_ id: Int) async throws -> Bool
+    
+    // Rest of the protocol remains the same
 }
 
-//
+// End of file

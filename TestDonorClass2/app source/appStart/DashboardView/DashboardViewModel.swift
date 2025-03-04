@@ -24,22 +24,22 @@ class DashboardViewModel {
     init() {
         // Donor Management Categories
         let donorCategories: [Category] = [
+            Category(name: "Donations",
+                     color: .green,
+                     image: Image(systemName: "dollarsign")),
             Category(name: "Donor Hub",
                     color: .blue,
-                    image: Image(systemName: "dollarsign")),
-            Category(name: "Batch Donations",
-                    color: .green,
-                    image: Image(systemName: "tablecells.badge.ellipsis")),
+                    image: Image(systemName: "person")),
         ]
         
         // Management Categories
         let managementCategories: [Category] = [
             Category(name: "Campaigns",
                     color: .purple,
-                    image: Image(systemName: "flag.filled")),
+                    image: Image(systemName: "megaphone")),
             Category(name: "Incentives",
                     color: .orange,
-                    image: Image(systemName: "gift.fill"))
+                    image: Image(systemName: "gift"))
         ]
         
         // User Management Categories
