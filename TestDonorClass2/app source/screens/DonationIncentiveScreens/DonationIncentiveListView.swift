@@ -20,47 +20,48 @@ struct DonationIncentiveListView: View {
     
     @State private var totalCount: Int = 0
     
+    
+    private var headerContent: some View {
+        VStack(spacing: 16) {
+            IncentiveFilterView(selectedFilter: $viewModel.selectedFilter) {
+                await performSearch()
+            }
+
+            IncentiveSearchBar(searchText: $searchText,
+                           isSearching: $isSearching,
+                           onSearch: performSearch)
+            
+            InfoBannerView(title: "Managing Incentives", type: "Incentives")
+                .padding(.horizontal)
+                .background(Color(.systemBackground))
+        }
+    }
+
+    
+    
+    
     init(incentiveObject: DonationIncentiveObjectClass) {
         _viewModel = StateObject(wrappedValue: DonationIncentiveListViewModel(incentiveObject: incentiveObject))
     }
     
     var body: some View {
         VStack(spacing: 16) {
-//            IncentiveFilterView(selectedFilter: $viewModel.selectedFilter) {
-//                await performSearch()
-//            }
-            
-//            IncentiveSearchBar(searchText: $searchText,
-//                               isSearching: $isSearching,
-//                               onSearch: performSearch)
-//
-//            InfoBannerView(title: "Managing Incentives", type: "Incentives")
-//                .padding(.horizontal)
-//                .background(Color(.systemBackground))
-            
-            // This is where you would change your content based on the state
+
             switch (incentiveObject.loadingState, totalCount == 0) {
-            case (.loading, _):
+            
+            case (.loading, _): // Loading state
                 ProgressView("Loading incentives...")
-            case (_, true):
+            
+            case (_, true):     // No incentives available
                 EmptyIncentiveStateView(onAddNew: {
-                    // Now you can directly access your local state variable
                     self.showingAddIncentive = true
                 })
                 .frame(maxHeight: .infinity)
-            case (_, false):
-                // Your existing code for displaying the list
-                IncentiveFilterView(selectedFilter: $viewModel.selectedFilter) {
-                    await performSearch()
-                }
-
-                IncentiveSearchBar(searchText: $searchText,
-                                   isSearching: $isSearching,
-                                   onSearch: performSearch)
+            
                 
-                InfoBannerView(title: "Managing Incentives", type: "Incentives")
-                    .padding(.horizontal)
-                    .background(Color(.systemBackground))
+            case (_, false):  // Incentives are loaded and available
+                
+                headerContent
                 
                 IncentiveListContent(
                     incentives: incentiveObject.incentives,
@@ -69,31 +70,15 @@ struct DonationIncentiveListView: View {
                     returnedFromDetail: $returnedFromDetail,
                     showingAddIncentive: $showingAddIncentive
                 )
+                
             }
 
         }
         .navigationTitle("Donation Incentives")
         .task {
-            // Load the total count whenever the view appears
-            do {
-                totalCount = try await incentiveObject.getTotalIncentiveCount()
-            } catch {
-                print("Error getting total count: \(error)")
-                totalCount = 0
-            }
+            await loadInitialData()
         }
             
-            
-            
-//            IncentiveListContent(
-//                incentives: incentiveObject.incentives,
-//                onRefresh: refreshAll,
-//                onDelete: handleDelete,
-//                returnedFromDetail: $returnedFromDetail
-//            )
-
-//        }
-//        .navigationTitle("Donation Incentives")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { showingAddIncentive = true }) {
@@ -111,7 +96,9 @@ struct DonationIncentiveListView: View {
             }
         }
     
-        .sheet(isPresented: $showingAddIncentive) {
+        .sheet(isPresented: $showingAddIncentive, onDismiss: {
+            Task { await updateTotalCount() }
+        }) {
             DonationIncentiveEditView(mode: .add)
         }
         .alert("Cannot Delete Incentive", isPresented: $showDeleteError) {
@@ -175,16 +162,7 @@ struct DonationIncentiveListView: View {
     }
     
     private func loadInitialData() async {
-//        defer {
-//            returnedFromDetail = false
-//        }
-// Load the total count whenever the view appears
-        do {
-            totalCount = try await incentiveObject.getTotalIncentiveCount()
-        } catch {
-            print("Error getting total count: \(error)")
-            totalCount = 0
-        }
+        await updateTotalCount()
         print("-- Loading initial data returnedFromDetail: \(returnedFromDetail)")
         if !returnedFromDetail {
             print("-- before viewmodelsetnotloaded")
@@ -208,13 +186,7 @@ struct DonationIncentiveListView: View {
         viewModel.setNotLoaded()
         await viewModel.performSearch(with: searchText)
         isSearching = false
-        do {
-            totalCount = try await incentiveObject.getTotalIncentiveCount()
-            print("Total count after search: \(totalCount)")
-        } catch {
-            print("Error getting total count: \(error)")
-            totalCount = 0
-        }
+        await updateTotalCount()
     }
 
     private func handleDelete(at indexSet: IndexSet) {
@@ -229,6 +201,7 @@ struct DonationIncentiveListView: View {
                         showDeleteError = true
                     }
                 }
+                await updateTotalCount()
             }
         }
     }
@@ -246,6 +219,17 @@ struct DonationIncentiveListView: View {
         }
         isRefreshing = false
     }
+    
+    private func updateTotalCount() async {
+        do {
+            totalCount = try await incentiveObject.getTotalIncentiveCount()
+            print("Total count after search: \(totalCount)")
+        } catch {
+            print("Error getting total count: \(error)")
+            totalCount = 0
+        }
+    }
+
 }
 
 // MARK: - Preview
