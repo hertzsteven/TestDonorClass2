@@ -97,6 +97,17 @@ struct ReceiptManagementView: View {
                                         }
                                         .tint(.green)
                                     }
+                                    
+                                    if receiptItem.status == .printed {
+                                        Button("Mark Requested") {
+                                            Task {
+                                                await viewModel.markAsRequested(receipt: receiptItem)
+                                                selectedStatus = .requested
+                                            }
+                                            
+                                        }
+                                        .tint(.orange)
+                                    }
                                 }
                         }
                     }
@@ -346,6 +357,15 @@ class ReceiptManagementViewModel: ObservableObject {
                 receipt.campaignName?.localizedCaseInsensitiveContains(searchText) ?? false ||
                 String(receipt.donationId).contains(searchText)
             }
+        }
+    }
+    
+    func markAsRequested(receipt: ReceiptItem) async {
+        do {
+            try await donationRepository.updateReceiptStatus(donationId: receipt.donationId, status: .requested)
+            await refreshReceipts()
+        } catch {
+            print("Error marking receipt as requested: \(error)")
         }
     }
     
@@ -677,6 +697,35 @@ struct PrintReceiptSheetView: View {
         printNextReceipt()
     }
     
+    private func handlePrintingFailure(receipt: ReceiptItem, totalReceipts: Int) async {
+        // Mark as failed
+        try? await receiptService.markAsFailed(donationId: receipt.donationId)
+        
+        // Update failure count and move to next receipt
+        await MainActor.run {
+            failureCount += 1
+            // Move to the next receipt
+            currentReceiptIndex += 1
+            progress = Double(currentReceiptIndex) / Double(totalReceipts)
+            printNextReceipt()
+        }
+    }
+
+    private func handlePrintingSuccess(receipt: ReceiptItem, totalReceipts: Int) async {
+        // Mark receipt as printed
+        try? await receiptService.markAsPrinted(donationId: receipt.donationId)
+        
+        // Update success count
+        await MainActor.run {
+            successCount += 1
+            // Move to the next receipt
+            currentReceiptIndex += 1
+            progress = Double(currentReceiptIndex) / Double(totalReceipts)
+            printNextReceipt()
+        }
+    }
+    
+    
     private func printNextReceipt() {
         let totalReceipts = receipts.count
         
@@ -701,71 +750,48 @@ struct PrintReceiptSheetView: View {
                 // Mark as queued first
                 try await receiptService.markAsQueued(donationId: receipt.donationId)
                 
-                // Get the full donation record
-                if let donation = try await donationRepository.getOne(receipt.donationId) {
-                    // Get donor details
-                    var donorName = "Anonymous"
-                    if let donorId = donation.donorId, !donation.isAnonymous {
-                        if let donor = try? await donationRepository.getDonorForDonation(donorId: donorId) {
-                            donorName = "\(donor.firstName ?? "") \(donor.lastName ?? "")"
-                            if donorName.trimmingCharacters(in: .whitespaces).isEmpty {
-                                donorName = donor.company ?? "Unknown"
-                            }
-                        }
-                    }
-                    
-                    // Format date for display
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.dateStyle = .medium
-                    let dateString = dateFormatter.string(from: donation.donationDate)
-                    
-                    // Create donation info using the standard format
-                    let donationInfo = DonationInfo(
-                        donorName: donorName,
-                        donationAmount: donation.amount,
-                        date: dateString
-                    )
-                    
-                    // Print the receipt
-                    let printingService = ReceiptPrintingService()
-                    
-                    // Use MainActor since printing involves UI
-                    await MainActor.run {
-                        printingService.printReceipt(for: donationInfo) {
-                            // This completion handler will run after printing completes or is cancelled
-                            Task {
-                                // Mark receipt as printed
-                                try? await receiptService.markAsPrinted(donationId: receipt.donationId)
-                                
-                                // Update success count
-                                await MainActor.run {
-                                    successCount += 1
-                                    // Move to the next receipt
-                                    currentReceiptIndex += 1
-                                    progress = Double(currentReceiptIndex) / Double(totalReceipts)
-                                    printNextReceipt()
-                                }
-                            }
-                        }
-                    }
-                    
-                } else {
+                guard let donation = try await donationRepository.getOne(receipt.donationId) else {
                     throw NSError(domain: "PrintReceipt", code: 1, userInfo: [NSLocalizedDescriptionKey: "Donation not found"])
+                    return
+                }
+                
+                var donorName = "Anonymous"
+                if let donorId = donation.donorId, !donation.isAnonymous {
+                    if let donor = try? await donationRepository.getDonorForDonation(donorId: donorId) {
+                        donorName = "\(donor.firstName ?? "") \(donor.lastName ?? "")"
+                        if donorName.trimmingCharacters(in: .whitespaces).isEmpty {
+                            donorName = donor.company ?? "Unknown"
+                        }
+                    }
+                }
+                
+                // Format date for display
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateStyle = .medium
+                let dateString = dateFormatter.string(from: donation.donationDate)
+                
+                // Create donation info using the standard format
+                let donationInfo = DonationInfo(
+                    donorName: donorName,
+                    donationAmount: donation.amount,
+                    date: dateString
+                )
+                
+                // Print the receipt
+                let printingService = ReceiptPrintingService()
+                
+                // Use MainActor since printing involves UI
+                await MainActor.run {
+                    printingService.printReceipt(for: donationInfo) {
+                        // This completion handler will run after printing completes or is cancelled
+                        Task {
+                            await handlePrintingSuccess(receipt: receipt, totalReceipts: totalReceipts)
+                        }
+                    }
                 }
             } catch {
                 print("Error printing receipt: \(error)")
-                
-                // Mark as failed
-                try? await receiptService.markAsFailed(donationId: receipt.donationId)
-                
-                // Update failure count
-                await MainActor.run {
-                    failureCount += 1
-                    // Move to the next receipt
-                    currentReceiptIndex += 1
-                    progress = Double(currentReceiptIndex) / Double(totalReceipts)
-                    printNextReceipt()
-                }
+                await handlePrintingFailure(receipt: receipt, totalReceipts: totalReceipts)
             }
         }
     }
