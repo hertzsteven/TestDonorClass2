@@ -293,13 +293,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>55</string>
+					<string>177</string>
 					<key>StartingColumnNumber</key>
-					<string>1</string>
+					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>54</string>
+					<string>177</string>
 					<key>Timestamp</key>
-					<string>760932690.613307</string>
+					<string>762916802.2482949</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -315,17 +315,13 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>   private func createReceiptPDF(for donation: DonationInfo) -&gt; URL? {
-</string>
+				<string></string>
 				<key>leading</key>
-				<string>/// ✅ Generates a formatted receipt PDF using `NSAttributedString`
-//    func createReceiptPDF(donorName: String, donationAmount: Double, date: String) -&gt; URL? {
- </string>
-				<key>trailing</key>
-				<string>        let pageSize = CGSize(width: 612, height: 792) // 8.5" x 11"
-        let pdfFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("receipt.pdf")
-        
+				<string>    }
+}
 </string>
+				<key>trailing</key>
+				<string></string>
 			</dict>
 			<key>title</key>
 			<string>make the receipt</string>

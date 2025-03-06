@@ -5,52 +5,61 @@
 //  Created by Steven Hertz on 2/6/25.
 //
 
-
-    //
-    //  GeneratesaformattedreceiptFunc.swift
-    //  UseNSAttribute
-    //
-    //  Created by Steven Hertz on 2/5/25.
-    //
+//
+//  GeneratesaformattedreceiptFunc.swift
+//  UseNSAttribute
+//
+//  Created by Steven Hertz on 2/5/25.
+//
 
 import Foundation
 import UIKit
 
-    /// A simple model to hold donation details.
-    struct DonationInfo {
-        let donorName: String
-        let donationAmount: Double
-        let date: String
-    }
+/// A simple model to hold donation details.
+struct DonationInfo {
+    let donorName: String
+    let donationAmount: Double
+    let date: String
+}
 
 final class ReceiptPrintingService {
     
     private let organizationProvider: OrganizationProvider
+    // Add static reference to maintain print controller across instances
+    private static var activePrintController: UIPrintInteractionController?
 
     /// Dependency injection of the organization provider.
     init(organizationProvider: OrganizationProvider = DefaultOrganizationProvider()) {
         self.organizationProvider = organizationProvider
     }
 
-        /// Public method to print a receipt based on the donation information.
-        func printReceipt(for donation: DonationInfo, completion: @escaping () -> Void) {
-            guard let pdfURL = createReceiptPDF(for: donation) else {
-                print("Error: Failed to generate receipt PDF.")
-                return
-            }
+    /// Public method to print a receipt based on the donation information.
+    func printReceipt(for donation: DonationInfo, completion: @escaping () -> Void) {
+        print("Starting to print receipt in ReceiptPrintingService for \(donation.donorName)")
+        guard let pdfURL = createReceiptPDF(for: donation) else {
+            print("Error: Failed to generate receipt PDF.")
+            return
+        }
+        
+        DispatchQueue.main.async {
+            // Store in static property to ensure it stays alive across the app
+            ReceiptPrintingService.activePrintController = UIPrintInteractionController.shared
+            ReceiptPrintingService.activePrintController?.printingItem = pdfURL
             
-            DispatchQueue.main.async {
-                let printController = UIPrintInteractionController.shared
-                printController.printingItem = pdfURL
-//                printController.present(animated: true, completionHandler: nil)
-                printController.present(animated: true) { (controller, completed, error) in
-                    // This will run after user either prints or cancels
-                    completion()
+            print("About to present print controller")
+            ReceiptPrintingService.activePrintController?.present(animated: true) { (controller, completed, error) in
+                print("Print controller dismissed, completed: \(completed), error: \(String(describing: error))")
+                // This will run after user either prints or cancels
+                completion()
+                // Clear the static reference after completion
+                DispatchQueue.main.async {
+                    ReceiptPrintingService.activePrintController = nil
                 }
             }
         }
+    }
 
-/// ✅ Generates a formatted receipt PDF using `NSAttributedString`
+    /// ✅ Generates a formatted receipt PDF using `NSAttributedString`
 //    func createReceiptPDF(donorName: String, donationAmount: Double, date: String) -> URL? {
     private func createReceiptPDF(for donation: DonationInfo) -> URL? {
         let pageSize = CGSize(width: 612, height: 792) // 8.5" x 11"
@@ -67,19 +76,19 @@ final class ReceiptPrintingService {
                 let fontSize: CGFloat = 12
                 let font = UIFont.systemFont(ofSize: fontSize)
                 
-                    // 🖼 Draw the header image (if available)
+                // 🖼 Draw the header image (if available)
                 if let headerImage = UIImage(named: "header") {
                     let imageWidth: CGFloat = 75
                     let imageHeight: CGFloat = 75
                     let imageX = pageSize.width - margin - imageWidth // Position image on the right
                     let textStartX = margin // Keep text on the left
                     
-                        // Position image on the right
+                    // Position image on the right
                     let imageRect = CGRect(x: imageX, y: yOffset, width: imageWidth, height: imageHeight)
                     headerImage.draw(in: imageRect)
                     
-                        // Get the organization information from the injected provider.
-                        // 🏷 Organization Header (placed to the left of the image)
+                    // Get the organization information from the injected provider.
+                    // 🏷 Organization Header (placed to the left of the image)
                     let organizationText = organizationProvider.organizationInfo.formattedInfo
 
                     let orgAttributes: [NSAttributedString.Key: Any] = [
@@ -92,7 +101,7 @@ final class ReceiptPrintingService {
                     yOffset += max(imageHeight, 60) + paragraphSpacing // Move down based on tallest element
                 }
                 
-                    // 🔹 Receipt Title
+                // 🔹 Receipt Title
                 let title = "Donation Receipt"
                 let titleAttributes: [NSAttributedString.Key: Any] = [
                     .font: UIFont.boldSystemFont(ofSize: 18),
@@ -102,7 +111,7 @@ final class ReceiptPrintingService {
                 title.draw(in: titleRect, withAttributes: titleAttributes)
                 yOffset += 40 + paragraphSpacing
                 
-                    // 🔹 Receipt Information
+                // 🔹 Receipt Information
                 let receiptDetails = NSMutableAttributedString(string: "Receipt Details\n", attributes: [
                     .font: UIFont.boldSystemFont(ofSize: fontSize),
                     .paragraphStyle: leftAlignedParagraphStyle()
@@ -123,7 +132,7 @@ final class ReceiptPrintingService {
                 receiptDetails.draw(in: receiptRect)
                 yOffset += 80 + paragraphSpacing
                 
-                    // 🔹 Thank You Section
+                // 🔹 Thank You Section
                 let thankYouText = NSMutableAttributedString(string: "Thank You!\n", attributes: [
                     .font: UIFont.boldSystemFont(ofSize: fontSize),
                     .paragraphStyle: leftAlignedParagraphStyle()
@@ -146,7 +155,7 @@ final class ReceiptPrintingService {
                 thankYouText.draw(in: thankYouRect)
                 yOffset += 120 + paragraphSpacing
                 
-                    // 🔹 Footer
+                // 🔹 Footer
                 let footerText = """
             \(organizationProvider.organizationInfo.name)
             This receipt is valid for tax purposes.
