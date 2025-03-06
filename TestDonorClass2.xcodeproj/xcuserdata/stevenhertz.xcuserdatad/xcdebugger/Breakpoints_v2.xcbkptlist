@@ -46,10 +46,72 @@
             filePath = "TestDonorClass2/app source/screens/BatchDonations/BatchDonationViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "87"
-            endingLineNumber = "87"
+            startingLineNumber = "89"
+            endingLineNumber = "89"
             landmarkName = "findDonor(for:)"
             landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "EBAE60EA-C401-4BDA-874E-0652C2D53E23"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "TestDonorClass2/app source/screens/ReceiptManagement/ReceiptManagementView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "513"
+            endingLineNumber = "513"
+            landmarkName = "printReceipt(for:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "7498994B-D7F8-455A-9EFE-8FD3B3911491"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "TestDonorClass2/app source/screens/ReceiptManagement/ReceiptManagementView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "514"
+            endingLineNumber = "514"
+            landmarkName = "printReceipt(for:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "7498994B-D7F8-455A-9EFE-8FD3B3911491 - b9bdfbcd5ba8ea56"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for TestDonorClass2.ReceiptService.printReceipt(for: TestDonorClass2.Donation) async throws -&gt; ()"
+                  moduleName = "TestDonorClass2.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/stevenhertz/Downloads/TestDonorClass2/TestDonorClass2/app%20source/screens/ReceiptManagement/ReceiptManagementView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "514"
+                  endingLineNumber = "514">
+               </Location>
+               <Location
+                  uuid = "7498994B-D7F8-455A-9EFE-8FD3B3911491 - b9bdfbcd5ba8ea56"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for TestDonorClass2.ReceiptService.printReceipt(for: TestDonorClass2.Donation) async throws -&gt; ()"
+                  moduleName = "TestDonorClass2.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/stevenhertz/Downloads/TestDonorClass2/TestDonorClass2/app%20source/screens/ReceiptManagement/ReceiptManagementView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "514"
+                  endingLineNumber = "514">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

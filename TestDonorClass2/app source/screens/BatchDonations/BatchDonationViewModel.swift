@@ -46,6 +46,7 @@ class BatchDonationViewModel: ObservableObject {
         var donorID: Int? = nil
         var displayInfo: String = ""
         var donationOverride:  Double = 0.0
+        var printReceipt: Bool = false
         var donationTypeOverride: DonationType  = .check
         var paymentStatusOverride: PaymentStatus = .completed
         var isValidDonor: Bool = false
@@ -84,6 +85,7 @@ class BatchDonationViewModel: ObservableObject {
                 await MainActor.run {
                     rows[rowIndex].displayInfo = "\(displayName) | \(address)"
                     rows[rowIndex].donationOverride = globalDonation
+                    rows[rowIndex].printReceipt = false
                     rows[rowIndex].donationTypeOverride = globalDonationType
                     rows[rowIndex].paymentStatusOverride = globalPaymentStatus
                     rows[rowIndex].isValidDonor = true
@@ -99,6 +101,7 @@ class BatchDonationViewModel: ObservableObject {
                 await MainActor.run {
                     rows[rowIndex].displayInfo = "Donor not found"
                     rows[rowIndex].donationOverride = 0.0
+                    rows[rowIndex].printReceipt = false
                     rows[rowIndex].donationTypeOverride = .check
                     rows[rowIndex].paymentStatusOverride = .completed
                     rows[rowIndex].isValidDonor = false
@@ -109,6 +112,7 @@ class BatchDonationViewModel: ObservableObject {
             await MainActor.run {
                 rows[rowIndex].displayInfo = "Error: \(error.localizedDescription)"
                 rows[rowIndex].donationOverride = 0.0
+                rows[rowIndex].printReceipt = false
                 rows[rowIndex].donationTypeOverride = .check
                 rows[rowIndex].paymentStatusOverride = .completed
                 rows[rowIndex].isValidDonor = false

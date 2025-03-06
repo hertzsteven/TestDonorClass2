@@ -15,6 +15,18 @@
 
 
 import SwiftUI
+enum CategoryType: String {
+    case donations = "Donations"
+    case donorHub = "Donor Hub"
+    case campaigns = "Campaigns"
+    case incentives = "Incentives"
+    case classes = "Classes"
+    case students = "Students"
+    
+    var name: String {
+         self.rawValue
+    }
+}
 
 class DashboardViewModel {
     // Organize categories by domain
@@ -24,10 +36,10 @@ class DashboardViewModel {
     init() {
         // Donor Management Categories
         let donorCategories: [Category] = [
-            Category(name: "Donations",
+            Category(name: CategoryType.donations.name,
                      color: .green,
                      image: Image(systemName: "dollarsign")),
-            Category(name: "Donor Hub",
+            Category(name: CategoryType.donorHub.name,
                     color: .blue,
                     image: Image(systemName: "person")),
         ]
@@ -39,7 +51,10 @@ class DashboardViewModel {
                     image: Image(systemName: "megaphone")),
             Category(name: "Incentives",
                     color: .orange,
-                    image: Image(systemName: "gift"))
+                    image: Image(systemName: "gift")),
+            Category(name: "Receipt Management",
+                    color: .red,
+                    image: Image(systemName: "printer.fill"))
         ]
         
         // User Management Categories

@@ -78,10 +78,17 @@ struct BatchDonationView: View {
             // Optional column headers
             HStack {
                 Text("Donor ID")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 16)
-                Text("Donor Information")
-                    .frame(maxWidth: .infinity, alignment: .leading)
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                Text("Name and Address")
+                    .frame(width: 570, alignment: .leading)
+                Text("Receipt")
+                    .frame(width: 100, alignment: .leading)
+                Text("Type")
+                    .frame(width: 95
+                           , alignment: .leading)
+                Text("Status")
+                Spacer()
                 Text("Amount")
                     .frame(width: 70, alignment: .leading)
                 Text("Action")
@@ -118,12 +125,17 @@ struct BatchDonationView: View {
                         
                         // Add Donation Type Override picker - only show when donor is valid
                         if row.isValidDonor {
+                            
+                            Toggle("", isOn: $row.printReceipt)
+                                .labelsHidden()
+                                .frame(width: 50)
+                            
                             Picker("", selection: $row.donationTypeOverride) {
                                 ForEach(DonationType.allCases, id: \.self) { type in
                                     Text(type.rawValue).tag(type)
                                 }
                             }
-                            .frame(width: 170)
+                            .frame(width: 120)
                             
                             // Add Payment Status Override picker - only show when donor is valid
                             Picker("", selection: $row.paymentStatusOverride) {
@@ -131,7 +143,7 @@ struct BatchDonationView: View {
                                     Text(status.rawValue).tag(status)
                                 }
                             }
-                            .frame(width: 170)
+                            .frame(width: 140)
                         }
                         
                         // Donation text field
@@ -270,6 +282,7 @@ extension BatchDonationView {
             let donorID = viewModel.rows[i].donorID
             let paymentStatus = viewModel.rows[i].paymentStatusOverride 
             let donationType = viewModel.rows[i].donationTypeOverride
+            let printReceipt = viewModel.rows[i].printReceipt
             
             print("DonorID: \(donorIDString), Amount: \(donationAmount)")
             
@@ -279,7 +292,8 @@ extension BatchDonationView {
                     campaignId: campaignID,
                     amount: donationAmount,
                     donationType: donationType,
-                    paymentStatus: paymentStatus
+                    paymentStatus: paymentStatus,
+                    requestPrintedReceipt: printReceipt
                 )
                 do {
                     try await viewModel.addDonation(donation)

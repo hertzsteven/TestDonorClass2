@@ -10,7 +10,7 @@
 
 
     struct MailView: UIViewControllerRepresentable {
-        let receipt: Receipt
+        let receipt: OldReceipt
         var emailRecipient: String = ""
         var onCompletion: () -> Void
 
@@ -113,15 +113,17 @@
     }
 
     // Example Receipt models
-    struct Receipt {
+    struct OldReceipt {
         let date: Date
         let total: Double
-        let items: [ReceiptItem]
+        let items: [OldReceiptItem]
         let donorName: String      // Add these new fields
         let donationType: String
     }
 
-    struct ReceiptItem {
+
+    struct OldReceiptItem {
         let name: String
         let price: Double
     }
+

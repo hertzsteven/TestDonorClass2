@@ -57,6 +57,12 @@ protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Dono
         func getDonationsForCampaign(campaignId: Int) async throws -> [Donation]
 
         func getDonationsForDonor(donorId: Int) async throws -> [Donation]
+        
+        func countPendingReceipts() async throws -> Int
+        
+        func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws
+        
+        func getReceiptRequests(status: ReceiptStatus) async throws -> [Donation]
 
     }
     protocol CampaignSpecificRepositoryProtocol: RepositoryProtocol where Model == Campaign {

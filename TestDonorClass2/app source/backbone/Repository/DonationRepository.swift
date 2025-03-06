@@ -122,3 +122,44 @@
             }
         }
     }
+extension DonationRepository {
+    func getReceiptRequests(status: ReceiptStatus) async throws -> [Donation] {
+        try await dbPool.read { db in
+            try Donation
+                .filter(Donation.Columns.requestPrintedReceipt == true && Donation.Columns.receiptStatus == status.rawValue)
+                .order(Donation.Columns.donationDate.desc)
+                .fetchAll(db)
+        }
+    }
+    
+    func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws {
+        try await dbPool.write { db in
+            try db.execute(sql: """
+                UPDATE donation
+                SET receipt_status = ?
+                WHERE id = ?
+                """, arguments: [status.rawValue, donationId])
+        }
+    }
+    
+    func countPendingReceipts() async throws -> Int {
+        try await dbPool.read { db in
+            try Donation
+                .filter(Donation.Columns.requestPrintedReceipt == true &&
+                       (Donation.Columns.receiptStatus == ReceiptStatus.requested.rawValue ||
+                        Donation.Columns.receiptStatus == ReceiptStatus.queued.rawValue))
+                .fetchCount(db)
+        }
+    }
+        func getDonorForDonation(donorId: Int) async throws -> Donor? {
+            try await dbPool.read { db in
+                try Donor.fetchOne(db, id: donorId)
+            }
+        }
+    
+        func getCampaignForDonation(campaignId: Int) async throws -> Campaign? {
+            try await dbPool.read { db in
+                try Campaign.fetchOne(db, id: campaignId)
+            }
+        }
+}

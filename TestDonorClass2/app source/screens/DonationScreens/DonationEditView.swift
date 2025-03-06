@@ -44,7 +44,7 @@
         // Add state for showing mail view
         @State private var isShowingMailView = false
         @State private var isShowingPrintView = false
-        @State private var currentReceipt: Receipt?
+        @State private var currentReceipt: OldReceipt?
         
                 
         private var isValidAmount: Bool {
@@ -376,12 +376,12 @@
     //  MARK: -  Extension For the Sheets and Alerts
     extension DonationEditView {
         
-        fileprivate var receipt: Receipt {
-            return Receipt(
+        fileprivate var receipt: OldReceipt {
+            return OldReceipt(
                 date: Date(),
                 total: Double(twoDecimalPlaces) ?? 0,
                 items: [
-                    ReceiptItem(
+                    OldReceiptItem(
                         name: selectedCampaign?.name ?? "General Donation",
                         price: Double(twoDecimalPlaces) ?? 0
                     )
@@ -423,11 +423,11 @@
         fileprivate func doMailReceiptOld() -> MailView {
                     
             return MailView(
-                receipt: Receipt(
+                receipt: OldReceipt(
                     date: Date(),
                     total: Double(twoDecimalPlaces) ?? 0,
                     items: [
-                        ReceiptItem(
+                        OldReceiptItem(
                             name: selectedCampaign?.name ?? "General Donation",
                             price: Double(twoDecimalPlaces) ?? 0
                         )
@@ -455,11 +455,11 @@
         
         fileprivate func doPrintReceiptOld() -> PrintReceiptView {
             return PrintReceiptView(
-                receipt: Receipt(
+                receipt: OldReceipt(
                     date: Date(),
                     total: Double(twoDecimalPlaces) ?? 0,
                     items: [
-                        ReceiptItem(
+                        OldReceiptItem(
                             name: selectedCampaign?.name ?? "General Donation",
                             price: Double(twoDecimalPlaces) ?? 0
                         )
@@ -476,11 +476,11 @@
         
         fileprivate func doPrintReceiptnewold() -> PrintReceiptView {
             
-            let receipt = Receipt(
+            let receipt = OldReceipt(
                 date: Date(),
                 total: Double(twoDecimalPlaces) ?? 0,
                 items: [
-                    ReceiptItem(
+                    OldReceiptItem(
                         name: selectedCampaign?.name ?? "General Donation",
                         price: Double(twoDecimalPlaces) ?? 0
                     )

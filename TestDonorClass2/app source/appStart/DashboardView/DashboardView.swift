@@ -65,13 +65,16 @@ struct DashboardView: View {
                 switch category.name {
                 case "Donor Hub":
                     DonorListView(donorObject: donorObject, maintenanceMode: false)
-                case "Batch Donations":
+                case "Donations":
                     BatchDonationView()
                         .environmentObject(donorObject)
                 case "Campaigns":
                     CampaignListView(campaignObject: campaignObject)
                 case "Incentives":
                     DonationIncentiveListView(incentiveObject: incentiveObject)
+                case "Receipt Management":
+                    ReceiptManagementView()
+                        .environmentObject(donationObject) // Pass any needed objects
 //                case "Classes":
 //                    DonorMaintenanceView()
 ////                        .environmentObject(donorObject)

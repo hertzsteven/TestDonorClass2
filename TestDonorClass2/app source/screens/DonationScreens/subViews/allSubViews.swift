@@ -10,7 +10,7 @@ import SwiftUI
 struct PrintReceiptView: View {
     @Environment(\.presentationMode) var presentationMode
     
-    let receipt: Receipt
+    let receipt: OldReceipt
     let onCompletion: () -> Void
     
     var body: some View {

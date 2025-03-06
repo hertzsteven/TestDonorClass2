@@ -30,6 +30,24 @@ enum PaymentStatus: String, Codable {
     case failed = "FAILED"
 }
 
+enum ReceiptStatus: String, Codable, CaseIterable {
+    case notRequested = "NOT_REQUESTED"
+    case requested = "REQUESTED"
+    case queued = "QUEUED"
+    case printed = "PRINTED"
+    case failed = "FAILED"
+    
+    var displayName: String {
+        switch self {
+        case .notRequested: return "Not Requested"
+        case .requested: return "Requested"
+        case .queued: return "Queued"
+        case .printed: return "Printed"
+        case .failed: return "Failed"
+        }
+    }
+}
+
 // MARK: - Validation Errors
 enum DonationValidationError: LocalizedError {
     case invalidAmount
@@ -62,6 +80,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
     var paymentProcessorInfo: String?
     var requestEmailReceipt: Bool
     var requestPrintedReceipt: Bool
+    var receiptStatus: ReceiptStatus
     var notes: String?
     var isAnonymous: Bool
     var donationDate: Date
@@ -83,6 +102,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
         static let paymentProcessorInfo = Column("payment_processor_info")
         static let requestEmailReceipt = Column("request_email_receipt")
         static let requestPrintedReceipt = Column("request_printed_receipt")
+        static let receiptStatus = Column("receipt_status")
         static let notes = Column("notes")
         static let isAnonymous = Column("is_anonymous")
         static let donationDate = Column("donation_date")
@@ -104,6 +124,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
         case paymentProcessorInfo = "payment_processor_info"
         case requestEmailReceipt = "request_email_receipt"
         case requestPrintedReceipt = "request_printed_receipt"
+        case receiptStatus = "receipt_status"
         case notes
         case isAnonymous = "is_anonymous"
         case donationDate = "donation_date"
@@ -143,6 +164,7 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
         self.paymentProcessorInfo = paymentProcessorInfo
         self.requestEmailReceipt = requestEmailReceipt
         self.requestPrintedReceipt = requestPrintedReceipt
+        self.receiptStatus = requestPrintedReceipt ? .requested : .notRequested
         self.notes = notes
         self.isAnonymous = isAnonymous
         self.donationDate = donationDate
@@ -165,4 +187,3 @@ extension Donation {
         // Add more validation as needed
     }
 }
-

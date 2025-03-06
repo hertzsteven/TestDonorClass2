@@ -67,6 +67,7 @@
                 print(databaseURL.absoluteString)
                     // Add this line to ensure table exists
                 try ensureDonorTableExists()
+                try updateDonationTableForReceipts() // Add this line
                 
                     // Migrate database
                     //                try migrator.migrate(dbPool)
@@ -421,6 +422,7 @@
                         t.column("amount", .double).notNull()
                         t.column("donation_type", .text).notNull()
                         t.column("payment_status", .text).notNull()
+                        t.column("receipt_status", .text).notNull().defaults(to: "NOT_REQUESTED")  // Add this line
                         t.column("transaction_number", .text)
                         t.column("receipt_number", .text)
                         t.column("payment_processor_info", .text)
@@ -461,3 +463,24 @@
             }
         }
     }
+extension DatabaseManager {
+    func updateDonationTableForReceipts() throws {
+        try dbPool.write { db in
+            let receiptStatusExists = try db.columns(in: "donation").contains { column in
+                column.name == "receipt_status"
+            }
+            
+            if !receiptStatusExists {
+                try db.alter(table: "donation") { t in
+                    t.add(column: "receipt_status", .text).notNull().defaults(to: "NOT_REQUESTED")
+                }
+                // Also update existing rows where requestPrintedReceipt is true
+//                try db.execute(sql: """
+//                    UPDATE donation
+//                    SET receipt_status = 'REQUESTED'
+//                    WHERE request_printed_receipt = 1
+//                    """)
+            }
+        }
+    }
+}
