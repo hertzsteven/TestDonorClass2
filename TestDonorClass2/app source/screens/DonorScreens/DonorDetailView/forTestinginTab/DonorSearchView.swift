@@ -38,6 +38,8 @@ import SwiftUI
         
         
         var body: some View {
+            NavigationView {
+                
             VStack {
                 searchBar
                 if viewModel.hasSearched {
@@ -77,7 +79,7 @@ import SwiftUI
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .bottomBar) {
                     if searchMode == .id {
                         Button(action: {
                             isShowingScanner  = true
@@ -94,19 +96,20 @@ import SwiftUI
             
             .onChange(of: scannedCode) { newValue in
                 if !newValue.isEmpty {
-                        //                isShowingResultSheet = true
+                    //                isShowingResultSheet = true
                     print("Scanned code: \(newValue)")
                     $viewModel.searchText.wrappedValue = newValue
                     Task {
                         try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
                     }
-                        //                Task { await handleScannedCode(code: newValue) }
+                    //                Task { await handleScannedCode(code: newValue) }
                 }
             }
             
             .onAppear {
                 isTabBarHidden = true
             }
+        }
         }
         
         private var searchBar: some View {

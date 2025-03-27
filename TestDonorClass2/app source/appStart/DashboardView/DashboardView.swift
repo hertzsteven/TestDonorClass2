@@ -7,12 +7,17 @@
 
 import SwiftUI
 
-
 struct DashboardView: View {
     
     private let viewModel: DashboardViewModel = DashboardViewModel()
     
     @State var path = NavigationPath()
+    
+    // ADD: Animation states
+    @State private var isAppearing = false
+    @State private var isHelpHovered = false
+    @State private var isSettingsHovered = false
+    @State private var gradientStart = UnitPoint(x: 0, y: 0)
     
     @State private var showingSettings = false
     @State private var showingHelp = false
@@ -23,10 +28,20 @@ struct DashboardView: View {
     @EnvironmentObject private var incentiveObject: DonationIncentiveObjectClass
     @EnvironmentObject private var defaultDonationSettingsViewModel: DefaultDonationSettingsViewModel
     
+    // ENHANCE: Animated background
     var backGroundView: some View {
-        Color(.systemGray6)
-            .opacity(0.8)
-            .ignoresSafeArea()
+        LinearGradient(
+            colors: [Color(.systemGray6), Color(.systemGray5)],
+            startPoint: gradientStart,
+            endPoint: UnitPoint(x: 1, y: 1)
+        )
+        .opacity(0.8)
+        .ignoresSafeArea()
+        .onAppear {
+            withAnimation(.linear(duration: 5.0).repeatForever()) {
+                gradientStart = UnitPoint(x: 1, y: 1)
+            }
+        }
     }
     
     
@@ -39,10 +54,15 @@ struct DashboardView: View {
                 backGroundView
                 
                 
-                GridOfCategoriesSubView(
-                    categories: viewModel.categories,
-                    sections: viewModel.sections
-                )
+                ScrollView {
+                    GridOfCategoriesSubView(
+                        categories: viewModel.categories,
+                        sections: viewModel.sections
+                    )
+                    // ADD: Fade in animation
+                    .opacity(isAppearing ? 1 : 0)
+                    .animation(.easeIn(duration: 0.6), value: isAppearing)
+                }
                 .navigationTitle("United Tiberias: Dashboard")
                 .toolbar {
                     ToolbarItem(placement: .principal) {
@@ -64,7 +84,11 @@ struct DashboardView: View {
             .navigationDestination(for: Category.self) { category in
                 switch category.name {
                 case "Donor Hub":
-                    DonorListView(donorObject: donorObject, maintenanceMode: false)
+                    DonorSearchView(donorObject: donorObject)
+                        .task {
+                            await donorObject.loadDonors()
+                        }
+//                    DonorListView(donorObject: donorObject, maintenanceMode: false)
                 case "Donations":
                     BatchDonationView()
                         .environmentObject(donorObject)
@@ -83,7 +107,37 @@ struct DashboardView: View {
                     Text("Detail view for \(category.name)")
                 }
             }
-            .toolbar(content: doToolbarTraing)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack(spacing: 16) {
+                        // ENHANCE: Interactive help button
+                        Button(action: { showingHelp = true }) {
+                            Image(systemName: "questionmark.circle")
+                                .scaleEffect(isHelpHovered ? 1.1 : 1.0)
+                                .foregroundColor(isHelpHovered ? .blue : .primary)
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hover in
+                            withAnimation(.spring()) {
+                                isHelpHovered = hover
+                            }
+                        }
+                        
+                        // ENHANCE: Interactive settings button
+                        Button(action: { showingSettings = true }) {
+                            Image(systemName: "gear")
+                                .scaleEffect(isSettingsHovered ? 1.1 : 1.0)
+                                .foregroundColor(isSettingsHovered ? .blue : .primary)
+                        }
+                        .buttonStyle(.plain)
+                        .onHover { hover in
+                            withAnimation(.spring()) {
+                                isSettingsHovered = hover
+                            }
+                        }
+                    }
+                }
+            }
             .sheet(isPresented: $showingSettings) {
                 Text("Settings View")
                     .navigationTitle("Settings")
@@ -91,6 +145,12 @@ struct DashboardView: View {
             .sheet(isPresented: $showingHelp) {
                 Text("Help View")
                     .navigationTitle("Help")
+            }
+        }
+        // Trigger initial fade-in animation
+        .onAppear {
+            withAnimation {
+                isAppearing = true
             }
         }
     }
