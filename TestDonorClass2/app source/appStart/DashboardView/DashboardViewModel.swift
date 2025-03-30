@@ -42,6 +42,9 @@ class DashboardViewModel {
             Category(name: CategoryType.donorHub.name,
                     color: .blue,
                     image: Image(systemName: "person")),
+            Category(name: "Reports",
+                    color: .blue,
+                    image: Image(systemName: "person")),
         ]
         
         // Management Categories
