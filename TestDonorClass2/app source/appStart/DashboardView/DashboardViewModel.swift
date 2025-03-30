@@ -59,7 +59,7 @@ class DashboardViewModel {
         
         // User Management Categories
         let userCategories: [Category] = [
-            Category(name: "Classes", 
+            Category(name: "Donors", 
                     color: .orange, 
                     image: Image(systemName: "person.3.sequence.fill")),
             Category(name: "Students",

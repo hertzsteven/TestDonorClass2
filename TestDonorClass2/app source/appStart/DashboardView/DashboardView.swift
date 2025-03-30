@@ -63,7 +63,7 @@ struct DashboardView: View {
                     .opacity(isAppearing ? 1 : 0)
                     .animation(.easeIn(duration: 0.6), value: isAppearing)
                 }
-                .navigationTitle("United Tiberias: Dashboard")
+//                .navigationTitle("United Tiberias: Dashboard")
                 .toolbar {
                     ToolbarItem(placement: .principal) {
                         VStack {
@@ -84,11 +84,11 @@ struct DashboardView: View {
             .navigationDestination(for: Category.self) { category in
                 switch category.name {
                 case "Donor Hub":
-                    DonorSearchView(donorObject: donorObject)
-                        .task {
-                            await donorObject.loadDonors()
-                        }
-//                    DonorListView(donorObject: donorObject, maintenanceMode: false)
+                    DonorListView(donorObject: donorObject, maintenanceMode: false)
+                    //                        .task {
+                    //                            await donorObject.loadDonors()
+                    //                        }
+
                 case "Donations":
                     BatchDonationView()
                         .environmentObject(donorObject)
@@ -99,6 +99,11 @@ struct DashboardView: View {
                 case "Receipt Management":
                     ReceiptManagementView()
                         .environmentObject(donationObject) // Pass any needed objects
+                case "Donors":
+                    DonorSearchView(donorObject: donorObject)
+                        .task {
+                            await donorObject.loadDonors()
+                        }
 //                case "Classes":
 //                    DonorMaintenanceView()
 ////                        .environmentObject(donorObject)

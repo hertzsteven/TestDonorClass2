@@ -12,22 +12,20 @@ struct GridOfCategoriesSubView: View {
     let sections: [DashboardSection]
     @State private var hoveredCategory: Category?
     
-    // MODIFY: Refined layout constants
     private let cardSpacing: CGFloat = 25
     private let sectionSpacing: CGFloat = 40
     private let cardHeight: CGFloat = 120
+    private let minCardWidth: CGFloat = 200
     
     var body: some View {
         ScrollView {
             VStack(spacing: sectionSpacing) {
                 ForEach(sections) { section in
                     VStack(alignment: .leading, spacing: 15) {
-                        // Section Header
                         Text(section.title)
                             .myHeaderStyle()
                             .padding(.leading, 5)
                         
-                        // Section Content
                         let sectionCategories = getSectionCategories(section)
                         sectionLayout(categories: sectionCategories)
                     }
@@ -52,22 +50,18 @@ struct GridOfCategoriesSubView: View {
 extension GridOfCategoriesSubView {
     private func sectionLayout(categories: [Category]) -> some View {
         GeometryReader { geometry in
+            let availableWidth = geometry.size.width
+            let cardWidth = max(minCardWidth, (availableWidth - (cardSpacing * CGFloat(categories.count - 1))) / CGFloat(categories.count))
+            
             HStack(spacing: cardSpacing) {
-                ForEach(Array(categories.enumerated()), id: \.element.id) { index, category in
+                ForEach(categories) { category in
                     categoryViewFunc(category)
-                        .frame(width: calculateCardWidth(
-                            totalWidth: geometry.size.width,
-                            cardCount: categories.count
-                        ))
+                        .frame(width: cardWidth)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(height: cardHeight)
-    }
-    
-    private func calculateCardWidth(totalWidth: CGFloat, cardCount: Int) -> CGFloat {
-        let totalSpacing = cardSpacing * CGFloat(cardCount - 1)
-        return (totalWidth - totalSpacing) / CGFloat(cardCount)
     }
     
     fileprivate func getSectionCategories(_ section: DashboardSection) -> [Category] {

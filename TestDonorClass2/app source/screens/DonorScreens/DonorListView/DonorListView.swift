@@ -58,6 +58,9 @@ struct DonorListView: View {
                 await doOnAppearProcess()
             }
         }
+        .onDisappear {
+            doOnDisappearProcess()
+        }
         .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
         .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name or company" : "Search by ID")
         
@@ -338,6 +341,12 @@ extension DonorListView {
 extension DonorListView {
     
     fileprivate func doOnDisappearProcess() {
+        Task {
+            await donorObject.clearDonors()
+            selectedDonorID = nil
+            viewModel.searchText = ""
+//            viewModel.clearDonors()
+        }
     }
     
     fileprivate func doOnAppearProcess() async {
