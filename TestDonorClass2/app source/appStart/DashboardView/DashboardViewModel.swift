@@ -20,8 +20,6 @@ enum CategoryType: String {
     case donorHub = "Donor Hub"
     case campaigns = "Campaigns"
     case incentives = "Incentives"
-    case classes = "Classes"
-    case students = "Students"
     
     var name: String {
          self.rawValue
@@ -41,10 +39,7 @@ class DashboardViewModel {
                      image: Image(systemName: "dollarsign")),
             Category(name: CategoryType.donorHub.name,
                     color: .blue,
-                    image: Image(systemName: "person")),
-            Category(name: "Reports",
-                    color: .blue,
-                    image: Image(systemName: "person")),
+                    image: Image(systemName: "person"))
         ]
         
         // Management Categories
@@ -60,18 +55,15 @@ class DashboardViewModel {
                     image: Image(systemName: "printer.fill"))
         ]
         
-        // User Management Categories
-        let userCategories: [Category] = [
-            Category(name: "Donors", 
-                    color: .orange, 
-                    image: Image(systemName: "person.3.sequence.fill")),
-            Category(name: "Students",
-                    color: .yellow, 
-                    image: Image(systemName: "person.crop.square")) 
+        // Reports & Analytics section
+        let reportCategories: [Category] = [
+            Category(name: "Reports", 
+                    color: .blue, 
+                    image: Image(systemName: "chart.bar.fill"))
         ]
         
         // Combine all categories in order
-        self.categories = donorCategories + managementCategories + userCategories
+        self.categories = donorCategories + managementCategories + reportCategories
         
         // Define sections based on the combined array
         self.sections = [
@@ -86,9 +78,9 @@ class DashboardViewModel {
                 count: managementCategories.count
             ),
             DashboardSection(
-                title: "User Management",
+                title: "Reports & Analytics",  
                 startIndex: donorCategories.count + managementCategories.count,
-                count: userCategories.count
+                count: reportCategories.count
             )
         ]
     }

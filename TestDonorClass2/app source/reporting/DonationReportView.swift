@@ -5,9 +5,7 @@
 //  Created by Steven Hertz on 3/30/25.
 //
 
-
 import SwiftUI
-
 
 struct DonationReportView: View {
     @StateObject private var viewModel = DonationReportViewModel()
@@ -16,9 +14,7 @@ struct DonationReportView: View {
 
     var body: some View {
         NavigationView {
-            // Use a main VStack to hold Form, Summary, and List
             VStack(alignment: .leading, spacing: 0) {
-
                 // --- Filter Form ---
                 Form {
                     Section("Filters") {
@@ -28,7 +24,7 @@ struct DonationReportView: View {
                                  Text(frame.rawValue).tag(frame)
                              }
                          }
-                         // Optional: .pickerStyle(.menu) if preferred over default nav link
+                        .pickerStyle(.menu)
 
                          Picker("Campaign", selection: $viewModel.selectedCampaignId) {
                              Text("All Campaigns").tag(Int?.none)
@@ -36,7 +32,7 @@ struct DonationReportView: View {
                                  Text(campaign.name).tag(campaign.id as Int?)
                              }
                          }
-                         // Optional: .pickerStyle(.menu)
+                         .pickerStyle(.menu)
 
                          HStack {
                               Text("Donor:")
@@ -78,70 +74,86 @@ struct DonationReportView: View {
                 .frame(maxHeight: 300) // You might need to experiment with this maxHeight for Filters only
                 .padding(.bottom, 10) // Add padding below the Form
 
+                // ADD: Loading overlay for filtering
+                ZStack {
+                    // --- Summary Section (Outside the Form) ---
+                    VStack(alignment: .leading, spacing: 8) {
+                         Text("SUMMARY")
+                             .font(.caption)
+                             .foregroundColor(.secondary)
+                             .padding(.horizontal) // Add horizontal padding to match Form inset
 
-                // --- Summary Section (Outside the Form) ---
-                VStack(alignment: .leading, spacing: 8) {
-                     Text("SUMMARY")
-                         .font(.caption)
-                         .foregroundColor(.secondary)
-                         .padding(.horizontal) // Add horizontal padding to match Form inset
+                         // Use HStack + Spacer for reliable layout outside Form
+                         HStack {
+                             Text("Total Donations:")
+                             Spacer()
+                             Text(formatCurrency(viewModel.totalFilteredAmount))
+                         }
+                         .padding(.horizontal)
 
-                     // Use HStack + Spacer for reliable layout outside Form
-                     HStack {
-                         Text("Total Donations:")
-                         Spacer()
-                         Text(formatCurrency(viewModel.totalFilteredAmount))
+                         HStack {
+                             Text("Average Donation:")
+                             Spacer()
+                             Text(formatCurrency(viewModel.averageFilteredAmount))
+                         }
+                         .padding(.horizontal)
+
+                         HStack {
+                             Text("Number of Donations:")
+                             Spacer()
+                             Text("\(viewModel.filteredCount)")
+                         }
+                         .padding(.horizontal)
                      }
-                     .padding(.horizontal)
+                     .padding(.bottom) // Add padding below summary
+                    .opacity(viewModel.isFilteringInProgress ? 0.3 : 1.0)
 
-                     HStack {
-                         Text("Average Donation:")
-                         Spacer()
-                         Text(formatCurrency(viewModel.averageFilteredAmount))
-                     }
-                     .padding(.horizontal)
-
-                     HStack {
-                         Text("Number of Donations:")
-                         Spacer()
-                         Text("\(viewModel.filteredCount)")
-                     }
-                     .padding(.horizontal)
-                 }
-                 .padding(.bottom) // Add padding below summary
-
+                    if viewModel.isFilteringInProgress {
+                        VStack {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                            Text("Updating Results...")
+                                .foregroundColor(.secondary)
+                                .padding(.top, 8)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
 
                 Divider()
 
-                // --- Results Section ---
-                Text("Matching Donations (\(viewModel.filteredCount))")
-                    .font(.headline)
-                    .padding([.top, .leading])
-                    .padding(.bottom, 5)
+                // MODIFY: Results section with loading state
+                VStack(alignment: .leading) {
+                    Text("Matching Donations (\(viewModel.filteredCount))")
+                        .font(.headline)
+                        .padding([.top, .leading])
+                        .padding(.bottom, 5)
 
-                 // ... Results list logic (isLoading, error, List) as before ...
-                  if viewModel.isLoading {
-                     ProgressView("Loading Report...")
-                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                 } else if let errorMsg = viewModel.errorMessage {
-                    VStack { /* ... Error content ... */ }
-                     .padding()
-                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                 } else if viewModel.filteredReportItems.isEmpty {
-                     Text("No donations match the selected filters.")
-                         .foregroundColor(.secondary)
+                    if viewModel.isLoading {
+                        ProgressView("Loading Report...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if viewModel.isFilteringInProgress {
+                        // Show nothing here as we have the overlay above
+                        EmptyView()
+                    } else if let errorMsg = viewModel.errorMessage {
+                        VStack { /* ... Error content ... */ }
                          .padding()
-                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                 } else {
-                     // Use the rest of the available space for the list
-                     List {
-                         ForEach(viewModel.filteredReportItems) { item in
-                             DonationReportRow(item: item)
-                         }
-                     }
-                     .listStyle(PlainListStyle())
-                 }
-
+                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if viewModel.filteredReportItems.isEmpty {
+                        Text("No donations match the selected filters.")
+                            .foregroundColor(.secondary)
+                            .padding()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    } else {
+                        List {
+                            ForEach(viewModel.filteredReportItems) { item in
+                                DonationReportRow(item: item)
+                            }
+                        }
+                        .listStyle(PlainListStyle())
+                        .opacity(viewModel.isFilteringInProgress ? 0.3 : 1.0)
+                    }
+                }
             } // End Main VStack
             .navigationTitle("Donation Report")
             .onTapGesture { hideKeyboard() }
@@ -196,7 +208,6 @@ struct DonationReportRow: View {
          return DonationReportViewModel.currencyFormatter.string(for: amount) ?? "$0.00"
      }
 }
-
 
 // --- Preview ---
 struct DonationReportView_Previews: PreviewProvider {

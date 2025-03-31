@@ -5,7 +5,6 @@
 //  Created by Steven Hertz on 3/30/25.
 //
 
-
 import SwiftUI
 import Combine // Using Combine for efficient updates
 
@@ -35,6 +34,7 @@ class DonationReportViewModel: ObservableObject {
     @Published var filteredCount: Int = 0
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
+    @Published var isFilteringInProgress: Bool = false
 
     // --- Internal Cache (for name lookups) ---
     private var donorCache: [Int: String] = [:] // [DonorID: DonorName]
@@ -112,85 +112,91 @@ class DonationReportViewModel: ObservableObject {
 
     // --- Report Update Logic ---
     func updateReport() {
-        isLoading = true
-        errorMessage = nil
+        Task {
+            defer { self.isFilteringInProgress = false }
+            self.isFilteringInProgress = true
+            
+            // Simulate a small delay to prevent flickering for very fast operations
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+            
+            // --- Apply Filters (In-Memory) ---
+            // *** SCALABILITY NOTE: This filtering should be done in SQL in production ***
+            var results = allFetchedDonations
 
-        // --- Apply Filters (In-Memory) ---
-        // *** SCALABILITY NOTE: This filtering should be done in SQL in production ***
-        var results = allFetchedDonations
-
-        // 1. Filter by Time Frame
-        let now = Date()
-        let calendar = Calendar.current
-        switch selectedTimeFrame {
-        case .last7Days:
-            if let startDate = calendar.date(byAdding: .day, value: -7, to: now) {
-                results = results.filter { $0.donationDate >= startDate && $0.donationDate <= now }
+            // 1. Filter by Time Frame
+            
+            let now = Date()
+            let calendar = Calendar.current
+            switch selectedTimeFrame {
+            case .last7Days:
+                if let startDate = calendar.date(byAdding: .day, value: -7, to: now) {
+                    results = results.filter { $0.donationDate >= startDate && $0.donationDate <= now }
+                }
+            case .last30Days:
+                if let startDate = calendar.date(byAdding: .day, value: -30, to: now) {
+                    results = results.filter { $0.donationDate >= startDate && $0.donationDate <= now }
+                }
+            case .last90Days:
+                 if let startDate = calendar.date(byAdding: .day, value: -90, to: now) {
+                     results = results.filter { $0.donationDate >= startDate && $0.donationDate <= now }
+                 }
+            case .allTime:
+                break // No time filter needed
             }
-        case .last30Days:
-            if let startDate = calendar.date(byAdding: .day, value: -30, to: now) {
-                results = results.filter { $0.donationDate >= startDate && $0.donationDate <= now }
+
+            // 2. Filter by Campaign
+            if let campaignId = selectedCampaignId {
+                results = results.filter { $0.campaignId == campaignId }
             }
-        case .last90Days:
-             if let startDate = calendar.date(byAdding: .day, value: -90, to: now) {
-                 results = results.filter { $0.donationDate >= startDate && $0.donationDate <= now }
-             }
-        case .allTime:
-            break // No time filter needed
+
+            // 3. Filter by Donor
+            if let donorId = selectedDonorId {
+                results = results.filter { $0.donorId == donorId }
+            }
+
+            // 4. Filter by Amount
+            let minAmount = Double(minAmountString)
+            let maxAmount = Double(maxAmountString)
+
+            if let min = minAmount {
+                results = results.filter { $0.amount >= min }
+            }
+            if let max = maxAmount {
+                results = results.filter { $0.amount <= max }
+            }
+            // --- End In-Memory Filtering ---
+
+
+            // --- Map to Report Items ---
+            let reportItems = results.compactMap { donation -> DonationReportItem? in
+                guard let donationId = donation.id else { return nil } // Should always have an ID from DB
+
+                // Lookup names from cache
+                let donorName = donation.donorId.flatMap { donorCache[$0] } ?? (donation.isAnonymous ? "Anonymous" : "Unknown Donor")
+                let campaignName = donation.campaignId.flatMap { campaignCache[$0] } ?? "General Support"
+
+                return DonationReportItem(
+                    id: donationId,
+                    donorName: donorName,
+                    campaignName: campaignName,
+                    amount: donation.amount,
+                    donationDate: donation.donationDate
+                )
+            }
+
+            await MainActor.run {
+                self.filteredReportItems = reportItems.sorted { $0.donationDate > $1.donationDate } // Sort newest first
+
+                // --- Calculate Aggregates ---
+                self.totalFilteredAmount = self.filteredReportItems.reduce(0) { $0 + $1.amount }
+                self.filteredCount = self.filteredReportItems.count
+                if self.filteredCount > 0 {
+                    self.averageFilteredAmount = self.totalFilteredAmount / Double(self.filteredCount)
+                } else {
+                    self.averageFilteredAmount = 0
+                }
+            }
         }
-
-        // 2. Filter by Campaign
-        if let campaignId = selectedCampaignId {
-            results = results.filter { $0.campaignId == campaignId }
-        }
-
-        // 3. Filter by Donor
-        if let donorId = selectedDonorId {
-            results = results.filter { $0.donorId == donorId }
-        }
-
-        // 4. Filter by Amount
-        let minAmount = Double(minAmountString)
-        let maxAmount = Double(maxAmountString)
-
-        if let min = minAmount {
-            results = results.filter { $0.amount >= min }
-        }
-        if let max = maxAmount {
-            results = results.filter { $0.amount <= max }
-        }
-        // --- End In-Memory Filtering ---
-
-
-        // --- Map to Report Items ---
-        let reportItems = results.compactMap { donation -> DonationReportItem? in
-            guard let donationId = donation.id else { return nil } // Should always have an ID from DB
-
-            // Lookup names from cache
-            let donorName = donation.donorId.flatMap { donorCache[$0] } ?? (donation.isAnonymous ? "Anonymous" : "Unknown Donor")
-            let campaignName = donation.campaignId.flatMap { campaignCache[$0] } ?? "General Support"
-
-            return DonationReportItem(
-                id: donationId,
-                donorName: donorName,
-                campaignName: campaignName,
-                amount: donation.amount,
-                donationDate: donation.donationDate
-            )
-        }
-
-        self.filteredReportItems = reportItems.sorted { $0.donationDate > $1.donationDate } // Sort newest first
-
-        // --- Calculate Aggregates ---
-        self.totalFilteredAmount = filteredReportItems.reduce(0) { $0 + $1.amount }
-        self.filteredCount = filteredReportItems.count
-        if filteredCount > 0 {
-            self.averageFilteredAmount = totalFilteredAmount / Double(filteredCount)
-        } else {
-            self.averageFilteredAmount = 0
-        }
-
-        isLoading = false
     }
 
      // Called when donor is selected from DonorSearchView
