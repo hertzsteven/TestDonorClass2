@@ -15,6 +15,7 @@ struct MasterTabView: View {
     @EnvironmentObject private var incentiveObject : DonationIncentiveObjectClass
     @EnvironmentObject private var defaultDonationSettingsViewModel: DefaultDonationSettingsViewModel
     
+    @State private var organizationManager = OrganizationSettingsManager()
     @State private var selectedTab: Int = 0
     
     var body: some View {
@@ -59,7 +60,7 @@ struct MasterTabView: View {
             .tag(4)
             */
              
-            SettingsView()
+            SettingsView(organizationManager: organizationManager)
                 .tabItem {
                     Image(systemName: "gearshape")
 //                    Label("Settings", systemImage: "gearshape")

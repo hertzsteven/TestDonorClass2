@@ -9,6 +9,9 @@ import SwiftUI
 
 struct DashboardView: View {
     
+    // ADD: Organization settings manager
+    @State private var organizationManager = OrganizationSettingsManager()
+    
     private let viewModel: DashboardViewModel = DashboardViewModel()
     
     @State var path = NavigationPath()
@@ -148,8 +151,12 @@ struct DashboardView: View {
                 }
             }
             .sheet(isPresented: $showingSettings) {
-                Text("Settings View")
-                    .navigationTitle("Settings")
+                SettingsView(organizationManager: organizationManager)
+                    .environmentObject(donorObject)
+                    .environmentObject(donationObject)
+                    .environmentObject(campaignObject)
+                    .environmentObject(incentiveObject)
+                    .environmentObject(defaultDonationSettingsViewModel)
             }
             .sheet(isPresented: $showingHelp) {
                 Text("Help View")
