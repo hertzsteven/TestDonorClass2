@@ -159,8 +159,7 @@ struct DashboardView: View {
                     .environmentObject(defaultDonationSettingsViewModel)
             }
             .sheet(isPresented: $showingHelp) {
-                Text("Help View")
-                    .navigationTitle("Help")
+                HelpCenterView()
             }
         }
         // Trigger initial fade-in animation
