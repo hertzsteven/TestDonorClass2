@@ -132,13 +132,3 @@ struct DefaultDonationSettingsView: View {
         }
     }
 }
-
-struct DefaultDonationSettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            DefaultDonationSettingsView()
-                .environmentObject(CampaignObjectClass())
-                .environmentObject(DonationIncentiveObjectClass())
-        }
-    }
-}

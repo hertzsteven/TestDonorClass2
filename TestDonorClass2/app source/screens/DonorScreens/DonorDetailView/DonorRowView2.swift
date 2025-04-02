@@ -63,22 +63,4 @@
         }
     }
 
-    #Preview {
-        NavigationStack {
-            DonorRowView2(donor: Donor(
-                company: "Tech Corp",
-                salutation: "Mr.",
-                firstName: "John",
-                lastName: "Doe",
-                city: "San Francisco",
-                state: "CA",
-                email: "john.doe@example.com",
-                phone: "555-1234"
-            )).padding(.horizontal, 24)
-            .environmentObject(DonorObjectClass())
-            .environmentObject(CampaignObjectClass())
-            .environmentObject(DonationIncentiveObjectClass())
-            .environmentObject(DefaultDonationSettingsViewModel())
-            .environmentObject(DonationObjectClass())
-        }
-    }
+ 

@@ -7,354 +7,443 @@
 
 import SwiftUI
 
+// Contents of ./screens/BatchDonations/BatchDonationView.swift
+import SwiftUI
+
 struct BatchDonationView: View {
+    // ... (EnvironmentObjects, StateObject, init remain the same) ...
     @EnvironmentObject private var donorObject: DonorObjectClass
     @EnvironmentObject private var donationObject: DonationObjectClass
-    
     @EnvironmentObject var campaignObject: CampaignObjectClass
+    @Environment(\.dismiss) private var dismiss
 
-    @StateObject private var viewModel = BatchDonationViewModel()
+    @StateObject private var viewModel: BatchDonationViewModel
 
     @State private var selectedCampaign: Campaign?
-    @State private var selectedDonationType: DonationType = .check
-    @State private var selectedPaymentStatus: PaymentStatus = .completed
-
-    // 1. First, add these state variables to your BatchDonationView
     @State private var showingDonorSearch = false
     @State private var currentRowID: UUID? = nil
-
-
-    // If you want your focus to jump from row to row:
     @FocusState private var focusedRowID: UUID?
+
+    @State private var showingSaveSummary = false
+    @State private var saveResult: (success: Int, failed: Int, totalAmount: Double)? = nil
+
+    // Custom Initializer
+    init() {
+        do {
+             let donorRepo = try! DonorRepository()
+             let donationRepo = try! DonationRepository()
+             _viewModel = StateObject(wrappedValue: BatchDonationViewModel(
+                 repository: donorRepo,
+                 donationRepository: donationRepo
+             ))
+         } catch {
+              fatalError("Failed to initialize repositories for BatchDonationView: \(error)")
+         }
+    }
+
+    // Add computed properties for first row access
+    private var firstRow: BatchDonationViewModel.RowEntry? {
+        viewModel.rows.first
+    }
     
+    private var firstRowIsValid: Bool {
+        guard let row = firstRow else { return false }
+        return row.isValidDonor && row.donorID != nil
+    }
     
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Global donation amount across all rows
-            HStack {
-                Text("Amount:")
-                    .padding(.leading, 16)
-                TextField("Enter Donation",
-                          value: $viewModel.globalDonation, format: .number)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .keyboardType(.decimalPad)
-                    .frame(width: 100)
-                    .padding(.trailing, 12)
-                
-                Text("Campaign")
-                    .padding(.trailing, -10)
-                Picker("Campaign", selection: $selectedCampaign) {
-                    Text("None").tag(nil as Campaign?)
-                        //
-                    ForEach(campaignObject.campaigns.filter { $0.id ?? 100 > 99 }) { campaign in
-                            //                    ForEach(campaignObject.campaigns) { campaign in
-                        Text(campaign.name).tag(campaign  as Campaign?)
-                    }
-                }
-
-//                CampaignPickerView(selectedCampaign: $selectedCampaign)
-//                    .padding(.leading, 16)
-                
-                // Add Donation Type Picker
-                Picker("Type", selection: $viewModel.globalDonationType) {
-                    ForEach(DonationType.allCases, id: \.self) { type in
-                        Text(type.rawValue).tag(type)
-                    }
-                }
-                .frame(width: 100)
-                
-                // Add Payment Status Picker
-                Picker("Status", selection: $viewModel.globalPaymentStatus) {
-                    ForEach([PaymentStatus.completed, .pending, .failed], id: \.self) { status in
-                        Text(status.rawValue).tag(status)
-                    }
-                }
-                .frame(width: 180)
-
-            }
-            
-            
-            // Optional column headers
-            HStack {
-                Text("Donor ID")
-//                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                Text("Name and Address")
-                    .frame(width: 570, alignment: .leading)
-                Text("Receipt")
-                    .frame(width: 100, alignment: .leading)
-                Text("Type")
-                    .frame(width: 95
-                           , alignment: .leading)
-                Text("Status")
-                Spacer()
-                Text("Amount")
-                    .frame(width: 70, alignment: .leading)
-                Text("Action")
-                    .frame(width: 80, alignment: .center)
-            }
-            .font(.headline)
-            .padding(.horizontal)
-
-            // The list of rows
-            List {
-                ForEach($viewModel.rows) { $row in
-                    HStack {
-                        switch row.processStatus {
-                        case .none:
-                            EmptyView()  // no icon yet
-                        case .success:
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                        case .failure:
-                            Image(systemName: "xmark.octagon.fill")
-                                .foregroundColor(.red)
-                        }
-                        
-                        // Donor Code (ID) text field
-                        TextField("Donor ID", value: $row.donorID, formatter: NumberFormatter())
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(width: 80)
-                            .focused($focusedRowID, equals: row.id)
-
-                        // Donor Information text
-                        Text(row.displayInfo)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .foregroundColor(row.isValidDonor ? .primary : .red)
-                        
-                        // Add Donation Type Override picker - only show when donor is valid
-                        if row.isValidDonor {
-                            
-                            Toggle("", isOn: $row.printReceipt)
-                                .labelsHidden()
-                                .frame(width: 50)
-                            
-                            Picker("", selection: $row.donationTypeOverride) {
-                                ForEach(DonationType.allCases, id: \.self) { type in
-                                    Text(type.rawValue).tag(type)
-                                }
-                            }
-                            .frame(width: 120)
-                            
-                            // Add Payment Status Override picker - only show when donor is valid
-                            Picker("", selection: $row.paymentStatusOverride) {
-                                ForEach([PaymentStatus.completed, .pending, .failed], id: \.self) { status in
-                                    Text(status.rawValue).tag(status)
-                                }
-                            }
-                            .frame(width: 140)
-                        }
-                        
-                        // Donation text field
-                        TextField("Amount", value: $row.donationOverride, format: .number)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .keyboardType(.decimalPad)
-                            .frame(width: 80)
-                            .disabled(!row.isValidDonor)
-
-                        // Replace the Find button with conditional button
-                        if row.isValidDonor {
-                            Button {
-                                viewModel.rows.removeAll(where: { $0.id == row.id })
-                            } label: {
-                                Image(systemName: "trash")
-                                    .foregroundColor(.red)
-                            }
-                            .frame(width: 50)
-                        } else {
-                            
-                            // Improved menu implementation that disables the menu when appropriate
-                            Menu {
-                                // Option 1: Search by ID (existing functionality)
-                                Button {
-                                    Task {
-                                        await viewModel.findDonor(for: row.id)
-                                        focusedRowID = viewModel.focusedRowID
-                                    }
-                                } label: {
-                                    Label("Find by ID", systemImage: "number")
-                                }
-                                .disabled(row.donorID == nil)
-                                
-                                // Option 2: Search by name/address
-                                Button {
-                                    currentRowID = row.id
-                                    showingDonorSearch = true
-                                } label: {
-                                    Label("Search by Name", systemImage: "magnifyingglass")
-                                }
-                            } label: {
-                                Image(systemName: "ellipsis.circle")
-                                    .foregroundColor(.blue)
-                            }
-                            .frame(width: 50)
-                            // Disable the entire menu if we're in an invalid state
-                            .disabled(row.id == nil)
-                            
-//                            Button {
-//                                Task {
-//                                    await viewModel.findDonor(for: row.id)
-//                                    // Move focus to the row ID we just appended
-//                                    focusedRowID = viewModel.focusedRowID
-//                                }
-//                            } label: {
-//                                Image(systemName: "magnifyingglass")
-//                            }
-//                            .frame(width: 50)
-//                            .disabled(row.donorID == nil)
-                        }
-                    }
-                }
-            }
-            .onChange(of: viewModel.focusedRowID) { newID in
-                focusedRowID = newID
-            }
-        }
-        .toolbar {
-            SaveCancelToolBar()
+    // Example validation method
+    private func validateFirstRow() -> (isValid: Bool, message: String?) {
+        guard let row = firstRow else {
+            return (false, "No rows available")
         }
         
-        .onAppear {
-            Task {
-                await campaignObject.loadCampaigns()
+        // Check donor ID
+        guard let donorId = row.donorID else {
+            return (false, "No donor ID specified")
+        }
+        
+        // Check amount
+        if row.donationOverride <= 0 {
+            return (false, "Invalid amount")
+        }
+        
+        // All checks passed
+        return (true, nil)
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Global Settings Bar
+
+                HStack(spacing: 20) {
+                    HStack(spacing: 8) {
+                        Text("Amount:")
+                            .foregroundColor(.secondary)
+                        TextField("", value: $viewModel.globalDonation, format: .currency(code: "USD"))
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 80)
+                    }
+
+                    HStack(spacing: 8) {
+                        Text("Campaign:")
+                            .foregroundColor(.secondary)
+                        Menu {
+                            Button("None") {
+                                selectedCampaign = nil
+                            }
+                            ForEach(campaignObject.campaigns) { campaign in
+                                Button(campaign.name) {
+                                    selectedCampaign = campaign
+                                }
+                            }
+                        } label: {
+                            Text(selectedCampaign?.name ?? "None")
+                                .foregroundColor(.blue)
+                        }
+                    }
+
+                    HStack(spacing: 8) {
+                        Text("Type:")
+                            .foregroundColor(.secondary)
+                        Menu {
+                            ForEach(DonationType.allCases, id: \.self) { type in
+                                Button(type.rawValue) {
+                                    viewModel.globalDonationType = type
+                                }
+                            }
+                        } label: {
+                            Text(viewModel.globalDonationType.rawValue)
+                                .foregroundColor(.blue)
+                        }
+                    }
+
+                    HStack(spacing: 8) {
+                        Text("Status:")
+                            .foregroundColor(.secondary)
+                        Menu {
+                            ForEach([PaymentStatus.completed, .pending], id: \.self) { status in
+                                Button(status.rawValue.capitalized) {
+                                    viewModel.globalPaymentStatus = status
+                                }
+                            }
+                        } label: {
+                            Text(viewModel.globalPaymentStatus.rawValue.capitalized)
+                                .foregroundColor(.blue)
+                        }
+                    }
+
+                    Spacer()
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+
+            // Column Headers
+            HStack {
+                Text("Status")
+                    .frame(width: 50)
+                Text("Donor ID")
+                    .frame(width: 70)
+                Text("Name & Address")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Receipt")
+                    .frame(width: 60)
+                Text("Type")
+                    .frame(width: 90)
+                Text("Pay Status")
+                    .frame(width: 90)
+                Text("Amount")
+                    .frame(width: 70, alignment: .trailing)
+                Text("Action")
+                    .frame(width: 50)
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .padding(.horizontal)
+            .padding(.vertical, 6)
+
+            // Donation Rows List
+            List {
+                ForEach($viewModel.rows) { $row in
+                    batchRowView(row: $row)
+                        .focused($focusedRowID, equals: row.id)
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                }
+            }
+            .listStyle(.plain)
+            
+            // Example button to check first row
+            Button("Check First Row") {
+                if let row = firstRow {
+                    print("Donor ID: \(row.donorID ?? 0)")
+                    print("Amount: \(row.donationOverride)")
+                    print("Type: \(row.donationTypeOverride)")
+                    print("Status: \(row.paymentStatusOverride)")
+                    print("Is Valid: \(row.isValidDonor)")
+                    
+                    // Validate the row
+                    let validation = validateFirstRow()
+                    if !validation.isValid {
+                        print("Validation failed: \(validation.message ?? "Unknown error")")
+                    }
+                }
+            }
+          /*
+            // Example of conditional rendering based on first row state
+            if let row = firstRow, row.isValidDonor {
+                Text("Valid donor: ID \(row.donorID ?? 0)")
+                    .foregroundColor(.green)
+            }
+        */
+        .navigationTitle("Batch Donations")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                HStack {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                            Text("Back")
+                        }
+                        .foregroundColor(.blue)
+                    }
+                    
+                    if !viewModel.rows.isEmpty {
+                        if let row = firstRow, row.isValidDonor {
+                            Button("Clear All", role: .destructive) {
+                                viewModel.clearBatch()
+                            }
+                        }
+                    }
+                }
+            }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if !viewModel.rows.isEmpty {
+                    if let row = firstRow, row.isValidDonor {
+
+                        Button("Save Batch") {
+                            Task {
+                                saveResult = await viewModel.saveBatchDonations(selectedCampaignId: selectedCampaign?.id)
+                                showingSaveSummary = true
+                            }
+                        }
+                                            .foregroundColor(.blue)
+                                            .disabled(viewModel.rows.allSatisfy { !$0.isValidDonor })
+                    }
+
+                }
             }
         }
-
-        .sheet(isPresented: $showingDonorSearch, onDismiss: {
-            // Clear the currentRowID when the sheet is dismissed
-            currentRowID = nil
-        }) {
+        .sheet(isPresented: $showingDonorSearch) {
             DonorSearchSelectionView { selectedDonor in
                 if let rowID = currentRowID {
                     Task {
                         await viewModel.setDonorFromSearch(selectedDonor, for: rowID)
+                        currentRowID = nil
                     }
-                }
-            }
-            .environmentObject(donorObject)
-        }
-//        .sheet(isPresented: $showingDonorSearch) {
-//            if let rowID = currentRowID {
-//                DonorSearchSelectionView { selectedDonor in
-//                    Task {
-//                        await viewModel.setDonorFromSearch(selectedDonor, for: rowID)
-//                    }
-//                }
-//                .environmentObject(donorObject)
-//            }
-//        }
-//        .padding(.horizontal)
-            // Optional: load donors or do any setup
-//            .task {
-//                // If you want to ensure donors are loaded (or do other DB tasks)
-//                // you can call:
-//                // try? await donorObject.loadDonors()
-//            }
-        .navigationTitle("Batch Donations")
-    }
-    
-    
-}
-
-extension BatchDonationView {
-    fileprivate func saveBatchDonations() {
-        
-        guard !viewModel.rows.isEmpty else {
-            return
-        }
-        
-        var successfulDonationsCount    = 0
-        var totalDonationAmount: Double = 0
-        var failedDonationsCount        = 0
-        
-        for i in viewModel.rows.indices where viewModel.rows[i].donorID != nil {
-            print("Processing row \(i)")
-            let currentRow = viewModel.rows[i]
-            let donorIDString = currentRow.donorID.map(String.init) ?? "(none)"
-            
-                // If the row's override is blank, use the globalDonation
-            let donationAmount = (currentRow.donationOverride == 0.0)
-            ? viewModel.globalDonation
-            : currentRow.donationOverride
-            
-            let campaignID = selectedCampaign?.id ?? nil
-            let donorID = viewModel.rows[i].donorID
-            let paymentStatus = viewModel.rows[i].paymentStatusOverride 
-            let donationType = viewModel.rows[i].donationTypeOverride
-            let printReceipt = viewModel.rows[i].printReceipt
-            
-            print("DonorID: \(donorIDString), Amount: \(donationAmount)")
-            
-            Task {
-                let donation = Donation(
-                    donorId: donorID,
-                    campaignId: campaignID,
-                    amount: donationAmount,
-                    donationType: donationType,
-                    paymentStatus: paymentStatus,
-                    requestPrintedReceipt: printReceipt
-                )
-                do {
-                    try await viewModel.addDonation(donation)
-                    viewModel.rows[i].processStatus = .success
-                    successfulDonationsCount += 1
-                    totalDonationAmount += donationAmount
-                } catch {
-                    print("Error adding donation: \(error)")
-                    failedDonationsCount += 1
-                    viewModel.rows[i].processStatus = .failure(message: error.localizedDescription)
-                }
-            }
-        }
-        print("Successful Donations: \(successfulDonationsCount)")
-        print("Total Donation Amount: \(totalDonationAmount)")
-        print("-------------------------")
-        print("failed: \(failedDonationsCount)")
-    }
-}
-
-    //  MARK: -  funcs that build tool bar
-    extension BatchDonationView {
-        @ToolbarContentBuilder
-        func SaveCancelToolBar() -> some ToolbarContent {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("Cancel") {
-                    viewModel.cleearBatch()
-//                    presentationMode.wrappedValue.dismiss()
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Save") {
-                    saveBatchDonations()
-                }
-//                .disabled(!isValidAmount)
-            }
-        }
-    }
-
-
-    // Your imports remain the same
-
-    // All previous code remains the same
-
-    // Replace the existing preview with this one
-    #Preview {
-        let donorObject = DonorObjectClass()
-         let campaignObject = CampaignObjectClass()
-         let donationObject = DonationObjectClass()
-         
-         // Initialize objects with any required setup
-         // Add any necessary default data here if needed
-         
-         return NavigationStack {
-             BatchDonationView()
-                 .environmentObject(donorObject)
-                 .environmentObject(campaignObject)
-                 .environmentObject(donationObject)
+                } else {
+                      print("Error: currentRowID was nil when donor search returned.")
+                 }
+             }
+             .environmentObject(donorObject)
          }
-
+         .alert("Batch Save Summary", isPresented: $showingSaveSummary, presenting: saveResult) { result in
+              Button("OK") {
+                  if result.failed == 0 && result.success > 0 {
+                      viewModel.addRow()
+                      focusedRowID = viewModel.rows.last?.id
+                  }
+                  saveResult = nil
+              }
+          } message: { result in
+              Text("Successfully saved: \(result.success)\nFailed: \(result.failed)\nTotal Amount: \(formatCurrency(result.totalAmount))")
+          }
+        .task {
+            await campaignObject.loadCampaigns()
+        }
     }
 
-    // End of file
-    // End of file
+    // Extracted Row View Builder
+    @ViewBuilder
+    private func batchRowView(row: Binding<BatchDonationViewModel.RowEntry>) -> some View {
+        let r = row.wrappedValue // Access wrapped value for reading non-binding properties
+        HStack {
+            // Status Icon
+            Image(systemName: statusIcon(for: r.processStatus))
+                .foregroundColor(statusColor(for: r.processStatus))
+                .frame(width: 50, alignment: .center)
+
+            // Donor ID
+            TextField("ID", value: row.donorID, format: .number)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .frame(width: 70)
+                .keyboardType(.numberPad)
+                .onSubmit {
+                     Task { await viewModel.findDonor(for: r.id) }
+                 }
+
+            // Donor Info Display
+            Text(r.displayInfo.isEmpty && r.donorID == nil ? "Enter ID or Search" : r.displayInfo)
+                .font(r.isValidDonor ? .body : .callout)
+                .foregroundColor(r.isValidDonor ? .primary : (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ? .red : .secondary))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(2)
+                .help(r.displayInfo)
+
+            // Receipt Toggle
+            Toggle("", isOn: row.printReceipt)
+                .labelsHidden()
+                .frame(width: 60, alignment: .center)
+                .disabled(!r.isValidDonor)
+
+            // Donation Type Override
+            Picker("", selection: row.donationTypeOverride) {
+                // Text("Default (\(viewModel.globalDonationType.rawValue))").tag(viewModel.globalDonationType)
+                ForEach(DonationType.allCases, id: \.self) { type in
+                    Text(type.rawValue).tag(type)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(width: 90)
+            .disabled(!r.isValidDonor)
+
+            // Payment Status Override
+            Picker("", selection: row.paymentStatusOverride) {
+                 // Text("Default (\(viewModel.globalPaymentStatus.rawValue.capitalized))").tag(viewModel.globalPaymentStatus)
+                ForEach([PaymentStatus.completed, .pending], id: \.self) { status in
+                    Text(status.rawValue.capitalized).tag(status)
+                }
+            }
+           .pickerStyle(.menu)
+           .frame(width: 90)
+           .disabled(!r.isValidDonor)
+
+            // Amount Override
+            TextField("Amount", value: row.donationOverride, format: .currency(code: "USD"))
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .keyboardType(.decimalPad)
+                .frame(width: 70)
+                // **** FIX 2: Remove .wrappedValue ****
+                .foregroundColor(r.hasDonationOverride ? .blue : .primary) // Use 'r' here
+                .disabled(!r.isValidDonor)
+
+            // Action Button (Search/Find/Delete)
+            actionButton(row: row)
+                .frame(width: 50, alignment: .center)
+        }
+        .padding(.vertical, 4)
+    }
+
+    // Extracted Action Button Logic
+    @ViewBuilder
+    private func actionButton(row: Binding<BatchDonationViewModel.RowEntry>) -> some View {
+        let r = row.wrappedValue
+        if r.isValidDonor {
+            Button {
+                viewModel.rows.removeAll { $0.id == r.id }
+            } label: {
+                Image(systemName: "trash")
+                    .foregroundColor(.red)
+            }
+            .buttonStyle(PlainButtonStyle())
+
+        } else {
+            Menu {
+                Button {
+                    Task { await viewModel.findDonor(for: r.id) }
+                } label: {
+                    Label("Find by ID", systemImage: "number")
+                }
+                .disabled(r.donorID == nil)
+
+                Button {
+                    currentRowID = r.id
+                    showingDonorSearch = true
+                } label: {
+                    Label("Search Donor", systemImage: "magnifyingglass")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .foregroundColor(.blue)
+                    .imageScale(.large)
+            }
+            .buttonStyle(PlainButtonStyle())
+            // **** FIX 3: Use helper function to check status case ****
+            .disabled(isFailureStatus(r.processStatus)) // Maybe disable if failed?
+        }
+    }
+
+    // ... (statusIcon, statusColor, formatCurrency helpers remain the same) ...
+      private func statusIcon(for status: BatchDonationViewModel.RowProcessStatus) -> String { /* ... */
+         switch status {
+         case .none: return "circle"
+         case .success: return "checkmark.circle.fill"
+         case .failure: return "xmark.octagon.fill"
+         }
+    }
+      private func statusColor(for status: BatchDonationViewModel.RowProcessStatus) -> Color { /* ... */
+         switch status {
+         case .none: return .gray.opacity(0.5)
+         case .success: return .green
+         case .failure: return .red
+         }
+    }
+      private func formatCurrency(_ amount: Double) -> String { /* ... */
+          let formatter = NumberFormatter()
+          formatter.numberStyle = .currency
+          formatter.currencyCode = "USD"
+          return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+      }
+
+    // **** FIX 3 (Add Helper Function): Add this inside BatchDonationView ****
+    private func isFailureStatus(_ status: BatchDonationViewModel.RowProcessStatus) -> Bool {
+        if case .failure = status {
+            return true
+        }
+        return false
+    }
+    // **** End FIX 3 ****
+}
+
+// Example extension for additional row validation
+extension BatchDonationViewModel.RowEntry {
+    var isAmountValid: Bool {
+        return donationOverride > 0
+    }
+    
+    var isDonorValid: Bool {
+        return isValidDonor && donorID != nil
+    }
+    
+    var isReadyToProcess: Bool {
+        return isAmountValid && isDonorValid
+    }
+}
+
+//  MARK: - Toolbar Builder
+extension BatchDonationView {
+    @ToolbarContentBuilder
+    func SaveCancelToolBar() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarLeading) {
+            Button("Clear All") {
+                viewModel.clearBatch() // Corrected typo if needed
+            }
+            .tint(.red)
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button("Save Batch") {
+                Task {
+                     saveResult = await viewModel.saveBatchDonations(selectedCampaignId: selectedCampaign?.id)
+                     showingSaveSummary = true
+                }
+            }
+            .disabled(viewModel.rows.allSatisfy { !$0.isValidDonor })
+        }
+    }
+}

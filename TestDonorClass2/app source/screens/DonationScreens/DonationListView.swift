@@ -78,14 +78,5 @@ struct DonationRowView: View {
     }
 }
 
-// MARK: - Preview Provider
-struct DonationListView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            DonationListView()
-                .environmentObject(DonationObjectClass())
-        }
-    }
-}
 
 // End of file

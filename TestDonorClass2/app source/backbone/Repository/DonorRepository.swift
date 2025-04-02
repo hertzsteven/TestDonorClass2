@@ -12,9 +12,33 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
     typealias Model = Donor
     private let dbPool: DatabasePool
 
-    init(dbPool: DatabasePool = DatabaseManager.shared.getDbPool()) {
+    
+    //        init(dbPool: DatabasePool = DatabaseManager.shared.getDbPool()) {
+    //                self.dbPool = dbPool
+    //            }
+    
+    // 1. Designated Initializer (no default value, doesn't throw)
+    // This is the main initializer. It requires a valid pool.
+    init(dbPool: DatabasePool) {
         self.dbPool = dbPool
     }
+    
+    // 2. Convenience Initializer (throws)
+    // This initializer provides the convenience of not passing the pool,
+    // but it might fail (throw) if getting the shared pool fails.
+    convenience init() throws {
+        do {
+            // Try to get the shared database pool
+            let pool = try DatabaseManager.shared.getDbPool()
+            // Call the designated initializer with the obtained pool
+            self.init(dbPool: pool)
+        } catch {
+            // If getting the pool failed, rethrow the error
+            print("Error initializing \(String(describing: Self.self)): Could not get database pool. \(error)")
+            throw error // Or throw a more specific RepositoryError if desired
+        }
+    }
+    
         // Example error handling function
     private func handleError(_ error: Error, context: String) {
             // Log the error with context

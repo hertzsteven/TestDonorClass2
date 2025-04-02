@@ -8,13 +8,22 @@
 import SwiftUI
 
 struct ReceiptManagementView: View {
-    @StateObject private var viewModel = ReceiptManagementViewModel()
+    // MODIFY: Fix StateObject initialization
+    @StateObject private var viewModel: ReceiptManagementViewModel
     @State private var showingPrintingSheet = false
     @State private var selectedStatus: ReceiptStatus = .requested
     @State private var searchText = ""
     @State private var showingAlert = false
     @State private var alertMessage = ""
     
+    // ADD: Initializer for main view
+    init() {
+        let donationRepo = try! DonationRepository()
+        _viewModel = StateObject(wrappedValue: ReceiptManagementViewModel(
+            donationRepository: donationRepo
+        ))
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Receipt Status Filter
@@ -68,8 +77,8 @@ struct ReceiptManagementView: View {
                         .font(.headline)
                     
                     Text(searchText.isEmpty ?
-                         "There are no \(selectedStatus.displayName.lowercased()) receipts" :
-                         "No receipts match your search")
+                             "There are no \(selectedStatus.displayName.lowercased()) receipts" :
+                             "No receipts match your search")
                         .foregroundColor(.secondary)
                 }
                 .padding()
@@ -237,24 +246,6 @@ struct ReceiptRowView: View {
     }
 }
 
-//enum ReceiptStatus: String, Codable, CaseIterable {
-//    case notRequested
-//    case requested
-//    case queued
-//    case printed
-//    case failed
-//
-//    var displayName: String {
-//        switch self {
-//        case .notRequested: return "Not Requested"
-//        case .requested: return "Requested"
-//        case .queued: return "Queued"
-//        case .printed: return "Printed"
-//        case .failed: return "Failed"
-//        }
-//    }
-//}
-
 struct ReceiptItem: Identifiable {
     let id: UUID
     let donationId: Int
@@ -273,8 +264,11 @@ class ReceiptManagementViewModel: ObservableObject {
     
     private let donationRepository: DonationRepository
     
-    init(donationRepository: DonationRepository = DonationRepository()) {
+    init(donationRepository: DonationRepository) { // Dependency must be injected
         self.donationRepository = donationRepository
+        print("ReceiptManagementViewModel Initialized with repository.")
+        // You might trigger initial data load here or from the View's .task
+        // Task { await loadReceipts(status: .requested) }
     }
     
     func loadReceipts(status: ReceiptStatus) async {
@@ -452,11 +446,9 @@ class ReceiptService {
     private let donationRepository: DonationRepository
     private let printingService = ReceiptPrintingService()
     
-    init(donationRepository: DonationRepository = DonationRepository()) {
+    init(donationRepository: DonationRepository) {
         self.donationRepository = donationRepository
     }
-    
-    // Other methods remain the same
     
     func getReceipts(with status: ReceiptStatus) async throws -> [ReceiptItem] {
         let donations = try await donationRepository.getReceiptRequests(status: status)
@@ -622,8 +614,15 @@ struct PrintReceiptSheetView: View {
     @State private var failureCount = 0
     @State private var currentReceiptIndex = 0
     
-    private let receiptService = ReceiptService()
-    private let donationRepository = DonationRepository()
+    private let receiptService: ReceiptService
+    private let donationRepository: DonationRepository
+    
+    init(receipts: [ReceiptItem], onCompletion: @escaping (Int, Int, Int) -> Void) {
+        self.receipts = receipts
+        self.onCompletion = onCompletion
+        self.donationRepository = try! DonationRepository()
+        self.receiptService = ReceiptService(donationRepository: self.donationRepository)
+    }
     
     var body: some View {
         VStack(spacing: 20) {

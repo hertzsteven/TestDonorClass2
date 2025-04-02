@@ -15,14 +15,29 @@ class DonorObjectClass: ObservableObject {
     @Published var lastUpdatedDonor: Donor? = nil  // Add this property
     
     private let repository: any DonorSpecificRepositoryProtocol
-    
-        // MARK: - Initialization
-    init(repository: DonorRepository = DonorRepository()) {
+       
+    // --- CHANGE 1: Designated Initializer ---
+    // Requires the repository protocol, doesn't throw
+    init(repository: any DonorSpecificRepositoryProtocol) {
         self.repository = repository
     }
+    
+    // --- CHANGE 2: Convenience Initializer ---
+    // Takes no arguments, throws because creating the default repository can throw
+    convenience init() throws {
+        do {
+            // Try to create the default repository instance
+            let defaultRepository = try DonorRepository()
+            // Call the designated initializer
+            self.init(repository: defaultRepository)
+        } catch {
+            print("Failed to initialize DonorObjectClass: Could not create repository. \(error)")
+            // Re-throw the error so the caller knows initialization failed
+            throw error // You could wrap this in a custom error if needed
+        }
+    }
+    
 }
-
-
     //  MARK: -  Retreive Donors
 extension DonorObjectClass {
     func getDonor(_ id: Int) async throws -> Donor? {

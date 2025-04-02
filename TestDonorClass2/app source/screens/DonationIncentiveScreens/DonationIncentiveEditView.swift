@@ -135,24 +135,3 @@ struct DonationIncentiveEditView: View {
         }
     }
 }
-
-// MARK: - Preview
-#Preview {
-    let sampleIncentive = DonationIncentive(
-        name: "Early Bird Special",
-        description: "Special discount for early donors",
-        dollarAmount: 100.00,
-        status: .active
-    )
-    
-    return Group {
-        DonationIncentiveEditView(mode: .add)
-            .environmentObject(DonationIncentiveObjectClass())
-            .previewDisplayName("Add Mode")
-        
-        DonationIncentiveEditView(mode: .edit(sampleIncentive))
-            .environmentObject(DonationIncentiveObjectClass())
-            .previewDisplayName("Edit Mode")
-    }
-}
-

@@ -261,33 +261,3 @@ import SwiftUI
         }
     }
 
-
-    struct DonorSearchView_Previews: PreviewProvider {
-        static var previews: some View {
-            // Create a dummy DonorObjectClass instance
-            let dummyDonorObject = DonorObjectClass()
-            
-            // Create a State wrapper for the selectedTab binding
-            StatefulPreviewWrapper(initialValue: 0) { selectedTab in
-                NavigationStack {
-                    DonorSearchView(donorObject: dummyDonorObject, selectedTab: selectedTab)
-                }
-            }
-            .previewDevice("iPhone 13")
-            .preferredColorScheme(.light)
-        }
-    }
-
-    struct StatefulPreviewWrapper<Value, Content: View>: View {
-        @State var value: Value
-        var content: (Binding<Value>) -> Content
-
-        init(initialValue: Value, content: @escaping (Binding<Value>) -> Content) {
-            _value = State(initialValue: initialValue)
-            self.content = content
-        }
-
-        var body: some View {
-            content($value)
-        }
-    }

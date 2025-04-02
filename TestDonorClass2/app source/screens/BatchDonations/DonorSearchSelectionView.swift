@@ -214,26 +214,26 @@ struct DonorResultRow: View {
 // Extension for your BatchDonationViewModel
 extension BatchDonationViewModel {
     // Add this method to handle selected donor from search
-    func setDonorFromSearch(_ donor: Donor, for rowID: UUID) async {
-        guard let rowIndex = rows.firstIndex(where: { $0.id == rowID }) else { return }
-        
-        await MainActor.run {
-            // Set the donor ID
-            rows[rowIndex].donorID = donor.id
-            
-            // Update the display info
-            let displayName = "\(donor.company ?? "") \(donor.lastName ?? "") \(donor.firstName ?? "")"
-            let address = donor.address ?? ""
-            
-            rows[rowIndex].displayInfo = "\(displayName) | \(address)"
-            rows[rowIndex].donationOverride = globalDonation
-            rows[rowIndex].donationTypeOverride = globalDonationType
-            rows[rowIndex].paymentStatusOverride = globalPaymentStatus
-            rows[rowIndex].isValidDonor = true
-            
-            // Add a new row and shift focus to it
-            addRow()
-            focusedRowID = rows.last?.id
-        }
-    }
+//    func setDonorFromSearch(_ donor: Donor, for rowID: UUID) async {
+//        guard let rowIndex = rows.firstIndex(where: { $0.id == rowID }) else { return }
+//        
+//        await MainActor.run {
+//            // Set the donor ID
+//            rows[rowIndex].donorID = donor.id
+//            
+//            // Update the display info
+//            let displayName = "\(donor.company ?? "") \(donor.lastName ?? "") \(donor.firstName ?? "")"
+//            let address = donor.address ?? ""
+//            
+//            rows[rowIndex].displayInfo = "\(displayName) | \(address)"
+//            rows[rowIndex].donationOverride = globalDonation
+//            rows[rowIndex].donationTypeOverride = globalDonationType
+//            rows[rowIndex].paymentStatusOverride = globalPaymentStatus
+//            rows[rowIndex].isValidDonor = true
+//            
+//            // Add a new row and shift focus to it
+//            addRow()
+//            focusedRowID = rows.last?.id
+//        }
+//    }
 }

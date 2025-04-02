@@ -36,12 +36,14 @@ class BackupManager: ObservableObject {
 //        return dbURL
     }
     
-    func closeDatabase() {
-        DatabaseManager.shared.closeConnections()
+    func closeDatabase() throws {
+        print("Attempting to close database connection...")
+        try  DatabaseManager.shared.closeConnections()
     }
     
-    func openDatabase()  {
-        DatabaseManager.shared.connectToDB()
+    func openDatabase() throws {
+        print("Attempting to open database connection...")
+        try DatabaseManager.shared.connectToDB()
     }
 
     func backupLocally() -> URL? {
@@ -50,9 +52,31 @@ class BackupManager: ObservableObject {
                 return nil
             }
 
-            closeDatabase()
-            // defer executes when the function exits, either normally or due to an error
-            defer { openDatabase() }
+        var dbWasOpen = true // Assume DB was open initially
+        do {
+            try closeDatabase() // Use try to call the throwing function
+        } catch {
+            print("Error closing database before backup: \(error)")
+            // Decide if you want to proceed. Maybe not?
+            dbWasOpen = false // Record that closing failed or wasn't needed
+            // return nil // Option: Fail the backup if closing fails
+        }
+        
+        // defer executes when the function exits, either normally or due to an error
+        defer {
+            // Only try to reopen if we think it was successfully closed or if closing failed
+            if dbWasOpen {
+                do {
+                    try openDatabase() // Use try
+                } catch {
+                    // This is tricky - the backup might have succeeded, but reopening failed.
+                    // Log this critical error. The app might be in a weird state.
+                    print("CRITICAL ERROR: Failed to reopen database after backup: \(error)")
+                }
+            } else {
+                 print("Skipping reopen because database was likely not closed properly.")
+            }
+        }
 
             let fileManager = FileManager.default
             do {

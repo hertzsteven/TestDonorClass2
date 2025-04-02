@@ -16,10 +16,31 @@ class DonationIncentiveObjectClass: ObservableObject {
     private let repository: any DonationIncentiveSpecificRepositoryProtocol
     var allLoadedDonationIncentives: [DonationIncentive] = []
     
-    // MARK: - Initialization
-    init(repository: DonationIncentiveRepository = DonationIncentiveRepository()) {
+    
+    // --- CHANGE 1: Designated Initializer ---
+    // Requires the repository protocol, doesn't throw
+    init(repository: any DonationIncentiveSpecificRepositoryProtocol) {
         self.repository = repository
     }
+
+    // --- CHANGE 2: Convenience Initializer ---
+    // Takes no arguments, throws because creating the default repository can throw
+    convenience init() throws {
+        do {
+            // Try to create the default repository instance
+            let defaultRepository = try DonationIncentiveRepository()
+            // Call the designated initializer
+            self.init(repository: defaultRepository)
+        } catch {
+            print("Failed to initialize DonationIncentiveObjectClass: Could not create repository. \(error)")
+            // Re-throw the error so the caller knows initialization failed
+            throw error // You could wrap this in a custom error if needed
+        }
+    }
+//    // MARK: - Initialization
+//    init(repository: DonationIncentiveRepository = DonationIncentiveRepository()) {
+//        self.repository = repository
+//    }
     
     // MARK: - Data Loading
     func loadIncentives() async {

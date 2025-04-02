@@ -231,23 +231,3 @@ struct DonationIncentiveListView: View {
     }
 
 }
-
-// MARK: - Preview
-struct DonationIncentiveListView_Previews: PreviewProvider {
-    static var previews: some View {
-        let mockIncentiveObject: DonationIncentiveObjectClass = {
-            let object = DonationIncentiveObjectClass()
-            object.incentives = [
-                DonationIncentive(name: "Light a Candle", dollarAmount: 36.00),
-                DonationIncentive(name: "Tefilla by kever", dollarAmount: 55.00)
-            ]
-            object.loadingState = .loaded
-            return object
-        }()
-        
-        NavigationView {
-            DonationIncentiveListView(incentiveObject: mockIncentiveObject)
-                .environmentObject(mockIncentiveObject)
-        }
-    }
-}

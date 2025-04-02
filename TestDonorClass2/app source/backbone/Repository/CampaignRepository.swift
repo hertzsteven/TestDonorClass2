@@ -12,23 +12,38 @@ class CampaignRepository: CampaignSpecificRepositoryProtocol {
     typealias Model = Campaign
     private let dbPool: DatabasePool
 
-    init(dbPool: DatabasePool = DatabaseManager.shared.getDbPool()) {
+    // KEEP: Designated initializer
+    init(dbPool: DatabasePool) {
         self.dbPool = dbPool
     }
-        // Example error handling function
-    private func handleError(_ error: Error, context: String) {
-            // Log the error with context
-        print("Error in \(context): \(error.localizedDescription)")
-            // You can add more sophisticated error handling here, such as:
-            // - Sending error reports to a monitoring service
-            // - Displaying user-friendly messages
-            // - Retrying the operation if applicable
+    
+    /// Convenience initializer that intentionally crashes if database initialization fails
+    /// since the app cannot function without a proper database connection.
+    convenience init() throws {
+        do {
+            let pool = try DatabaseManager.shared.getDbPool()
+            self.init(dbPool: pool)
+        } catch {
+            print("CRITICAL ERROR: Database initialization failed: \(error)")
+            print("Application cannot function without database access - terminating")
+            fatalError("Database connection could not be established: \(error.localizedDescription)")
+        }
     }
 
-        // MARK: - Read Operations
+    // Example error handling function
+    private func handleError(_ error: Error, context: String) {
+        // Log the error with context
+        print("Error in \(context): \(error.localizedDescription)")
+        // You can add more sophisticated error handling here, such as:
+        // - Sending error reports to a monitoring service
+        // - Displaying user-friendly messages
+        // - Retrying the operation if applicable
+    }
+
+    // MARK: - Read Operations
     func getOne(_ id: Int) async throws -> Campaign? {
         do {
-                // attemp to read from database asyncronously
+            // attemp to read from database asyncronously
             let campaign = try await dbPool.read { db in
                 try Campaign.fetchOne(db, id: id)
             }
@@ -62,7 +77,7 @@ class CampaignRepository: CampaignSpecificRepositoryProtocol {
         }
     }
 
-        // MARK: - CRUD
+    // MARK: - CRUD
     func insert(_ campaign: Campaign) async throws  {
         do {
             try await dbPool.write { db in
@@ -104,7 +119,7 @@ class CampaignRepository: CampaignSpecificRepositoryProtocol {
             throw RepositoryError.deleteFailed(error.localizedDescription)
         }
     }
-        // MARK: - Search
+    // MARK: - Search
     func findByName(_ searchText: String) async throws -> [Campaign] {
         do {
             let campaigns = try await dbPool.read { db in

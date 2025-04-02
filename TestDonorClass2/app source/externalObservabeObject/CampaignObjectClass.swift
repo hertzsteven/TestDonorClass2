@@ -20,8 +20,16 @@ class CampaignObjectClass: ObservableObject {
     var allLoadedCampaigns: [Campaign] = []
     
     // MARK: - Initialization
-    init(repository: CampaignRepository = CampaignRepository()) {
+    // REMOVE the default argument here
+    init(repository: any CampaignSpecificRepositoryProtocol) { // Accept protocol type
         self.repository = repository
+    }
+
+    // Convenience init for default behavior (using real repository)
+    // Use try! here, assuming DB is set up by the time this is called
+    convenience init() {
+        let realRepository = try! CampaignRepository()
+        self.init(repository: realRepository)
     }
     
     // MARK: - Data Loading

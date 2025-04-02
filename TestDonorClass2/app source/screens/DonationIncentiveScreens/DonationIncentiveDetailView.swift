@@ -52,18 +52,3 @@ struct DonationIncentiveDetailView: View {
     }
 }
 
-// MARK: - Preview
-#Preview {
-    let sampleIncentive = DonationIncentive(
-        name: "Early Bird Special",
-        description: "Special discount for early donors",
-        dollarAmount: 100.00,
-        status: .active
-    )
-    
-    return NavigationView {
-        DonationIncentiveDetailView(incentive: sampleIncentive)
-            .environmentObject(DonationIncentiveObjectClass())
-    }
-}
-

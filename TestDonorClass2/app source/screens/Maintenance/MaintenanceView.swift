@@ -82,9 +82,3 @@ struct MaintenanceView: View {
 //        }
     }
 }
-
-#Preview {
-    MaintenanceView(campaignObject: CampaignObjectClass(), incentiveObject: DonationIncentiveObjectClass(), donorObject: DonorObjectClass(), donationObject: DonationObjectClass())
-}
-
-

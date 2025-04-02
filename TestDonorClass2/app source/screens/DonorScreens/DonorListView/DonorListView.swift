@@ -52,7 +52,6 @@ struct DonorListView: View {
         VStack(spacing: 0) {
             newDonorList
         }
-        
         .onAppear {
             Task {
                 await doOnAppearProcess()
@@ -62,7 +61,6 @@ struct DonorListView: View {
             doOnDisappearProcess()
         }
         .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
-        .searchable(text: $viewModel.searchText, prompt: searchMode == .name ? "Search by name or company" : "Search by ID")
         
         .sheet(isPresented: $isShowingScanner) {
             BarcodeScannerView(scannedCode: $scannedCode)
@@ -197,82 +195,10 @@ extension DonorListView {
         )
     }
     
-    fileprivate func SearchButton() -> some View {
-        return // Buttons for Search and Clear
-        HStack {
-            Button(action: {
-                Task {
-                    isSearchingForDonor.toggle()
-                    try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
-                    isSearchingForDonor.toggle()
-                }
-            }) {
-                Text("Search")
-                    .frame(maxWidth: .infinity, minHeight: 36)
-                    .padding(.horizontal, 12)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-            }
-        }
-        .padding([.horizontal])
-    }
-    
-    fileprivate func groupBoxInstructions() -> some View {
-        return GroupBox("For Selected Donor") {
-            VStack(alignment: .leading, spacing:8) {
-                HStack {
-                    Label {
-                        Text("Enter Donation").font(.callout)
-                    } icon: {
-                        Image(systemName: "dollarsign.circle").foregroundStyle(.blue)
-                            .font(.system(size: 20, weight: .none, design: .default))
-                    }
-                }
-                .padding(.top, 4)
-                
-                HStack {
-                    Label {
-                        Text("See Information").font(.callout)
-                    } icon: {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(.blue)
-                            .font(.system(size: 18, weight: .none, design: .default))
-                    }
-                    Spacer()
-                }
-                
-                Text("Setup")
-                    .font(.system(size: 18, weight: .medium, design: .default))
-                    .padding(.top, 8)
-                HStack {
-                    Label {
-                        Text("Default Donation").font(.callout)
-                    } icon: {
-                        Image(systemName: "gear")
-                            .foregroundStyle(.blue)
-                            .font(.system(size: 20, weight: .none, design: .default))
-                    }
-                }
-                HStack {
-                    Label {
-                        Text("Add Donor").font(.callout)
-                    } icon: {
-                        Image(systemName: "plus")
-                            .foregroundStyle(.blue)
-                            .font(.system(size: 20, weight: .none, design: .default))
-                    }
-                }
-            }
-        }
-    }
-
     var newDonorList: some View {
         
         NavigationSplitView {
             VStack {
-                SearchButton()
-                
                 SearchComponent()
                 
                 SearchModeSegmented()
@@ -319,7 +245,11 @@ extension DonorListView {
 //                            }
 
                             NavigationLink(value: donor) {
-                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+                                DonorRowView(
+                                    donor: donor,
+                                    isSelected: donor.id == selectedDonorID,
+                                    maintenanceMode: viewModel.maintenanceMode
+                                )
                             }
                         }
                         .onDelete(perform: viewModel.maintenanceMode ? handleDelete : nil)
@@ -497,49 +427,6 @@ extension DonorListView {
     }
 }
 
-#Preview {
-    // Create a donor object with mock data
-    let donorObject: DonorObjectClass = {
-        let object = DonorObjectClass()
-        object.donors = [
-            Donor(
-                firstName: "John",
-                lastName: "Doe",
-                jewishName: "Yaakov",
-                address: "123 Main St",
-                city: "New York",
-                state: "NY",
-                zip: "10001",
-                email: "john@example.com",
-                phone: "555-555-5555",
-                notes: "Important donor"
-            ),
-            Donor(
-                firstName: "Sarah",
-                lastName: "Cohen",
-                jewishName: "Sara",
-                address: "456 Broadway",
-                city: "Brooklyn",
-                state: "NY",
-                zip: "11213",
-                email: "sarah@example.com",
-                phone: "555-555-5556",
-                notes: "Regular contributor"
-            )
-        ]
-        object.loadingState = .loaded
-        return object
-    }()
-    
-    // Create donation object
-    let donationObject = DonationObjectClass()
-    
-    return NavigationView {
-        DonorListView(donorObject: donorObject, maintenanceMode: false)
-            .environmentObject(donorObject)
-            .environmentObject(donationObject)
-    }
-}
 
 struct LoadingView: View {
     let message: String

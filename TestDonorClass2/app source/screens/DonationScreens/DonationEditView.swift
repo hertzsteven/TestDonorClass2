@@ -520,41 +520,23 @@
             }
         }
     }
-
-    //  MARK: -  toolbar builder
-
-    //  MARK: -  funcs that build tool bar
-    extension DonationEditView  {
-        
-        @ToolbarContentBuilder
-        func toolBarCancelSave() -> some ToolbarContent {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("Cancel") {
-                    presentationMode.wrappedValue.dismiss()
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Save") {
-                    Task {
-                        await saveDonation()
-                    }
-                }
-                .disabled(!isValidAmount)
+//  MARK: -  funcs that build tool bar
+extension DonationEditView  {
+    
+    @ToolbarContentBuilder
+    func toolBarCancelSave() -> some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button("Cancel") {
+                presentationMode.wrappedValue.dismiss()
             }
         }
-    }
-
-    #Preview {
-        NavigationStack {
-            DonationEditView(donor: Donor(
-                firstName: "John",
-                lastName: "Doe",
-                email: "test@example.com"
-            ))
-            .environmentObject(DonorObjectClass())
-            .environmentObject(CampaignObjectClass())
-            .environmentObject(DonationIncentiveObjectClass())
-            .environmentObject(DefaultDonationSettingsViewModel())
-            .environmentObject(DonationObjectClass())
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Save") {
+                Task {
+                    await saveDonation()
+                }
+            }
+            .disabled(!isValidAmount)
         }
     }
+}
