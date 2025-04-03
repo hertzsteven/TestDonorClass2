@@ -179,7 +179,7 @@ extension DonorListView {
         .padding(.horizontal)
         .padding(.vertical, 8)
     }
- 
+    
     fileprivate func SearchComponent() -> some View {
         ImprovedSearchBar(
             searchText: $viewModel.searchText,
@@ -211,22 +211,22 @@ extension DonorListView {
                         EnhancedEmptyStateView()
                         Spacer()
                     }
-//                case true:
-//                    if isSearchingForDonor {
-//                        ProgressView()
-//                    } else {
-//                        VStack {
-//                            Text("Please search for a donor").tint(.gray)
-////                            groupBoxInstructions()
-////                                .padding()
-////                                .background(Color(.systemBackground))
-//                        }
-//                    }
-//                    Spacer()
+                    //                case true:
+                    //                    if isSearchingForDonor {
+                    //                        ProgressView()
+                    //                    } else {
+                    //                        VStack {
+                    //                            Text("Please search for a donor").tint(.gray)
+                    ////                            groupBoxInstructions()
+                    ////                                .padding()
+                    ////                                .background(Color(.systemBackground))
+                    //                        }
+                    //                    }
+                    //                    Spacer()
                 case false:
                     GroupBox(label: Label("Managing Donors", systemImage: "gear")) {
-                            //                        Text("Managing Donation Incentives")
-                            //                            .font(.headline)
+                        //                        Text("Managing Donation Incentives")
+                        //                            .font(.headline)
                         VStack(alignment: .leading) {
                             Text("• Tap any donor to edit details")
                             Text("• Swipe left on a donor to delete")
@@ -238,12 +238,12 @@ extension DonorListView {
                     List(selection: $selectedDonorID) {
                         
                         ForEach($donorObject.donors) { $donor in
-//                            NavigationLink {
-//
-//                            } label: {
-//                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
-//                            }
-
+                            //                            NavigationLink {
+                            //
+                            //                            } label: {
+                            //                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
+                            //                            }
+                            
                             NavigationLink(value: donor) {
                                 DonorRowView(
                                     donor: donor,
@@ -257,7 +257,7 @@ extension DonorListView {
                 }
             }
             .toolbar { toolBarTrailLeftPane() }
-//            .navigationTitle("Donor Hub")
+            //            .navigationTitle("Donor Hub")
         } detail: {
             DonorDetailContainer(
                 donorID: selectedDonorID,
@@ -265,8 +265,106 @@ extension DonorListView {
             )
         }
     }
+    
+    var donorManagementGuide: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Header
+            Label("Donor Management Guide", systemImage: "book.fill")
+                .font(.headline)
+                .padding(.bottom, 8)
+            
+            // Mode Selection
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Choose Mode")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                VStack(spacing: 8) {
+                    Button(action: { viewModel.maintenanceMode = false }) {
+                        HStack {
+                            Label("Donation Mode", systemImage: "dollarsign.circle.fill")
+                            Spacer()
+                            if !viewModel.maintenanceMode {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(!viewModel.maintenanceMode ? .blue : .secondary)
+                    
+                    Button(action: { viewModel.maintenanceMode = true }) {
+                        HStack {
+                            Label("Information Mode", systemImage: "info.circle.fill")
+                            Spacer()
+                            if viewModel.maintenanceMode {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(viewModel.maintenanceMode ? .blue : .secondary)
+                }
+            }
+            
+            Divider()
+            
+            // Search Options
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Find a Donor")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                VStack(spacing: 8) {
+                    searchOptionButton(mode: .name, icon: "magnifyingglass", title: "Search by name/company")
+                    searchOptionButton(mode: .id, icon: "number", title: "Enter donor ID")
+                }
+            }
+            
+            Divider()
+            
+            // Additional Options
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Additional Options")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                VStack(spacing: 8) {
+                    Button(action: { showingDefaults = true }) {
+                        Label("Default Donation Settings", systemImage: "gear")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    Button(action: { showingAddDonor = true }) {
+                        Label("Add New Donor", systemImage: "person.badge.plus")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemGroupedBackground))
+        .cornerRadius(10)
+    }
+    
+    private func searchOptionButton(mode: SearchMode, icon: String, title: String) -> some View {
+        Button(action: { searchMode = mode }) {
+            HStack {
+                Label(title, systemImage: icon)
+                Spacer()
+                if searchMode == mode {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.blue)
+                }
+            }
+        }
+        .buttonStyle(.bordered)
+        .tint(searchMode == mode ? .blue : .secondary)
+    }
 }
-
 // MARK: - Life Cycle Methods
 extension DonorListView {
     
