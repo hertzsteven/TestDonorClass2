@@ -450,6 +450,11 @@ extension DonorListView {
                     }
                 }
                 
+                // MODIFY: Make divider more visible
+                Rectangle()
+                    .frame(width: 1, height: 24)
+                    .foregroundColor(Color.gray.opacity(0.3)) 
+                
                 Button {
                     viewModel.maintenanceMode.toggle()
                 }  label: {
