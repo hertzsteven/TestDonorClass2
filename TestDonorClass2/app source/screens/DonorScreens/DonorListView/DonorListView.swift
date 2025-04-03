@@ -98,7 +98,7 @@ struct DonorListView: View {
         }
         .onChange(of: searchMode) { viewModel.searchText = "" }
         
-        .toolbar { toolBarListDonors() }
+//        .toolbar { toolBarListDonors() }
         //            ToolbarItemGroup(placement: .navigationBarTrailing) {
         //                Button(action: { showingAddDonor = true }) {
         //                    Label("Add Donor", systemImage: "plus")
@@ -169,39 +169,48 @@ extension DonorListView {
 
 extension DonorListView {
     
-    fileprivate func SearchModeSegmented() -> some View {
-        return Picker("Search Mode", selection: $searchMode) {
-            ForEach(SearchMode.allCases, id: \.self) { mode in
-                Text(mode.rawValue).tag(mode)
-            }
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-    }
-    
     fileprivate func SearchComponent() -> some View {
-        ImprovedSearchBar(
-            searchText: $viewModel.searchText,
-            isSearching: $isSearchingForDonor,
-            placeholder: searchMode == .name ? "Search by name or company" : "Search by ID",
-            onSearch: {
-                Task {
-                    isSearchingForDonor = true
-                    try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
-                    isSearchingForDonor = false
+        VStack(spacing: 2) {
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+                TextField(searchMode == .name ? "Search by name or..." : "Enter donor ID...",
+                                     text: $viewModel.searchText)
+//                TextField("Search by name or...", text: $viewModel.searchText)
+                    .background(Color(.white))
+                Button("Search") {
+                    Task {
+                        try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                    }
                 }
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.blue)
+                .cornerRadius(6)
             }
-        )
+            .padding(8)
+            
+            Picker("Search Mode", selection: $searchMode) {
+                Text("Name").tag(SearchMode.name)
+                Text("ID").tag(SearchMode.id)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 8)
+        }
+        .padding(.vertical, 12)
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
     }
     
     var newDonorList: some View {
         
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility:.constant(.doubleColumn)) {
+//        NavigationSplitView {
             VStack {
-                SearchComponent()
                 
-                SearchModeSegmented()
+//                Rectangle().fill(Color.clear).frame(height: 6)
+                SearchComponent()
                 
                 switch donorObject.donors.isEmpty || clearTheDonors {
                 case true:
@@ -256,6 +265,7 @@ extension DonorListView {
                     }
                 }
             }
+            .toolbar(removing: .sidebarToggle)
             .toolbar { toolBarTrailLeftPane() }
             //            .navigationTitle("Donor Hub")
         } detail: {
@@ -264,6 +274,7 @@ extension DonorListView {
                 isMaintenanceMode: viewModel.maintenanceMode
             )
         }
+//        .navigationSplitViewVisibility(.constant(.doubleColumn))
     }
     
     var donorManagementGuide: some View {
@@ -423,9 +434,9 @@ extension DonorListView {
             }
         }else {
             ToolbarItem(placement: .topBarLeading) {
-                Text(viewModel.maintenanceMode ? "Information" : "Donations")
+                Text(viewModel.maintenanceMode ? "Information..." : "Donation...")
                     .foregroundColor(.gray)
-                    .font(.caption)
+                    .font(.caption.weight(.medium))
                     .animation(.easeInOut, value: viewModel.maintenanceMode)
             }
             ToolbarItemGroup {
@@ -453,7 +464,7 @@ extension DonorListView {
                 // MODIFY: Make divider more visible
                 Rectangle()
                     .frame(width: 1, height: 24)
-                    .foregroundColor(Color.gray.opacity(0.3)) 
+                    .foregroundColor(Color.gray.opacity(0.3))
                 
                 Button {
                     viewModel.maintenanceMode.toggle()
