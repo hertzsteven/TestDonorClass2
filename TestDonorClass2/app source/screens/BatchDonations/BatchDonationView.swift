@@ -165,14 +165,22 @@ struct BatchDonationView: View {
 
             // Donation Rows List
             List {
-                ForEach($viewModel.rows) { $row in
-                    batchRowView(row: $row)
-                        .focused($focusedRowID, equals: row.id)
-                        .listRowInsets(EdgeInsets())
-                        .listRowSeparator(.hidden)
+                ForEach(Array(viewModel.rows.enumerated()), id: \.element.id) { index, _ in
+                    batchRowView(row: $viewModel.rows[index])
+                        .focused($focusedRowID, equals: viewModel.rows[index].id)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                        .listRowSeparator(.visible)
+                        .listRowBackground(
+                            index % 2 == 0 ?
+                            Color(.systemBackground) :
+                            Color(.systemGray6).opacity(0.3)
+                        )
                 }
             }
             .listStyle(.plain)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 16)
             
             // Example button to check first row
             Button("Check First Row") {
@@ -284,6 +292,9 @@ struct BatchDonationView: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 70)
                 .keyboardType(.numberPad)
+                .disabled(r.isValidDonor) // Add this line to disable the field when a donor is valid
+                .foregroundColor(r.isValidDonor ? .gray : .primary) // Gray out text when disabled
+                .background(r.isValidDonor ? Color(.systemGray6) : Color(.systemBackground)) // Optional background change
                 .onSubmit {
                      Task { await viewModel.findDonor(for: r.id) }
                  }
@@ -337,7 +348,17 @@ struct BatchDonationView: View {
             actionButton(row: row)
                 .frame(width: 50, alignment: .center)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(
+                    r.isValidDonor ? Color.clear :
+                        (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ?
+                            Color.red.opacity(0.3) : Color.gray.opacity(0.3)),
+                    lineWidth: 1
+                )
+                .padding(.horizontal, 8)
+        )
     }
 
     // Extracted Action Button Logic
