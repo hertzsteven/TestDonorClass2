@@ -158,10 +158,16 @@ struct BatchDonationView: View {
                 Text("Action")
                     .frame(width: 50)
             }
-            .font(.caption)
+            .font(.caption.bold())
             .foregroundColor(.secondary)
             .padding(.horizontal)
-            .padding(.vertical, 6)
+            .padding(.vertical, 8)
+            .background(
+                Rectangle()
+                    .fill(Color(.systemGray6).opacity(0.7))
+                    .shadow(color: .black.opacity(0.05), radius: 1, y: 1)
+            )
+            .padding(.horizontal)
 
             // Donation Rows List
             List {
