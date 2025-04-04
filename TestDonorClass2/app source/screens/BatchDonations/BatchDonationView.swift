@@ -26,6 +26,12 @@ struct BatchDonationView: View {
 
     @State private var showingSaveSummary = false
     @State private var saveResult: (success: Int, failed: Int, totalAmount: Double)? = nil
+    
+    
+    @State private var showingPrayerNoteSheet = false
+    @State private var selectedDonorForPrayer: Donor? = nil
+    @State private var currentPrayerNote: String = ""
+    @State private var currentPrayerRowID: UUID? = nil
 
     // Custom Initializer
     init() {
@@ -217,30 +223,28 @@ struct BatchDonationView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 HStack {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        HStack(spacing: 5) {
-                            Image(systemName: "chevron.left")
-                            Text("Back")
+                    if !viewModel.rows.contains(where: { $0.isValidDonor }) {
+                        Button(action: {
+                            dismiss()
+                        }) {
+                            HStack(spacing: 5) {
+                                Image(systemName: "chevron.left")
+                                Text("Back")
+                            }
+                            .foregroundColor(.blue)
                         }
-                        .foregroundColor(.blue)
                     }
                     
-                    if !viewModel.rows.isEmpty {
-                        if let row = firstRow, row.isValidDonor {
+                    if viewModel.rows.contains(where: { $0.isValidDonor }) {
                             Button("Clear All", role: .destructive) {
                                 viewModel.clearBatch()
                             }
                         }
-                    }
                 }
             }
             
             ToolbarItem(placement: .navigationBarTrailing) {
-                if !viewModel.rows.isEmpty {
-                    if let row = firstRow, row.isValidDonor {
-
+                        if viewModel.rows.contains(where: { $0.isValidDonor }) {
                         Button("Save Batch") {
                             Task {
                                 saveResult = await viewModel.saveBatchDonations(selectedCampaignId: selectedCampaign?.id)
@@ -249,7 +253,6 @@ struct BatchDonationView: View {
                         }
                                             .foregroundColor(.blue)
                                             .disabled(viewModel.rows.allSatisfy { !$0.isValidDonor })
-                    }
 
                 }
             }
@@ -270,14 +273,42 @@ struct BatchDonationView: View {
          .alert("Batch Save Summary", isPresented: $showingSaveSummary, presenting: saveResult) { result in
               Button("OK") {
                   if result.failed == 0 && result.success > 0 {
-                      viewModel.addRow()
-                      focusedRowID = viewModel.rows.last?.id
+                      viewModel.clearBatch()
+//                      viewModel.addRow()
+//                      focusedRowID = viewModel.rows.last?.id
                   }
                   saveResult = nil
               }
           } message: { result in
               Text("Successfully saved: \(result.success)\nFailed: \(result.failed)\nTotal Amount: \(formatCurrency(result.totalAmount))")
           }
+        
+        // Add the sheet:
+        .sheet(isPresented: $showingPrayerNoteSheet, onDismiss: {
+            // When dismissed, update the note in the model
+            if let rowIndex = viewModel.rows.firstIndex(where: { $0.id == currentPrayerRowID }) {
+                viewModel.rows[rowIndex].prayerNote = currentPrayerNote
+                // If the note is empty, turn off the toggle
+                if currentPrayerNote.isEmpty {
+                    viewModel.rows[rowIndex].prayerNoteSW = false
+                }
+            }
+        }) {
+            // Pass the entire donor object
+            if let donor = selectedDonorForPrayer {
+                PrayerNoteSheet(
+                    donor: donor,
+                    prayerNote: $currentPrayerNote
+                )
+            } else {
+                // Fallback if donor isn't loaded yet
+                PrayerNoteSheet(
+                    donor: nil,
+                    prayerNote: $currentPrayerNote
+                )
+            }
+        }
+        
         .task {
             await campaignObject.loadCampaigns()
         }
@@ -312,6 +343,26 @@ struct BatchDonationView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(2)
                 .help(r.displayInfo)
+
+            // Prayer Note Toggle
+            Toggle("Pray", isOn: row.prayerNoteSW)
+                .labelsHidden()
+//                .frame(width: 60, alignment: .center)
+                .toggleStyle(.button)
+                .disabled(!r.isValidDonor)
+                .onChange(of: row.prayerNoteSW.wrappedValue) { oldValue, newValue in
+                        if newValue {
+                            currentPrayerRowID = r.id
+                            // Get the donor information to display in the sheet
+                            Task {
+                                if let donorId = r.donorID {
+                                    selectedDonorForPrayer = try? await donorObject.getDonor(donorId)
+                                    currentPrayerNote = r.prayerNote ?? ""
+                                    showingPrayerNoteSheet = true
+                                }
+                            }
+                        }
+                    }
 
             // Receipt Toggle
             Toggle("", isOn: row.printReceipt)

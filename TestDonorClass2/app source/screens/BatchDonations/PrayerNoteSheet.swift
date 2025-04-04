@@ -1,3 +1,12 @@
+//
+//  PrayerNoteSheet.swift
+//  TestDonorClass2
+//
+//  Created by Steven Hertz on 4/4/25.
+//
+
+import SwiftUI
+
 struct PrayerNoteSheet: View {
     @Environment(\.dismiss) private var dismiss
     let donor: Donor?
@@ -75,4 +84,20 @@ struct PrayerNoteSheet: View {
             }
         }
     }
+}
+
+#Preview {
+    PrayerNoteSheet(
+        donor: Donor(
+            company: "ACME Corp",
+            firstName: "John",
+            lastName: "Doe",
+            address: "123 Main St",
+            city: "New York",
+            state: "NY",
+            zip: "10001",
+            email: "john@example.com"
+        ),
+        prayerNote: .constant("Please pray for my family's health")
+    )
 }
