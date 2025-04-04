@@ -89,6 +89,13 @@ struct DonationReportView: View {
                                 showingDonorSearchView = true
                             }
 
+                            // Prayer Notes Filter
+                            Toggle("Show Prayer Notes Only", isOn: $viewModel.showOnlyPrayerNotes)
+                                .onChange(of: viewModel.showOnlyPrayerNotes) { _ in
+                                    Task { await viewModel.updateReport() }
+                                }
+                        
+                        
                             // Amount Range
                             HStack {
                                 Text("Amount:")
@@ -243,16 +250,36 @@ struct DonationReportRow: View {
                 Text(item.donationDate, formatter: DonationReportViewModel.dateFormatter)
                     .font(.caption)
                     .foregroundColor(.secondary)
+                // Add prayer note indicator
+                if item.hasPrayerNote {
+                    Image(systemName: "person.fill.questionmark")
+                        .foregroundColor(.blue)
+                        .help("Has prayer request")
+                }
+//                // In your DonationReportRow
+                if item.hasPrayerNote {
+                    item.prayerNote.map { note in
+                        Text(note)
+                    }
+                    .padding(.top, 4)
+                }
             }
+            .padding(.vertical, 4) // Add slight vertical padding to rows
         }
-        .padding(.vertical, 4) // Add slight vertical padding to rows
     }
 
+//    // You'll need a function to get the full donation from an ID:
+//    private func getFullDonation(id: Int) -> Donation {
+//        // Access your donation repository to get the full donation
+//        // This is a placeholder - you'll need to implement actual data access
+//        return donationRepository.getOne(id) ?? Donation(amount: 0, donationType: .cash)
+//    }
      // Use the static formatter from the ViewModel
      private func formatCurrency(_ amount: Double) -> String {
          return DonationReportViewModel.currencyFormatter.string(for: amount) ?? "$0.00"
      }
 }
+
 
 // --- Preview ---
 struct DonationReportView_Previews: PreviewProvider {

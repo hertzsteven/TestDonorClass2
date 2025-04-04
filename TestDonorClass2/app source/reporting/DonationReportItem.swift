@@ -15,6 +15,8 @@ struct DonationReportItem: Identifiable, Hashable {
     let campaignName: String
     let amount: Double
     let donationDate: Date
+    let hasPrayerNote: Bool
+    let prayerNote: String?
 }
 
 // Re-use TimeFrame enum if not already accessible globally

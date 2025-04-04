@@ -47,6 +47,7 @@ struct DonationDetailView: View {
                 }
             }
             
+            
             Section(header: Text("Additional Information")) {
                 LabeledContent("Anonymous", value: donation.isAnonymous ? "Yes" : "No")
                 if let donorId = donation.donorId {

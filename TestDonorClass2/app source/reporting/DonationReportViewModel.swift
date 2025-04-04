@@ -24,7 +24,10 @@ class DonationReportViewModel: ObservableObject {
     @Published var selectedDonorId: Int? = nil    // Use ID, nil means "All"
     @Published var minAmountString: String = ""
     @Published var maxAmountString: String = ""
-
+    // Add new filter state
+    @Published var showOnlyPrayerNotes: Bool = false
+    
+    
     // --- Data for Pickers/Display (@Published for UI binding) ---
     @Published var availableCampaigns: [Campaign] = []
     @Published var selectedDonorName: String = "All" // Display name for the selected donor
@@ -225,6 +228,10 @@ class DonationReportViewModel: ObservableObject {
         if minAmount != nil || maxAmount != nil {
              print("DonationReportViewModel: After amount filter (min: \(minAmountString), max: \(maxAmountString)): \(results.count) donations.")
         }
+        // ADD: Prayer Note filter
+        if showOnlyPrayerNotes {
+            results = results.filter { $0.notes != nil }
+        }
         // --- End In-Memory Filtering ---
 
 
@@ -241,7 +248,9 @@ class DonationReportViewModel: ObservableObject {
                 donorName: donorName,
                 campaignName: campaignName,
                 amount: donation.amount,
-                donationDate: donation.donationDate
+                donationDate: donation.donationDate,
+                hasPrayerNote: ((donation.notes?.isEmpty) != nil),
+                prayerNote: donation.notes
             )
         }
          print("DonationReportViewModel: Mapped to \(reportItems.count) report items.")
