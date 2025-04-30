@@ -23,7 +23,7 @@ struct DonorSearchSelectionView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
+            VStack(spacing: 16) {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
@@ -54,37 +54,38 @@ struct DonorSearchSelectionView: View {
                 .padding(.top, 8)
                 
                 if !searchResults.isEmpty {
-                    HStack {
-                        Image(systemName: "text.magnifyingglass")
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 8)
-                        
-                        TextField("Filter results by address", text: $secondarySearchText)
-                            .padding(.vertical, 10)
-                            .disableAutocorrection(true)
-                            .autocapitalization(.none)
+                    VStack(spacing: 8) {
+                        HStack {
+                            Image(systemName: "text.magnifyingglass")
+                                .foregroundColor(.secondary)
+                                .padding(.leading, 8)
+                            
+                            TextField("Filter results by address", text: $secondarySearchText)
+                                .padding(.vertical, 8)
+                                .disableAutocorrection(true)
+                                .autocapitalization(.none)
+                            
+                            if !secondarySearchText.isEmpty {
+                                Button(action: { secondarySearchText = "" }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.gray)
+                                }
+                                .padding(.trailing, 8)
+                            }
+                        }
+                        .padding(6)
+                        .background(Color(.systemGray6).opacity(0.7))
+                        .cornerRadius(8)
+                        .padding(.horizontal)
                         
                         if !secondarySearchText.isEmpty {
-                            Button(action: { secondarySearchText = "" }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.gray)
-                            }
-                            .padding(.trailing, 8)
+                            Text("Showing \(filteredResults.count) of \(searchResults.count) results")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .padding(8)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                    
-                    if !secondarySearchText.isEmpty {
-                        Text("Showing \(filteredResults.count) of \(searchResults.count) results")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.vertical, 4)
-                    }
                 }
-                
+
                 if searchResults.isEmpty {
                     Button {
                         Task {
