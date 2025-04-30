@@ -18,12 +18,14 @@ struct DonorSearchSelectionView: View {
     @State private var filteredResults: [Donor] = []
     @State private var isSearching = false
     @State private var errorMessage: String? = nil
+    @FocusState private var isSearchFieldFocused: Bool
     
     var onDonorSelected: (Donor) -> Void
     
     var body: some View {
         NavigationView {
             VStack(spacing: 16) {
+                // Primary search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
@@ -34,12 +36,14 @@ struct DonorSearchSelectionView: View {
                         .disableAutocorrection(true)
                         .autocapitalization(.none)
                         .disabled(isSearching)
+                        .focused($isSearchFieldFocused)
                     
                     if !searchText.isEmpty {
                         Button(action: {
                             searchText = ""
                             searchResults = []
                             filteredResults = []
+                            isSearchFieldFocused = true  // Refocus when clearing
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .foregroundColor(.gray)
@@ -185,6 +189,14 @@ struct DonorSearchSelectionView: View {
             }
             .onChange(of: secondarySearchText) { _, newValue in
                 filterResults(query: newValue)
+            }
+            .onChange(of: searchResults) { _, newResults in
+                if newResults.isEmpty && !isSearching {
+                    isSearchFieldFocused = true
+                }
+            }
+            .task {
+                isSearchFieldFocused = true
             }
         }
     }
