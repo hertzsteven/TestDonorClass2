@@ -19,6 +19,7 @@ struct DonorSearchSelectionView: View {
     @State private var isSearching = false
     @State private var errorMessage: String? = nil
     @FocusState private var isSearchFieldFocused: Bool
+    @FocusState private var isSecondarySearchFocused: Bool
     
     var onDonorSelected: (Donor) -> Void
     
@@ -37,13 +38,20 @@ struct DonorSearchSelectionView: View {
                         .autocapitalization(.none)
                         .disabled(isSearching)
                         .focused($isSearchFieldFocused)
+                        .onSubmit {
+                            if !searchText.isEmpty && !isSearching && searchResults.isEmpty {
+                                Task {
+                                    await performSearch()
+                                }
+                            }
+                        }
                     
                     if !searchText.isEmpty {
                         Button(action: {
                             searchText = ""
                             searchResults = []
                             filteredResults = []
-                            isSearchFieldFocused = true  // Refocus when clearing
+                            isSearchFieldFocused = true
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .foregroundColor(.gray)
@@ -68,9 +76,13 @@ struct DonorSearchSelectionView: View {
                                 .padding(.vertical, 8)
                                 .disableAutocorrection(true)
                                 .autocapitalization(.none)
+                                .focused($isSecondarySearchFocused)
                             
                             if !secondarySearchText.isEmpty {
-                                Button(action: { secondarySearchText = "" }) {
+                                Button(action: {
+                                    secondarySearchText = ""
+                                    isSecondarySearchFocused = true
+                                }) {
                                     Image(systemName: "xmark.circle.fill")
                                         .foregroundColor(.gray)
                                 }
@@ -165,17 +177,31 @@ struct DonorSearchSelectionView: View {
                     .padding()
                     
                 case (false, nil, false, _):
-                    List {
-                        ForEach(secondarySearchText.isEmpty ? searchResults : filteredResults) { donor in
-                            DonorResultRow(donor: donor)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    onDonorSelected(donor)
-                                    dismiss()
-                                }
+                    VStack(alignment: .leading, spacing: 0) {
+                        if !searchResults.isEmpty {
+                            Text("Showing \(secondarySearchText.isEmpty ? searchResults.count : filteredResults.count) of \(searchResults.count) results")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                                .padding(.bottom, 4)
                         }
+                        
+                        List {
+                            ForEach(secondarySearchText.isEmpty ? searchResults : filteredResults) { donor in
+                                DonorResultRow(donor: donor)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        withAnimation(.easeInOut(duration: 0.1)) {
+                                            onDonorSelected(donor)
+                                            dismiss()
+                                        }
+                                    }
+                                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                                    .listRowSeparator(.visible)
+                            }
+                        }
+                        .listStyle(PlainListStyle())
                     }
-                    .listStyle(PlainListStyle())
                 }
             }
             .navigationTitle("Find Donor")
@@ -193,6 +219,10 @@ struct DonorSearchSelectionView: View {
             .onChange(of: searchResults) { _, newResults in
                 if newResults.isEmpty && !isSearching {
                     isSearchFieldFocused = true
+                    isSecondarySearchFocused = false
+                } else if !newResults.isEmpty {
+                    isSearchFieldFocused = false
+                    isSecondarySearchFocused = true
                 }
             }
             .task {
@@ -241,11 +271,13 @@ struct DonorSearchSelectionView: View {
 
 struct DonorResultRow: View {
     let donor: Donor
+    @State private var isPressed = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(formatName())
                 .font(.headline)
+                .foregroundColor(.primary)
             
             if let company = donor.company, !company.isEmpty {
                 Text(company)
@@ -265,7 +297,11 @@ struct DonorResultRow: View {
                     .foregroundColor(.secondary)
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemBackground))
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .animation(.easeInOut(duration: 0.1), value: isPressed)
     }
     
     private func formatName() -> String {
