@@ -235,6 +235,9 @@ struct DonationReportView: View {
 // --- Row View for the Report List (Unchanged) ---
 struct DonationReportRow: View {
     let item: DonationReportItem
+    // ADD: State property for disclosure group
+    @State private var isExpanded = false
+
 
     var body: some View {
         HStack {
@@ -251,15 +254,29 @@ struct DonationReportRow: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 // Add prayer note indicator
-                if item.hasPrayerNote {
-                    Image(systemName: "person.fill.questionmark")
-                        .foregroundColor(.blue)
-                        .help("Has prayer request")
-                }
+//                if item.hasPrayerNote {
+//                    Image(systemName: "person.fill.questionmark")
+//                        .foregroundColor(.blue)
+//                        .help("Has prayer request")
+//                }
 //                // In your DonationReportRow
+
                 if item.hasPrayerNote {
-                    item.prayerNote.map { note in
-                        Text(note)
+                    DisclosureGroup {
+                        if let note = item.prayerNote {
+                            Text(note)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                    }
+                    label: {
+                        HStack {
+                            Spacer()
+                            Text("Notes")
+                                .foregroundColor(.blue)
+                                .help("Prayer request: click to expand")
+                        }
                     }
                     .padding(.top, 4)
                 }

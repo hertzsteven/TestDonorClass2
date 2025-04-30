@@ -61,6 +61,9 @@ final class DatabaseManager {
             if !fileManager.fileExists(atPath: databaseURL.path) {
                 print("DB file not found in Application Support, copying from bundle.")
                 try fileManager.copyItem(at: bundleURL, to: databaseURL)
+            } else {
+                print("DB file found in Application Support.")
+                print(databaseURL.path)
             }
             
             dbPool = try DatabasePool(path: databaseURL.path)

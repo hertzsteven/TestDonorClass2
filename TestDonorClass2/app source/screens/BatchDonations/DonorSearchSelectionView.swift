@@ -5,28 +5,25 @@
 //  Created by Steven Hertz on 3/1/25.
 //
 
-
 import SwiftUI
 
 struct DonorSearchSelectionView: View {
-    
-    
     
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var donorObject: DonorObjectClass
     
     @State private var searchText = ""
+    @State private var secondarySearchText = ""
     @State private var searchResults: [Donor] = []
+    @State private var filteredResults: [Donor] = []
     @State private var isSearching = false
     @State private var errorMessage: String? = nil
     
-    // Callback to return the selected donor
     var onDonorSelected: (Donor) -> Void
     
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
@@ -42,6 +39,7 @@ struct DonorSearchSelectionView: View {
                         Button(action: {
                             searchText = ""
                             searchResults = []
+                            filteredResults = []
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .foregroundColor(.gray)
@@ -55,35 +53,69 @@ struct DonorSearchSelectionView: View {
                 .padding(.horizontal)
                 .padding(.top, 8)
                 
-                // Search button
-                Button {
-                    Task {
-                        await performSearch()
-                    }
-                } label: {
+                if !searchResults.isEmpty {
                     HStack {
-                        Text("Search")
-                        if isSearching {
-                            ProgressView()
-                                .padding(.leading, 5)
+                        Image(systemName: "text.magnifyingglass")
+                            .foregroundColor(.secondary)
+                            .padding(.leading, 8)
+                        
+                        TextField("Filter results by address", text: $secondarySearchText)
+                            .padding(.vertical, 10)
+                            .disableAutocorrection(true)
+                            .autocapitalization(.none)
+                        
+                        if !secondarySearchText.isEmpty {
+                            Button(action: { secondarySearchText = "" }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.trailing, 8)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(Color(.systemGray6))
                     .cornerRadius(10)
+                    .padding(.horizontal)
+                    
+                    if !secondarySearchText.isEmpty {
+                        Text("Showing \(filteredResults.count) of \(searchResults.count) results")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.vertical, 4)
+                    }
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .disabled(searchText.isEmpty || isSearching)
                 
-                // Results or empty state
-                if isSearching {
+                if searchResults.isEmpty {
+                    Button {
+                        Task {
+                            await performSearch()
+                        }
+                    } label: {
+                        HStack {
+                            Text("Search")
+                            if isSearching {
+                                ProgressView()
+                                    .padding(.leading, 5)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .disabled(searchText.isEmpty || isSearching)
+                }
+
+                switch (isSearching, errorMessage, searchResults.isEmpty, searchText.isEmpty) {
+                case (true, _, _, _):
                     ProgressView("Searching...")
                         .padding()
                     Spacer()
-                } else if let error = errorMessage {
+                    
+                case (_, .some(let error), _, _):
                     VStack {
                         Image(systemName: "exclamationmark.triangle")
                             .font(.system(size: 40))
@@ -97,7 +129,8 @@ struct DonorSearchSelectionView: View {
                         Spacer()
                     }
                     .padding()
-                } else if searchResults.isEmpty && !searchText.isEmpty {
+                    
+                case (false, nil, true, false):
                     VStack {
                         Image(systemName: "person.slash")
                             .font(.system(size: 40))
@@ -110,7 +143,8 @@ struct DonorSearchSelectionView: View {
                         Spacer()
                     }
                     .padding()
-                } else if searchResults.isEmpty {
+                    
+                case (false, nil, true, true):
                     VStack {
                         Image(systemName: "person.text.rectangle")
                             .font(.system(size: 40))
@@ -124,10 +158,10 @@ struct DonorSearchSelectionView: View {
                         Spacer()
                     }
                     .padding()
-                } else {
-                    // Search results list
+                    
+                case (false, nil, false, _):
                     List {
-                        ForEach(searchResults) { donor in
+                        ForEach(secondarySearchText.isEmpty ? searchResults : filteredResults) { donor in
                             DonorResultRow(donor: donor)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
@@ -148,6 +182,22 @@ struct DonorSearchSelectionView: View {
                     }
                 }
             }
+            .onChange(of: secondarySearchText) { _, newValue in
+                filterResults(query: newValue)
+            }
+        }
+    }
+    
+    private func filterResults(query: String) {
+        if query.isEmpty {
+            filteredResults = searchResults
+        } else {
+            filteredResults = searchResults.filter { donor in
+                let addressMatch = donor.address?.localizedCaseInsensitiveContains(query) ?? false
+                let cityMatch = donor.city?.localizedCaseInsensitiveContains(query) ?? false
+                let stateMatch = donor.state?.localizedCaseInsensitiveContains(query) ?? false
+                return addressMatch || cityMatch || stateMatch
+            }
         }
     }
     
@@ -158,16 +208,18 @@ struct DonorSearchSelectionView: View {
         errorMessage = nil
         
         do {
-            // Search by name, company, or address
             let results = try await donorObject.searchDonorsWithReturn(searchText)
             await MainActor.run {
                 self.searchResults = results
+                self.filteredResults = results
                 self.isSearching = false
+                self.secondarySearchText = ""
             }
         } catch {
             await MainActor.run {
                 self.errorMessage = "Error searching: \(error.localizedDescription)"
                 self.searchResults = []
+                self.filteredResults = []
                 self.isSearching = false
             }
         }
@@ -209,31 +261,4 @@ struct DonorResultRow: View {
         if let lastName = donor.lastName { nameComponents.append(lastName) }
         return nameComponents.joined(separator: " ")
     }
-}
-
-// Extension for your BatchDonationViewModel
-extension BatchDonationViewModel {
-    // Add this method to handle selected donor from search
-//    func setDonorFromSearch(_ donor: Donor, for rowID: UUID) async {
-//        guard let rowIndex = rows.firstIndex(where: { $0.id == rowID }) else { return }
-//        
-//        await MainActor.run {
-//            // Set the donor ID
-//            rows[rowIndex].donorID = donor.id
-//            
-//            // Update the display info
-//            let displayName = "\(donor.company ?? "") \(donor.lastName ?? "") \(donor.firstName ?? "")"
-//            let address = donor.address ?? ""
-//            
-//            rows[rowIndex].displayInfo = "\(displayName) | \(address)"
-//            rows[rowIndex].donationOverride = globalDonation
-//            rows[rowIndex].donationTypeOverride = globalDonationType
-//            rows[rowIndex].paymentStatusOverride = globalPaymentStatus
-//            rows[rowIndex].isValidDonor = true
-//            
-//            // Add a new row and shift focus to it
-//            addRow()
-//            focusedRowID = rows.last?.id
-//        }
-//    }
 }
