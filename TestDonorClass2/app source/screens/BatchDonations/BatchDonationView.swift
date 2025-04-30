@@ -138,6 +138,13 @@ struct BatchDonationView: View {
                         }
                     }
 
+                    HStack(spacing: 8) {
+                        Text("Receipt:")
+                            .foregroundColor(.secondary)
+                        Toggle("", isOn: $viewModel.globalPrintReceipt)
+                            .labelsHidden()
+                    }
+
                     Spacer()
                 }
             }
@@ -365,7 +372,7 @@ struct BatchDonationView: View {
                     }
 
             // Receipt Toggle
-            Toggle("", isOn: row.printReceipt)
+            Toggle("", isOn: row.printReceipt.animation())
                 .labelsHidden()
                 .frame(width: 60, alignment: .center)
                 .disabled(!r.isValidDonor)

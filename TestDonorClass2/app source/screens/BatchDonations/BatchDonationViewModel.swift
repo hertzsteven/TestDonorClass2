@@ -21,6 +21,7 @@ class BatchDonationViewModel: ObservableObject {
     @Published var globalDonation: Double = 10.0
     @Published var globalDonationType: DonationType = .check
     @Published var globalPaymentStatus: PaymentStatus = .completed
+    @Published var globalPrintReceipt: Bool = false  // ADD: Global receipt setting
 
     @Published var rows: [RowEntry] = []
     @Published var focusedRowID: UUID? = nil // Keep track of which row should get focus
@@ -59,8 +60,8 @@ class BatchDonationViewModel: ObservableObject {
         var isValidDonor: Bool = false
         var processStatus: RowProcessStatus = .none
 
-         // Convenience computed property to check if override is set
-         var hasDonationOverride: Bool { donationOverride > 0.0 }
+        // Convenience computed property to check if override is set
+        var hasDonationOverride: Bool { donationOverride > 0.0 }
     }
 
     // MARK: - Public Methods
@@ -68,15 +69,14 @@ class BatchDonationViewModel: ObservableObject {
     /// Adds a new blank row at the bottom
     func addRow() {
         let newRow = RowEntry(
-            // Initialize overrides with global defaults when adding a new row
             donationTypeOverride: self.globalDonationType,
             paymentStatusOverride: self.globalPaymentStatus
-            // Keep donationOverride 0 until explicitly set or donor found
+            // printReceipt will use its default false value
         )
         rows.append(newRow)
-         print("Added new row. Total rows: \(rows.count)")
-         // Optionally set focus to the new row immediately
-         // self.focusedRowID = newRow.id
+        print("Added new row. Total rows: \(rows.count)")
+        // Optionally set focus to the new row immediately
+        // self.focusedRowID = newRow.id
     }
 
     /// Clears all rows and adds a single new one
@@ -114,13 +114,15 @@ class BatchDonationViewModel: ObservableObject {
                 // Update row ON MAIN THREAD
                 await MainActor.run {
                     rows[rowIndex].displayInfo = "\(displayName)\n\(address)".trimmingCharacters(in: .newlines)
-                    // Only set override if it wasn't already manually entered
+                    
+                    // Apply all global defaults when donor is validated
                     if !rows[rowIndex].hasDonationOverride {
-                         rows[rowIndex].donationOverride = self.globalDonation // Use global as default
+                        rows[rowIndex].donationOverride = self.globalDonation
                     }
-                    // Inherit global types unless already changed? Or always reset? Decide policy.
-                    // rows[rowIndex].donationTypeOverride = self.globalDonationType
-                    // rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
+                    rows[rowIndex].donationTypeOverride = self.globalDonationType
+                    rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
+                    rows[rowIndex].printReceipt = self.globalPrintReceipt
+                    
                     rows[rowIndex].isValidDonor = true
                     rows[rowIndex].processStatus = .none // Reset process status
                 }
@@ -174,13 +176,14 @@ class BatchDonationViewModel: ObservableObject {
 
             rows[rowIndex].displayInfo = "\(displayName)\n\(address)".trimmingCharacters(in: .newlines)
 
-             // Only set override if it wasn't already manually entered
-             if !rows[rowIndex].hasDonationOverride {
-                  rows[rowIndex].donationOverride = self.globalDonation // Use global as default
-             }
-             // Reset other overrides? Decide policy.
-             // rows[rowIndex].donationTypeOverride = self.globalDonationType
-             // rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
+            // Apply all global defaults when donor is validated
+            if !rows[rowIndex].hasDonationOverride {
+                rows[rowIndex].donationOverride = self.globalDonation
+            }
+            rows[rowIndex].donationTypeOverride = self.globalDonationType
+            rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
+            rows[rowIndex].printReceipt = self.globalPrintReceipt
+            
             rows[rowIndex].isValidDonor = true
             rows[rowIndex].processStatus = .none // Reset process status
 

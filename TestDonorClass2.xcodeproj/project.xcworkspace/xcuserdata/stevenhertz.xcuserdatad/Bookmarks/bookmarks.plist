@@ -188,13 +188,13 @@
 							<key>EndingColumnNumber</key>
 							<string>0</string>
 							<key>EndingLineNumber</key>
-							<string>347</string>
+							<string>534</string>
 							<key>StartingColumnNumber</key>
 							<string>0</string>
 							<key>StartingLineNumber</key>
-							<string>346</string>
+							<string>534</string>
 							<key>Timestamp</key>
-							<string>765464915.321895</string>
+							<string>767714437.317349</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -210,17 +210,13 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>            // Prayer Note Toggle
-</string>
+						<string></string>
 						<key>leading</key>
-						<string>                .help(r.displayInfo)
-
+						<string>    }
+}
 </string>
 						<key>trailing</key>
-						<string>            Toggle("Pray", isOn: row.prayerNoteSW)
-                .labelsHidden()
-//                .frame(width: 60, alignment: .center)
-</string>
+						<string></string>
 					</dict>
 					<key>title</key>
 					<string>pray toggle</string>
