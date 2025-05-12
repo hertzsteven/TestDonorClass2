@@ -39,7 +39,10 @@ class DashboardViewModel {
                      image: Image(systemName: "dollarsign")),
             Category(name: CategoryType.donorHub.name,
                     color: .blue,
-                    image: Image(systemName: "person"))
+                    image: Image(systemName: "person")),
+            Category(name: "Receipt Management",
+                    color: .red,
+                    image: Image(systemName: "printer.fill"))
         ]
         
         // Management Categories
@@ -49,10 +52,7 @@ class DashboardViewModel {
                     image: Image(systemName: "megaphone")),
             Category(name: "Incentives",
                     color: .orange,
-                    image: Image(systemName: "gift")),
-            Category(name: "Receipt Management",
-                    color: .red,
-                    image: Image(systemName: "printer.fill"))
+                    image: Image(systemName: "gift"))
         ]
         
         // Reports & Analytics section

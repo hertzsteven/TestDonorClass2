@@ -68,7 +68,7 @@ struct AnimatedLaunchScreen: View {
             
             // Logo animation
             VStack {
-                Image("orhtorahlogo")
+                ApplicationData.shared.getOrgLogoImage()
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: isLogoAnimationComplete ? 200 : 180)
@@ -77,7 +77,7 @@ struct AnimatedLaunchScreen: View {
                     .rotationEffect(.degrees(rotation))
                 
                 if isLogoAnimationComplete {
-                    Text("United Tiberias")
+                    Text("\(ApplicationData.shared.getOrgTitle())")
                         .font(.title)
                         .fontWeight(.bold)
                         .opacity(opacity)

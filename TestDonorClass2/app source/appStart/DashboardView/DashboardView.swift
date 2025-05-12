@@ -71,9 +71,10 @@ struct DashboardView: View {
                     ToolbarItem(placement: .principal) {
                         VStack {
                             HStack {
-                                Text("United Tiberias: Dashboard")
+                                Text("\(ApplicationData.shared.getOrgTitle()): Dashboard")
                                     .font(.headline)
-                                Image("orhtorahlogo")
+                                ApplicationData.shared.getOrgLogoImage()
+//                                Image("orhtorahlogo")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 30, height: 30)
@@ -167,6 +168,8 @@ struct DashboardView: View {
             withAnimation {
                 isAppearing = true
             }
+            dump(DefaultOrganizationProvider().organizationInfo)
+            print("kllkjkjkk")
         }
     }
 }

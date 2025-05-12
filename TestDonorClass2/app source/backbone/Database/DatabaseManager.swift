@@ -31,7 +31,8 @@ enum DatabaseError: LocalizedError {
 // MARK: - DatabaseManager
 final class DatabaseManager {
     // MARK: - Properties
-    let dbName: String = "donations_db.sqlite"
+    private(set) var dbName: String = "donations_db.sqlite"
+//    let dbName: String = "donations_db.sqlite"
     static let shared = DatabaseManager()
     private var dbPool: DatabasePool?
     
@@ -43,6 +44,15 @@ final class DatabaseManager {
             fatalError("Failed to initialize database: \(error.localizedDescription)")
         }
     }
+//    func setDatabaseURL(_ dbname: String) throws {
+//        // Close any old connection
+//        if let oldPool = dbPool {
+//            try oldPool.close()
+//            dbPool = nil
+//        }
+//        self.dbName = dbname.appending(".sqlite")
+//
+//    }
     
     // MARK: - Public Methods
     func connectToDB() throws {
@@ -52,7 +62,7 @@ final class DatabaseManager {
         do {
             databaseURL = try fileManager
                 .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-                .appendingPathComponent(dbName)
+                .appendingPathComponent(ApplicationData.shared.selectedDatabase!)
             
             guard let bundleURL = Bundle.main.url(forResource: "donations_db", withExtension: "sqlite") else {
                 throw DatabaseError.databaseSetupFailed("Could not find database file in bundle")
