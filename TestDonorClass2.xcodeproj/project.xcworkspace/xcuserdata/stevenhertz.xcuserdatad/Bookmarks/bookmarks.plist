@@ -5,179 +5,6 @@
 	<key>top-level-items</key>
 	<array>
 		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>335</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>335</string>
-					<key>Timestamp</key>
-					<string>761145975.26939</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>TestDonorClass2/app source/screens/DonorScreens/DonorDetailView/DonorSearchViewModel.swift</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string></string>
-				<key>leading</key>
-				<string>        }
-    }
-</string>
-				<key>trailing</key>
-				<string></string>
-			</dict>
-			<key>title</key>
-			<string>DonorList2</string>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>335</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>335</string>
-					<key>Timestamp</key>
-					<string>761145975.269372</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>TestDonorClass2/app source/screens/DonorScreens/DonorDetailView/DonorSearchViewModel.swift</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string></string>
-				<key>leading</key>
-				<string>        }
-    }
-</string>
-				<key>trailing</key>
-				<string></string>
-			</dict>
-			<key>title</key>
-			<string>button do search</string>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>children</key>
-			<array/>
-			<key>title</key>
-			<string>DonationEdit</string>
-			<key>type</key>
-			<string>group</string>
-		</dict>
-		<dict>
-			<key>query-specification</key>
-			<dict>
-				<key>anchoring</key>
-				<string>word</string>
-				<key>match-case</key>
-				<integer>1</integer>
-				<key>query</key>
-				<string>text</string>
-				<key>scope</key>
-				<dict>
-					<key>named-scopes</key>
-					<array/>
-					<key>type</key>
-					<string>scope-chooser-compound-scope</string>
-					<key>workspace-location-predicates</key>
-					<array>
-						<dict>
-							<key>path-components</key>
-							<array>
-								<string>TestDonorClass2.xcodeproj</string>
-							</array>
-							<key>rule</key>
-							<string>workspace-location</string>
-						</dict>
-					</array>
-				</dict>
-				<key>term</key>
-				<dict>
-					<key>text</key>
-					<string>amount</string>
-				</dict>
-			</dict>
-			<key>type</key>
-			<string>batch-find-query</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>177</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>177</string>
-					<key>Timestamp</key>
-					<string>762916802.2482949</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>TestDonorClass2/app source/forPrinting/DonationInfo.swift</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string></string>
-				<key>leading</key>
-				<string>    }
-}
-</string>
-				<key>trailing</key>
-				<string></string>
-			</dict>
-			<key>title</key>
-			<string>make the receipt</string>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
 			<key>children</key>
 			<array>
 				<dict>
@@ -188,13 +15,13 @@
 							<key>EndingColumnNumber</key>
 							<string>0</string>
 							<key>EndingLineNumber</key>
-							<string>534</string>
+							<string>197</string>
 							<key>StartingColumnNumber</key>
 							<string>0</string>
 							<key>StartingLineNumber</key>
-							<string>534</string>
+							<string>196</string>
 							<key>Timestamp</key>
-							<string>767714437.317349</string>
+							<string>768780891.811964</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -203,29 +30,33 @@
 							<key>payload</key>
 							<dict>
 								<key>relative-path</key>
-								<string>TestDonorClass2/app source/screens/BatchDonations/BatchDonationView.swift</string>
+								<string>TestDonorClass2/app source/screens/DonorScreens/DonorListView/DonorListView.swift</string>
 							</dict>
 						</dict>
 					</dict>
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string></string>
+						<string>                Button("Search123") {
+</string>
 						<key>leading</key>
-						<string>    }
-}
+						<string>//                TextField("Search by name or...", text: $viewModel.searchText)
+                    .background(Color(.white))
 </string>
 						<key>trailing</key>
-						<string></string>
+						<string>                    Task {
+                        try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                    }
+</string>
 					</dict>
 					<key>title</key>
-					<string>pray toggle</string>
+					<string>Search Button For Donor</string>
 					<key>type</key>
 					<string>bookmark</string>
 				</dict>
 			</array>
 			<key>title</key>
-			<string>pray</string>
+			<string>Search Donor</string>
 			<key>type</key>
 			<string>group</string>
 		</dict>

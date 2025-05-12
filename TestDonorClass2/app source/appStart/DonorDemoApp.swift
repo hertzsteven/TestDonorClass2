@@ -63,6 +63,17 @@ struct DonorDemoApp: App {
             self.databaseURL = dbURLUTI
             print("Database UTI is ready at: \(dbURLUTI.path)")
             
+
+            // Just file names (default)
+            FileManager.default.printFilesInAppSupportDirectory()
+
+            // Full paths
+            FileManager.default.printFilesInAppSupportDirectory(displayStyle: .fullPath)
+
+//            fileManager.printFilesInAppSupportDirectory()
+            
+            print("finished setting up database")
+            
         } catch {
             self.errorMessage = error.localizedDescription
             print("Error setting up database: \(error.localizedDescription)")

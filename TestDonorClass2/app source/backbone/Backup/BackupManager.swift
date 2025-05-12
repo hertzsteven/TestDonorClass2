@@ -8,9 +8,6 @@
 
 import SwiftUI
 
-
-import SwiftUI
-
 class BackupManager: ObservableObject {
     let dbName: String = "donations_db.sqlite"
     /// Returns the original URL of your SQLite database in your app’s documents or elsewhere.

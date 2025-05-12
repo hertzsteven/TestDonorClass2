@@ -39,6 +39,7 @@ struct DonorSearchSelectionView: View {
                         .disabled(isSearching)
                         .focused($isSearchFieldFocused)
                         .onSubmit {
+                            print("did submit")
                             if !searchText.isEmpty && !isSearching && searchResults.isEmpty {
                                 Task {
                                     await performSearch()

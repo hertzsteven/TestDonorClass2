@@ -43,6 +43,87 @@ struct BackupDatabaseView: View {
     }
     
     private func performBackup(to folderURL: URL) -> String {
+        
+        //  Attempt to start accessing the security-scoped folder
+        guard folderURL.startAccessingSecurityScopedResource() else {
+            return "Error: Couldn't access security-scoped folder."
+        }
+        
+        //  Guarantee we stop accessing when this function exits
+        defer { folderURL.stopAccessingSecurityScopedResource() }
+        
+        let backupManager = BackupManager()
+        var dbWasOpen = true
+        
+        // Close database before backup
+        do {
+            try backupManager.closeDatabase()
+        } catch {
+            return "Error closing database before backup: \(error.localizedDescription)"
+        }
+        
+        // Ensure database gets reopened
+        defer {
+            if dbWasOpen {
+                do {
+                    try backupManager.openDatabase()
+                } catch {
+                    print("CRITICAL ERROR: Failed to reopen database after backup: \(error)")
+                }
+            }
+        }
+        
+        //  Generate a timestamp string
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMdd_HHmmss" // Adjust as needed
+        let timestamp = dateFormatter.string(from: Date())
+ 
+        
+        // Do the file operation
+        let fileManager = FileManager.default
+        
+        do {
+            // Get the Application Support directory
+            let appSupportURL = try fileManager.url(for: .applicationSupportDirectory,
+                                      in: .userDomainMask,
+                                      appropriateFor: nil,
+                                      create: true)
+        
+            // Get all files in the directory
+            let fileURLs = try fileManager.contentsOfDirectory(
+                at: appSupportURL,
+                includingPropertiesForKeys: nil
+            )
+            
+            var successCount = 0
+            var errors: [String] = []
+            
+            for fileURL in fileURLs {
+                print(fileURL.lastPathComponent)
+                let destinationURL = folderURL.appendingPathComponent("\(timestamp)_\(fileURL.lastPathComponent)")
+                do {
+                    print("from \(fileURL.lastPathComponent) to \(destinationURL.lastPathComponent)")
+                    try fileManager.copyItem(at: fileURL, to: destinationURL)
+                    successCount += 1
+                } catch {
+                    errors.append("\(fileURL.lastPathComponent): \(error.localizedDescription)")
+                }
+            }
+            
+            if errors.isEmpty {
+                return "Successfully backed up \(successCount) files"
+            } else {
+                return "Backed up \(successCount) files with errors:\n" + errors.joined(separator: "\n")
+            }
+            
+        } catch {
+            return "Error accessing files: \(error.localizedDescription)"
+        }
+        
+//        return "Successfully backed up to: ---"
+    }
+
+    private func performBackupOld(to folderURL: URL) -> String {
             // 1. Attempt to start accessing the security-scoped folder
         guard folderURL.startAccessingSecurityScopedResource() else {
             return "Error: Couldn't access security-scoped folder."

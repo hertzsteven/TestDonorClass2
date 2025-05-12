@@ -38,6 +38,8 @@ struct DonorListView: View {
     
     @State private var donorCount: Int = 0
     
+    @FocusState private var isSearchFieldFocused: Bool
+    
     enum SearchMode: String, CaseIterable {
         case name = "Name"
         case id = "ID"
@@ -55,6 +57,9 @@ struct DonorListView: View {
         .onAppear {
             Task {
                 await doOnAppearProcess()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isSearchFieldFocused = true
+                }
             }
         }
         .onDisappear {
@@ -96,7 +101,12 @@ struct DonorListView: View {
         .onChange(of: viewModel.searchText) { oldValue, newValue in
             Task { await handleSearchTextChange(from: oldValue, to: newValue) }
         }
-        .onChange(of: searchMode) { viewModel.searchText = "" }
+        .onChange(of: searchMode) {
+            viewModel.searchText = ""
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                isSearchFieldFocused = true
+            }
+        }
         
 //        .toolbar { toolBarListDonors() }
         //            ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -175,10 +185,16 @@ extension DonorListView {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.gray)
                 TextField(searchMode == .name ? "Search by name or..." : "Enter donor ID...",
-                                     text: $viewModel.searchText)
+                         text: $viewModel.searchText)
+                    .focused($isSearchFieldFocused)
+                    .onSubmit {
+                        Task {
+                            try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                        }
+                    }
 //                TextField("Search by name or...", text: $viewModel.searchText)
                     .background(Color(.white))
-                Button("Search") {
+                Button("Search123") {
                     Task {
                         try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
                     }

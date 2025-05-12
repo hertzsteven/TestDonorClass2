@@ -9,7 +9,13 @@ import Foundation
 import SwiftUI
 
 extension FileManager {
-
+    // Add this enum for print style
+    enum FileDisplayStyle {
+        case fileName         // just the file name
+        case fullPath        // complete file path
+        case relativePath    // path from App Support directory
+    }
+    
     /// Copies SQLite database files from the app bundle to the Application Support directory
     ///
     /// This function handles the copying of SQLite database files from the app bundle to the
@@ -25,6 +31,90 @@ extension FileManager {
     /// - Returns: URL to the database file in Application Support directory
     ///
     /// - Throws: FileManager errors if copying fails or if database file is not found in bundle
+    
+    func getFilesInAppSupportDirectory(subdirectory: String? = nil) -> [String] {
+        do {
+            // Get the Application Support directory
+            let appSupportURL = try url(for: .applicationSupportDirectory,
+                                      in: .userDomainMask,
+                                      appropriateFor: nil,
+                                      create: true)
+            
+            // Add subdirectory if specified
+            var directoryURL = appSupportURL
+            if let subdirectory = subdirectory {
+                directoryURL = appSupportURL.appendingPathComponent(subdirectory, isDirectory: true)
+            }
+            
+            // Get all files in the directory
+            let fileURLs = try contentsOfDirectory(
+                at: directoryURL,
+                includingPropertiesForKeys: nil
+            )
+            
+            // Return array of filenames
+            return fileURLs.map { $0.lastPathComponent }
+            
+        } catch {
+            print("Error listing files: \(error.localizedDescription)")
+            return []
+        }
+    }
+    
+    func printFilesInAppSupportDirectory(subdirectory: String? = nil, displayStyle: FileDisplayStyle = .fileName) {
+        do {
+            // Get the Application Support directory
+            let appSupportURL = try url(for: .applicationSupportDirectory,
+                                      in: .userDomainMask,
+                                      appropriateFor: nil,
+                                      create: true)
+            
+            // Add subdirectory if specified
+            var directoryURL = appSupportURL
+            if let subdirectory = subdirectory {
+                directoryURL = appSupportURL.appendingPathComponent(subdirectory, isDirectory: true)
+            }
+            
+            // Get all files in the directory
+            let fileURLs = try contentsOfDirectory(
+                at: directoryURL,
+                includingPropertiesForKeys: nil
+            )
+            
+            print("\n=== Files in Application Support Directory ===")
+            if let subdirectory = subdirectory {
+                print("Subdirectory: \(subdirectory)")
+            }
+            
+            if fileURLs.isEmpty {
+                print("No files found")
+            } else {
+                for (index, fileURL) in fileURLs.enumerated() {
+                    let displayText: String = {
+                        switch displayStyle {
+                        case .fileName:
+                            return fileURL.lastPathComponent
+                        case .fullPath:
+                            return fileURL.path
+                        case .relativePath:
+                            return fileURL.path.replacingOccurrences(
+                                of: appSupportURL.path,
+                                with: "[AppSupport]"
+                            )
+                        }
+                    }()
+                    print("📄 [\(index + 1)] \(displayText)")
+                }
+                print("Total files: \(fileURLs.count)")
+            }
+            print("==================\n")
+            
+        } catch {
+            print("Error listing files: \(error.localizedDescription)")
+        }
+    }
+
+
     
     func copySqliteDatabasesFromResourcesToAppSupp(
         databaseName: String,
@@ -130,7 +220,9 @@ extension FileManager {
         for ext in associatedExtensions {
             // Check if associated file exists in bundle
             if let associatedBundleURL = Bundle.main.url(forResource: databaseName, withExtension: fileExtension + ext) {
-                let associatedDestURL = destinationURL.appendingPathExtension(ext)
+                let baseURL = destinationURL.deletingPathExtension()
+                let associatedDestURL = baseURL.appendingPathExtension("sqlite" + ext)
+                
                 // Check if the database already exists in the Application Support directory
                 if fileExists(atPath: associatedDestURL.path) {
                     // Database already exists, so we don't need to copy it again
@@ -144,6 +236,7 @@ extension FileManager {
                     print("Warning: Could not copy associated file \(ext): \(error.localizedDescription)")
                     // Continue even if an associated file couldn't be copied
                 }
+
             }
         }
         
