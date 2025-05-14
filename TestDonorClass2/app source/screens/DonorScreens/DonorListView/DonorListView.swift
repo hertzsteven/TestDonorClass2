@@ -194,7 +194,7 @@ extension DonorListView {
                     }
 //                TextField("Search by name or...", text: $viewModel.searchText)
                     .background(Color(.white))
-                Button("Search123") {
+                Button("Search") {
                     Task {
                         try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
                     }
@@ -225,7 +225,7 @@ extension DonorListView {
 //        NavigationSplitView {
             VStack {
                 
-//                Rectangle().fill(Color.clear).frame(height: 6)
+                //                Rectangle().fill(Color.clear).frame(height: 6)
                 SearchComponent()
                 
                 switch donorObject.donors.isEmpty || clearTheDonors {
@@ -281,10 +281,12 @@ extension DonorListView {
                     }
                 }
             }
-            .toolbar(removing: .sidebarToggle)
-            .toolbar { toolBarTrailLeftPane() }
-            //            .navigationTitle("Donor Hub")
-        } detail: {
+                .toolbar(removing: .sidebarToggle)
+                .toolbar { toolBarTrailLeftPane() }
+                //            .navigationTitle("Donor Hub")
+//            }
+        }
+        detail: {
             DonorDetailContainer(
                 donorID: selectedDonorID,
                 isMaintenanceMode: viewModel.maintenanceMode

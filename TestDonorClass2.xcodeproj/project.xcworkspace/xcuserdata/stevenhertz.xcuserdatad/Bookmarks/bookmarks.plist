@@ -6,59 +6,55 @@
 	<array>
 		<dict>
 			<key>children</key>
-			<array>
-				<dict>
-					<key>destination</key>
-					<dict>
-						<key>location-parameters</key>
-						<dict>
-							<key>EndingColumnNumber</key>
-							<string>0</string>
-							<key>EndingLineNumber</key>
-							<string>197</string>
-							<key>StartingColumnNumber</key>
-							<string>0</string>
-							<key>StartingLineNumber</key>
-							<string>196</string>
-							<key>Timestamp</key>
-							<string>768780891.811964</string>
-						</dict>
-						<key>rebasable-url</key>
-						<dict>
-							<key>base</key>
-							<string>workspace</string>
-							<key>payload</key>
-							<dict>
-								<key>relative-path</key>
-								<string>TestDonorClass2/app source/screens/DonorScreens/DonorListView/DonorListView.swift</string>
-							</dict>
-						</dict>
-					</dict>
-					<key>text-context</key>
-					<dict>
-						<key>focused</key>
-						<string>                Button("Search123") {
-</string>
-						<key>leading</key>
-						<string>//                TextField("Search by name or...", text: $viewModel.searchText)
-                    .background(Color(.white))
-</string>
-						<key>trailing</key>
-						<string>                    Task {
-                        try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
-                    }
-</string>
-					</dict>
-					<key>title</key>
-					<string>Search Button For Donor</string>
-					<key>type</key>
-					<string>bookmark</string>
-				</dict>
-			</array>
+			<array/>
 			<key>title</key>
 			<string>Search Donor</string>
 			<key>type</key>
 			<string>group</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>16</string>
+					<key>EndingLineNumber</key>
+					<string>196</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>196</string>
+					<key>Timestamp</key>
+					<string>768837450.677086</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>TestDonorClass2/app source/screens/DonorScreens/DonorListView/DonorListView.swift</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>                </string>
+				<key>leading</key>
+				<string>//                TextField("Search by name or...", text: $viewModel.searchText)
+                    .background(Color(.white))
+</string>
+				<key>trailing</key>
+				<string>Button("Search") {
+                    Task {
+                        try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
 		</dict>
 	</array>
 </dict>

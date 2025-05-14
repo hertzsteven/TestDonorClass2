@@ -147,8 +147,21 @@
 extension DonationRepository {
     func getReceiptRequests(status: ReceiptStatus) async throws -> [Donation] {
         try await dbPool.read { db in
-            try Donation
-                .filter(Donation.Columns.requestPrintedReceipt == true && Donation.Columns.receiptStatus == status.rawValue)
+            // Create year 2000 date for filtering
+            // Create year 2000 date for filtering - using Calendar for safe date creation
+            let calendar = Calendar(identifier: .gregorian)
+            let cutoffDate = calendar.date(from: DateComponents(year: 2000, month: 1, day: 1)) ?? Date.distantPast
+
+            return try Donation
+                .filter(
+                    // If status is .notRequested, ignore requestPrintedReceipt
+                    // For all other statuses (requested, queued, printed, failed), check requestPrintedReceipt
+                    status == .notRequested ?
+                        (Donation.Columns.receiptStatus == status.rawValue && Donation.Columns.donationDate > cutoffDate) :
+                        (Donation.Columns.requestPrintedReceipt == true && Donation.Columns.receiptStatus == status.rawValue)
+                )
+
+//                .filter(Donation.Columns.requestPrintedReceipt == true && Donation.Columns.receiptStatus == status.rawValue)
                 .order(Donation.Columns.donationDate.desc)
                 .fetchAll(db)
         }

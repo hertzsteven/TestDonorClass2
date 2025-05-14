@@ -97,7 +97,7 @@ struct BatchDonationView: View {
                             Button("None") {
                                 selectedCampaign = nil
                             }
-                            ForEach(campaignObject.campaigns) { campaign in
+                            ForEach(campaignObject.campaigns.filter( {$0.status == .active})  ) { campaign in
                                 Button(campaign.name) {
                                     selectedCampaign = campaign
                                 }
