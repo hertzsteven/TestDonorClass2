@@ -9,6 +9,9 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct DonationReportView: View {
     // Use @StateObject for view-specific view models
@@ -20,6 +23,8 @@ struct DonationReportView: View {
     @State private var isExportSheetPresented = false
     @State private var exportFileURL: URL?
     @State private var exportError: String?
+    @State private var isShareSheetPresented = false
+    @State private var temporaryFileURL: URL?
     
     // Custom Initializer
     init() {
@@ -215,10 +220,19 @@ struct DonationReportView: View {
             .navigationTitle("Donation Report")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: { Task { await prepareExport() } }) {
-                        Label("Export", systemImage: "square.and.arrow.up")
+                    HStack {
+                        // Add Share button
+                        Button(action: { Task { await prepareShare() } }) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                        .disabled(viewModel.filteredReportItems.isEmpty)
+                        
+                        // Existing Export button
+                        Button(action: { Task { await prepareExport() } }) {
+                            Label("Save", systemImage: "arrow.down.doc")
+                        }
+                        .disabled(viewModel.filteredReportItems.isEmpty)
                     }
-                    .disabled(viewModel.filteredReportItems.isEmpty)
                 }
             }
             .sheet(isPresented: $showingDonorSearchView) {
@@ -247,6 +261,17 @@ struct DonationReportView: View {
                     Text(error)
                 }
             }
+            .sheet(isPresented: $isShareSheetPresented) {
+                if let url = temporaryFileURL {
+                    ShareSheet(activityItems: [url])
+                }
+            }
+            .onChange(of: isShareSheetPresented) { isPresented in
+                if !isPresented {
+                    // Clean up temporary file when sheet is dismissed
+                    cleanupTemporaryFile()
+                }
+            }
         }
         .navigationViewStyle(.stack)
     }
@@ -259,7 +284,32 @@ struct DonationReportView: View {
             exportError = error.localizedDescription
         }
     }
-
+    
+    private func prepareShare() async {
+        do {
+            let csvContent = try await viewModel.generateExportText()
+            
+            // Create temporary file
+            let tempDir = FileManager.default.temporaryDirectory
+            let fileName = "DonationReport-\(Date().ISO8601Format()).csv"
+            let fileURL = tempDir.appendingPathComponent(fileName)
+            
+            try csvContent.write(to: fileURL, atomically: true, encoding: .utf8)
+            temporaryFileURL = fileURL
+            isShareSheetPresented = true
+            
+        } catch {
+            exportError = error.localizedDescription
+        }
+    }
+    
+    private func cleanupTemporaryFile() {
+        if let url = temporaryFileURL {
+            try? FileManager.default.removeItem(at: url)
+            temporaryFileURL = nil
+        }
+    }
+    
     // Helper function to format currency (Unchanged)
      private func formatCurrency(_ amount: Double) -> String {
          // Use the static formatter from the ViewModel
@@ -357,6 +407,21 @@ struct DonationReportRow: View {
      }
 }
 
+// Add ShareSheet view
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    let applicationActivities: [UIActivity]? = nil
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: applicationActivities
+        )
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
 
 // --- Preview ---
 struct DonationReportView_Previews: PreviewProvider {
