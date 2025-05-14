@@ -5,12 +5,12 @@
 //  Created by Steven Hertz on 3/30/25.
 //
 
-
 import Foundation
 
 // Represents a single row in the donation report list
-struct DonationReportItem: Identifiable, Hashable {
+struct DonationReportItem: Identifiable {
     let id: Int // Donation ID
+    let donorId: Int?
     let donorName: String
     let campaignName: String
     let amount: Double

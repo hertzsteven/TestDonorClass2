@@ -26,7 +26,7 @@ class DonationReportViewModel: ObservableObject {
     @Published var maxAmountString: String = ""
     // Add new filter state
     @Published var showOnlyPrayerNotes: Bool = false
-    
+    @Published var exportText: String?
     
     // --- Data for Pickers/Display (@Published for UI binding) ---
     @Published var availableCampaigns: [Campaign] = []
@@ -236,14 +236,14 @@ class DonationReportViewModel: ObservableObject {
 
         // --- Map to Report Items ---
         let reportItems = results.compactMap { donation -> DonationReportItem? in
-            guard let donationId = donation.id else { return nil } // Should always have an ID from DB
+            guard let donationId = donation.id else { return nil }
 
-            // Lookup names from cache
             let donorName = donation.donorId.flatMap { donorCache[$0] } ?? (donation.isAnonymous ? "Anonymous" : "Unknown Donor")
             let campaignName = donation.campaignId.flatMap { campaignCache[$0] } ?? "General Support"
 
             return DonationReportItem(
                 id: donationId,
+                donorId: donation.donorId,
                 donorName: donorName,
                 campaignName: campaignName,
                 amount: donation.amount,
@@ -306,22 +306,81 @@ class DonationReportViewModel: ObservableObject {
         return formatter
     }()
 
-    func generateExportText() -> String {
-        // CSV header
-        var csv = "Donor Name,Campaign,Amount,Date,Notes\n"
+    func generateExportText() async throws -> String {
+        // CSV header with all relevant fields
+        let header = [
+            // Donor Information
+            "Donor ID",
+            "Salutation",
+            "First Name",
+            "Last Name",
+            "Company",
+            "Jewish Name",
+            "Address",
+            "Additional Line",
+            "Suite",
+            "City",
+            "State",
+            "ZIP",
+            "Email",
+            "Phone",
+            "Donor Source",
+            "Donor Notes",
+            // Donation Information
+            "Donation Amount",
+            "Donation Date",
+            "Campaign",
+            "Donation Notes"
+        ].joined(separator: ",")
         
-        // Add each donation row
+        var csv = "\(header)\n"
+        
+        // Process each donation and include donor information
         for item in filteredReportItems {
-            let amount = Self.currencyFormatter.string(for: item.amount) ?? "0.00"
-            let date = Self.dateFormatter.string(from: item.donationDate)
-            // Properly escape fields that might contain commas
-            let escapedDonorName = "\"\(item.donorName.replacingOccurrences(of: "\"", with: "\"\""))\""
-            let escapedCampaignName = "\"\(item.campaignName.replacingOccurrences(of: "\"", with: "\"\""))\""
-            let escapedNotes = "\"\((item.prayerNote ?? "").replacingOccurrences(of: "\"", with: "\"\""))\""
-            
-            csv += "\(escapedDonorName),\(escapedCampaignName),\(amount),\(date),\(escapedNotes)\n"
+            // Find the full donor information from the repository
+            if let donorId = item.donorId,
+               let donor = try await donorRepository.getOne(donorId) {
+                
+                // Escape and prepare all fields
+                let fields = [
+                    // Donor Information
+                    String(donorId),
+                    escapeCsvField(donor.salutation),
+                    escapeCsvField(donor.firstName),
+                    escapeCsvField(donor.lastName),
+                    escapeCsvField(donor.company),
+                    escapeCsvField(donor.jewishName),
+                    escapeCsvField(donor.address),
+                    escapeCsvField(donor.addl_line),
+                    escapeCsvField(donor.suite),
+                    escapeCsvField(donor.city),
+                    escapeCsvField(donor.state),
+                    escapeCsvField(donor.zip),
+                    escapeCsvField(donor.email),
+                    escapeCsvField(donor.phone),
+                    escapeCsvField(donor.donorSource),
+                    escapeCsvField(donor.notes),
+                    // Donation Information
+                    Self.currencyFormatter.string(for: item.amount) ?? "0.00",
+                    Self.dateFormatter.string(from: item.donationDate),
+                    escapeCsvField(item.campaignName),
+                    escapeCsvField(item.prayerNote)
+                ]
+                
+                csv += fields.joined(separator: ",") + "\n"
+            }
         }
         
         return csv
+    }
+    
+    private func escapeCsvField(_ value: String?) -> String {
+        guard let value = value else { return "" }
+        if value.contains(",") || value.contains("\"") || value.contains("\n") {
+            // Escape quotes by doubling them and wrap in quotes
+            let escapedValue = value.replacingOccurrences(of: "\"", with: "\"\"")
+            return "\"\(escapedValue)\""
+        }
+        return value
     }
 }

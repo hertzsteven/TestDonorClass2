@@ -19,6 +19,7 @@ struct DonationReportView: View {
 
     @State private var isExportSheetPresented = false
     @State private var exportFileURL: URL?
+    @State private var exportError: String?
     
     // Custom Initializer
     init() {
@@ -214,7 +215,7 @@ struct DonationReportView: View {
             .navigationTitle("Donation Report")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: prepareExport) {
+                    Button(action: { Task { await prepareExport() } }) {
                         Label("Export", systemImage: "square.and.arrow.up")
                     }
                     .disabled(viewModel.filteredReportItems.isEmpty)
@@ -228,20 +229,35 @@ struct DonationReportView: View {
             }
             .fileExporter(
                 isPresented: $isExportSheetPresented,
-                document: CSVFile(initialText: viewModel.generateExportText()),
+                document: CSVFile(initialText: viewModel.exportText ?? ""),
                 contentType: .commaSeparatedText,
                 defaultFilename: "DonationReport-\(Date().ISO8601Format()).csv"
             ) { result in
                 if case .failure(let error) = result {
-                    print("Export failed: \(error.localizedDescription)")
+                    exportError = error.localizedDescription
+                }
+            }
+            .alert("Export Error", isPresented: .init(
+                get: { exportError != nil },
+                set: { if !$0 { exportError = nil } }
+            )) {
+                Button("OK") { exportError = nil }
+            } message: {
+                if let error = exportError {
+                    Text(error)
                 }
             }
         }
         .navigationViewStyle(.stack)
     }
     
-    private func prepareExport() {
-        isExportSheetPresented = true
+    private func prepareExport() async {
+        do {
+            viewModel.exportText = try await viewModel.generateExportText()
+            isExportSheetPresented = true
+        } catch {
+            exportError = error.localizedDescription
+        }
     }
 
     // Helper function to format currency (Unchanged)
