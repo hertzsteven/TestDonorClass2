@@ -53,7 +53,7 @@ struct DonationReportView: View {
     }
 
     var body: some View {
-        NavigationView {
+//        NavigationView {
             HStack(spacing: 0) {
                 // Left Column - Filters and Summary
                 VStack(alignment: .leading, spacing: 0) {
@@ -221,7 +221,13 @@ struct DonationReportView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     HStack {
-                        // Add Share button
+                        // Add Email Template button
+                        NavigationLink(value: "emailTemplate") {
+                            Label("Email Template", systemImage: "envelope.badge.person.crop")
+                        }
+                        .disabled(viewModel.filteredReportItems.isEmpty)
+
+                        // Existing Share button
                         Button(action: { Task { await prepareShare() } }) {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
@@ -233,6 +239,13 @@ struct DonationReportView: View {
                         }
                         .disabled(viewModel.filteredReportItems.isEmpty)
                     }
+                }
+            }
+
+            .navigationDestination(for: String.self) { destination in
+                if destination == "emailTemplate" {
+                    Text("Email Template Picker")
+//                    EmailTemplatePickerView(selectedDonations: viewModel.filteredReportItems)
                 }
             }
             .sheet(isPresented: $showingDonorSearchView) {
@@ -272,7 +285,7 @@ struct DonationReportView: View {
                     cleanupTemporaryFile()
                 }
             }
-        }
+//        }
         .navigationViewStyle(.stack)
     }
     
