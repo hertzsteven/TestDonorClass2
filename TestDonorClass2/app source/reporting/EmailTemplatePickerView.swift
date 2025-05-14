@@ -14,12 +14,15 @@ struct EmailTemplatePickerView: View {
     // MARK: - Properties
     let templates: [Template]
     let onSelect: (Template) -> Void
+    let firstReortItem: DonationReportItem
 
     // MARK: - Init
     init(templates: [Template] = EmailTemplatePickerView.mockTemplates,
+         reportItem: DonationReportItem,
          onSelect: @escaping (Template) -> Void) {
         self.templates = templates
         self.onSelect = onSelect
+        self.firstReortItem = reportItem
     }
 
     // MARK: - Body
@@ -61,9 +64,3 @@ extension EmailTemplatePickerView {
     ]
 }
 
-// MARK: - Preview
-#Preview {
-    NavigationStack {
-        EmailTemplatePickerView { _ in }
-    }
-}
