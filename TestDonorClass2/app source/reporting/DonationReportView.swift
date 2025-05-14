@@ -8,6 +8,7 @@
 // Contents of ./reporting/DonationReportView.swift
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DonationReportView: View {
     // Use @StateObject for view-specific view models
@@ -16,6 +17,9 @@ struct DonationReportView: View {
     @State private var showingDonorSearchView = false
     @EnvironmentObject var donorObject: DonorObjectClass // Still needed for DonorSearchSelectionView
 
+    @State private var isExportSheetPresented = false
+    @State private var exportFileURL: URL?
+    
     // Custom Initializer
     init() {
         // Create the repository instances HERE.
@@ -208,14 +212,36 @@ struct DonationReportView: View {
                 }
             }
             .navigationTitle("Donation Report")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: prepareExport) {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                    .disabled(viewModel.filteredReportItems.isEmpty)
+                }
+            }
             .sheet(isPresented: $showingDonorSearchView) {
                 DonorSearchSelectionView { selectedDonor in
                     viewModel.donorSelected(selectedDonor)
                 }
                 .environmentObject(donorObject)
             }
+            .fileExporter(
+                isPresented: $isExportSheetPresented,
+                document: CSVFile(initialText: viewModel.generateExportText()),
+                contentType: .commaSeparatedText,
+                defaultFilename: "DonationReport-\(Date().ISO8601Format()).csv"
+            ) { result in
+                if case .failure(let error) = result {
+                    print("Export failed: \(error.localizedDescription)")
+                }
+            }
         }
         .navigationViewStyle(.stack)
+    }
+    
+    private func prepareExport() {
+        isExportSheetPresented = true
     }
 
     // Helper function to format currency (Unchanged)
@@ -232,10 +258,28 @@ struct DonationReportView: View {
      }
 }
 
+struct CSVFile: FileDocument {
+    static var readableContentTypes: [UTType] { [.commaSeparatedText] }
+    
+    var text: String
+    
+    init(initialText: String = "") {
+        text = initialText
+    }
+    
+    init(configuration: ReadConfiguration) throws {
+        text = ""
+    }
+    
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        let data = Data(text.utf8)
+        return FileWrapper(regularFileWithContents: data)
+    }
+}
+
 // --- Row View for the Report List (Unchanged) ---
 struct DonationReportRow: View {
     let item: DonationReportItem
-    // ADD: State property for disclosure group
     @State private var isExpanded = false
 
 

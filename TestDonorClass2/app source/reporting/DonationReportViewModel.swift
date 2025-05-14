@@ -228,7 +228,6 @@ class DonationReportViewModel: ObservableObject {
         if minAmount != nil || maxAmount != nil {
              print("DonationReportViewModel: After amount filter (min: \(minAmountString), max: \(maxAmountString)): \(results.count) donations.")
         }
-        // ADD: Prayer Note filter
         if showOnlyPrayerNotes {
             results = results.filter { $0.notes != nil }
         }
@@ -306,4 +305,23 @@ class DonationReportViewModel: ObservableObject {
         // Consider setting locale: formatter.locale = Locale.current
         return formatter
     }()
+
+    func generateExportText() -> String {
+        // CSV header
+        var csv = "Donor Name,Campaign,Amount,Date,Notes\n"
+        
+        // Add each donation row
+        for item in filteredReportItems {
+            let amount = Self.currencyFormatter.string(for: item.amount) ?? "0.00"
+            let date = Self.dateFormatter.string(from: item.donationDate)
+            // Properly escape fields that might contain commas
+            let escapedDonorName = "\"\(item.donorName.replacingOccurrences(of: "\"", with: "\"\""))\""
+            let escapedCampaignName = "\"\(item.campaignName.replacingOccurrences(of: "\"", with: "\"\""))\""
+            let escapedNotes = "\"\((item.prayerNote ?? "").replacingOccurrences(of: "\"", with: "\"\""))\""
+            
+            csv += "\(escapedDonorName),\(escapedCampaignName),\(amount),\(date),\(escapedNotes)\n"
+        }
+        
+        return csv
+    }
 }
