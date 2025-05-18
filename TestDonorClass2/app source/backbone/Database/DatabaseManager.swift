@@ -88,6 +88,7 @@ final class DatabaseManager {
             
             try migrator.migrate(pool)
             print("Database migrations completed successfully")
+            checkMigrationStatus()
             
         } catch {
             throw DatabaseError.databaseSetupFailed(error.localizedDescription)
@@ -153,6 +154,23 @@ final class DatabaseManager {
         } catch {
             print("\nDatabase test failed: \(error)")
             throw error
+        }
+    }
+    
+    func checkMigrationStatus() {
+        do {
+            try dbPool?.read { db in
+                let migrations = try Row.fetchAll(db, sql: "SELECT * FROM grdb_migrations ORDER BY identifier ASC")
+                print("\n=== Applied Migrations ===")
+                for migration in migrations {
+                    if let identifier: String = migration["identifier"] {
+                        print("- \(identifier)")
+                    }
+                }
+                print("=======================\n")
+            }
+        } catch {
+            print("Failed to check migrations:", error)
         }
     }
 }
@@ -311,7 +329,6 @@ extension DatabaseManager {
         migrator.registerMigration("v3_addReceiptStatus") { db in
             print("Running migration: v3_addReceiptStatus") // Add logging
             
-            // CHANGE: Use columns(in:) to check for column existence
             let receiptStatusExists = try db.columns(in: "donation").contains { column in
                 column.name == "receipt_status"
             }

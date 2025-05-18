@@ -17,6 +17,7 @@ struct DonationReportItem: Identifiable {
     let donationDate: Date
     let hasPrayerNote: Bool
     let prayerNote: String?
+    let email: String? // Optional email field
 }
 
 // Re-use TimeFrame enum if not already accessible globally

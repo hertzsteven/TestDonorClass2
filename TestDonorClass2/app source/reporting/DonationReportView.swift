@@ -243,20 +243,12 @@ struct DonationReportView: View {
             }
 
             .navigationDestination(for: String.self) { destination in
-                if destination == "emailTemplate" {
-                    if let firstDonation = viewModel.filteredReportItems.first {
+                if destination == "emailTemplate", let firstDonation = viewModel.filteredReportItems.first {
+//                    if let firstDonation = viewModel.filteredReportItems.first {
                         EmailTemplatePickerView(reportItem: firstDonation) { template in
-                            // Handle template selection here
                             print("Selected template: \(template.title)")
-                            // You can later implement what happens when a template is selected
                         }
-//                        EmailTemplatePickerView { template in
-//                            // Handle template selection here
-//                            print("Selected template: \(template.title)")
-//                            // You can later implement what happens when a template is selected
-//                        }
                     }
-                }
             }
             .sheet(isPresented: $showingDonorSearchView) {
                 DonorSearchSelectionView { selectedDonor in

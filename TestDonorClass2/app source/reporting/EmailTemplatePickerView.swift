@@ -1,5 +1,5 @@
-
 import SwiftUI
+import MessageUI
 
 /// Simple picker for email templates (mock data)
 struct EmailTemplatePickerView: View {
@@ -15,6 +15,9 @@ struct EmailTemplatePickerView: View {
     let templates: [Template]
     let onSelect: (Template) -> Void
     let firstReortItem: DonationReportItem
+    @State private var showingMailComposer = false
+    @State private var selectedTemplate: Template?
+    @State private var showingAlert = false
 
     // MARK: - Init
     init(templates: [Template] = EmailTemplatePickerView.mockTemplates,
@@ -29,7 +32,12 @@ struct EmailTemplatePickerView: View {
     var body: some View {
         List(templates) { template in
             Button {
-                onSelect(template)
+                selectedTemplate = template
+                if firstReortItem.email != nil {
+                    showingMailComposer = true
+                } else {
+                    showingAlert = true
+                }
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(template.title)
@@ -46,6 +54,26 @@ struct EmailTemplatePickerView: View {
             }
         }
         .navigationTitle("Choose Template")
+        .alert("No Email Available", isPresented: $showingAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("This donor does not have an email address.")
+        }
+        .sheet(isPresented: $showingMailComposer) {
+            if let template = selectedTemplate,
+               let email = firstReortItem.email {
+                // Replace placeholder values with actual data
+                let processedBody = template.bodyPreview
+                    .replacingOccurrences(of: "{{name}}", with: firstReortItem.donorName)
+                    .replacingOccurrences(of: "{{amount}}", with: String(format: "$%.2f", firstReortItem.amount))
+                
+                MailComposerView(
+                    recipient: email,
+                    subject: template.title,
+                    body: processedBody
+                )
+            }
+        }
     }
 }
 
@@ -63,4 +91,3 @@ extension EmailTemplatePickerView {
               bodyPreview: "Greetings {{name}},\n\nWe’re excited to let you know that our campaign has reached 80%…")
     ]
 }
-
