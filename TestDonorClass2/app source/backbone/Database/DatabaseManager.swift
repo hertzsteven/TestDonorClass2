@@ -344,21 +344,95 @@ extension DatabaseManager {
             // try db.execute(sql: "UPDATE donation SET receipt_status = 'REQUESTED' WHERE request_printed_receipt = 1 AND receipt_status = 'NOT_REQUESTED'")
         }
         
+        // --- Migration 4: Create Pledge Table
+        migrator.registerMigration("v4_createPledgeTable") { db in
+            print("Running migration: v4_createPledgeTable")
+            
+            // Create pledge table
+            if try !db.tableExists(Pledge.databaseTableName) {
+                print("Creating \(Pledge.databaseTableName) table...")
+                try db.create(table: Pledge.databaseTableName) { t in
+                    t.autoIncrementedPrimaryKey(Pledge.Columns.id.name)
+                    t.column(Pledge.Columns.uuid.name, .text).notNull().unique()
+                    t.column(Pledge.Columns.donorId.name, .integer).references("donor", onDelete: .restrict)
+                    t.column(Pledge.Columns.campaignId.name, .integer).references("campaign", onDelete: .restrict)
+                    t.column(Pledge.Columns.pledgeAmount.name, .double).notNull()
+                    t.column(Pledge.Columns.currentBalance.name, .double).notNull()
+                    t.column(Pledge.Columns.status.name, .text).notNull() // Raw value of PledgeStatus enum
+                    t.column(Pledge.Columns.expectedFulfillmentDate.name, .date).notNull()
+                    t.column(Pledge.Columns.prayerNote.name, .text)
+                    t.column(Pledge.Columns.notes.name, .text)
+                    t.column(Pledge.Columns.createdAt.name, .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                    t.column(Pledge.Columns.updatedAt.name, .datetime).notNull().defaults(sql: "CURRENT_TIMESTAMP")
+                }
+                // Create pledge indexes
+                try db.create(index: "idx_pledge_donor", on: Pledge.databaseTableName, columns: [Pledge.Columns.donorId.name])
+                try db.create(index: "idx_pledge_campaign", on: Pledge.databaseTableName, columns: [Pledge.Columns.campaignId.name])
+                try db.create(index: "idx_pledge_status", on: Pledge.databaseTableName, columns: [Pledge.Columns.status.name])
+                try db.create(index: "idx_pledge_fulfillment_date", on: Pledge.databaseTableName, columns: [Pledge.Columns.expectedFulfillmentDate.name])
+                try db.create(index: "idx_pledge_uuid", on: Pledge.databaseTableName, columns: [Pledge.Columns.uuid.name])
+
+                // Add timestamp trigger for pledge table
+                try db.execute(sql: """
+                    CREATE TRIGGER IF NOT EXISTS update_pledge_timestamp AFTER UPDATE ON \(Pledge.databaseTableName)
+                    BEGIN UPDATE \(Pledge.databaseTableName) SET \(Pledge.Columns.updatedAt.name) = CURRENT_TIMESTAMP WHERE \(Pledge.Columns.id.name) = NEW.\(Pledge.Columns.id.name); END;
+                """)
+                print("\(Pledge.databaseTableName) table and trigger created.")
+            } else {
+                // MODIFY: If the table already exists (from a previous incorrect run of this migration), add the column
+                print("\(Pledge.databaseTableName) table already exists. Checking for \(Pledge.Columns.currentBalance.name) column.")
+                let columns = try db.columns(in: Pledge.databaseTableName)
+                if !columns.contains(where: { $0.name == Pledge.Columns.currentBalance.name }) {
+                    print("Adding column \(Pledge.Columns.currentBalance.name) to \(Pledge.databaseTableName).")
+                    try db.alter(table: Pledge.databaseTableName) { t in
+                        // Add with a default, assuming existing pledges should have balance = pledgeAmount initially
+                        // Or handle default value population manually if more complex logic is needed.
+                        // For simplicity, defaulting to 0 and requiring manual update or assuming new pledges only.
+                        // A better default for existing records might be to set current_balance = pledge_amount.
+                        // Let's make it NOT NULL and default to 0, and handle initialization in code.
+                        // However, our model's init sets currentBalance to pledgeAmount, so the table should reflect that expectation.
+                        // Defaulting to 0 is safer for ALTER TABLE if existing rows have no obvious default.
+                        // It's better if this migration is run on a clean slate. If not, data integrity for existing rows
+                        // for current_balance needs careful handling.
+                        // For new table creation, NOT NULL is fine as init handles it.
+                        // For ALTER, NOT NULL requires a DEFAULT or all rows updated.
+                        // Since our model now initializes currentBalance to pledgeAmount, we can expect new inserts to be fine.
+                        // For existing rows (if any were created by an older v4 migration without currentBalance),
+                        // they would need manual updating.
+                        // Simplest for ALTER is `ADD COLUMN current_balance DOUBLE NOT NULL DEFAULT 0` and then an UPDATE statement.
+                        // Or, make it nullable and handle logic in app.
+                        // Given our model `currentBalance` is non-optional and defaults to `pledgeAmount`,
+                        // we'll add it as NOT NULL. If altering, a default value is necessary.
+                        // `t.add(column: Pledge.Columns.currentBalance.name, .double).notNull().defaults(to: 0.0)` would work for alter.
+                        // Then you might run: `UPDATE pledge SET current_balance = pledge_amount WHERE current_balance = 0;`
+                        // However, since we are in the `if !db.tableExists` block for *creation*, this is fine.
+                        // The `else` block handles the ALTER case.
+                        t.add(column: Pledge.Columns.currentBalance.name, .double).defaults(to: 0.0) // Default for existing rows if any
+                    }
+                    // Update existing rows to set current_balance = pledge_amount
+                    // This is crucial if the table was created by a faulty v4 migration without current_balance
+                    try db.execute(sql: "UPDATE \(Pledge.databaseTableName) SET \(Pledge.Columns.currentBalance.name) = \(Pledge.Columns.pledgeAmount.name) WHERE \(Pledge.Columns.currentBalance.name) = 0.0")
+
+                    print("Column \(Pledge.Columns.currentBalance.name) added to \(Pledge.databaseTableName). Existing rows updated.")
+                } else {
+                    print("Column \(Pledge.Columns.currentBalance.name) already exists in \(Pledge.databaseTableName).")
+                }
+            }
+        }
         // --- Future Migrations ---
         // If you need to add, say, an 'email_verified' column to donor later:
         /*
-         migrator.registerMigration("v4_addDonorEmailVerified") { db in
-         print("Running migration: v4_addDonorEmailVerified")
-         try db.alter(table: "donor") { t in
-         t.add(column: "email_verified", .boolean).defaults(to: false)
-         }
-         }
-         */
+        migrator.registerMigration("v5_addDonorEmailVerified") { db in
+            print("Running migration: v5_addDonorEmailVerified")
+            try db.alter(table: "donor") { t in
+                t.add(column: "email_verified", .boolean).defaults(to: false)
+            }
+        }
+        */
         
         return migrator
     }
 }
-
 // FIXME: - Not Used Currently
 // MARK: - Record Protocols
 protocol DatabaseModel: Codable {
