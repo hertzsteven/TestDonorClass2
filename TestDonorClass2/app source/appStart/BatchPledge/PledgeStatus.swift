@@ -16,7 +16,7 @@
 import SwiftUI
 
 // --- Enums needed by BatchPledgeView/ViewModel ---
-enum PledgeStatus: String, CaseIterable, Identifiable {
+enum PledgeStatus: String, CaseIterable, Identifiable, Codable {
     case pledged = "Pledged"
     case partiallyFulfilled = "Partially Fulfilled"
     case fulfilled = "Fulfilled"

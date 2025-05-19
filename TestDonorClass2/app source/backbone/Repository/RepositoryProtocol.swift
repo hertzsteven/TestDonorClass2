@@ -7,43 +7,41 @@
 
 import GRDB
 import Foundation
-    /// A generic repository protocol for basic CRUD operations.
-    /// This is the minimal set of methods for any entity type.
+
+/// A generic repository protocol for basic CRUD operations.
+/// This is the minimal set of methods for any entity type.
 protocol RepositoryProtocol {
     associatedtype Model
-        // Create
+    /// Create
     func insert(_ item: Model) async throws
-        // Read
+    /// Read
     func getAll() async throws -> [Model]
     
     func getCount() async throws -> Int 
     
     func getOne(_ id: Int) async throws -> Model?
-        // Update
+    /// Update
     func update(_ item: Model) async throws
-        // Delete
+    /// Delete
     func delete(_ item: Model) async throws
-        //DeleteOne
+    ///DeleteOne
     func deleteOne(_ id: Int) async throws
 }
 
-
 protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Donor {
-        /// Find donors by a name or partial name match
+    /// Find donors by a name or partial name match
     func findByName(_ searchText: String) async throws -> [Donor]
-        /// A domain-specific method:
-        /// e.g. total donation amount for a particular donor.
-        //        func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
-        // Add new method for searching by ID
-        func getDonorById(_ id: Int) async throws -> Donor?
-        
-        // Rename existing search method for clarity
+    /// A domain-specific method:
+    /// e.g. total donation amount for a particular donor.
+    //        func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
+    // Add new method for searching by ID
+    func getDonorById(_ id: Int) async throws -> Donor?
+    
+    // Rename existing search method for clarity
 //        func findByName(_ name: String) async throws -> [Donor]
-
-
 }
 
-    protocol DonationSpecificRepositoryProtocol: RepositoryProtocol where Model == Donation {
+protocol DonationSpecificRepositoryProtocol: RepositoryProtocol where Model == Donation {
     //    /// Find donors by a name or partial name match
     //    func findByName(_ searchText: String) async throws -> [Donor]
     //    /// A domain-specific method:
@@ -52,26 +50,26 @@ protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Dono
         
 //        func getMaxId() async throws -> Int?
         
-        func getTotalDonationsAmount(forDonorId donorId: Int) async throws -> Double
+    func getTotalDonationsAmount(forDonorId donorId: Int) async throws -> Double
 
-        func getDonationsForCampaign(campaignId: Int) async throws -> [Donation]
+    func getDonationsForCampaign(campaignId: Int) async throws -> [Donation]
 
-        func getDonationsForDonor(donorId: Int) async throws -> [Donation]
-        
-        func countPendingReceipts() async throws -> Int
-        
-        func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws
-        
-        func getReceiptRequests(status: ReceiptStatus) async throws -> [Donation]
+    func getDonationsForDonor(donorId: Int) async throws -> [Donation]
+    
+    func countPendingReceipts() async throws -> Int
+    
+    func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws
+    
+    func getReceiptRequests(status: ReceiptStatus) async throws -> [Donation]
+}
 
-    }
-    protocol CampaignSpecificRepositoryProtocol: RepositoryProtocol where Model == Campaign {
+protocol CampaignSpecificRepositoryProtocol: RepositoryProtocol where Model == Campaign {
 //    //    /// Find donors by a name or partial name match
 //    //    func findByName(_ searchText: String) async throws -> [Donor]
 //    //    /// A domain-specific method:
 //    //    /// e.g. total donation amount for a particular donor.
 //    //    func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
-    }
+}
 
 protocol DonationIncentiveSpecificRepositoryProtocol: RepositoryProtocol where Model == DonationIncentive {
     // Add any specific methods for DonationIncentive here if needed
@@ -83,4 +81,12 @@ protocol DonationIncentiveSpecificRepositoryProtocol: RepositoryProtocol where M
     // Rest of the protocol remains the same
 }
 
-// End of file
+protocol PledgeSpecificRepositoryProtocol: RepositoryProtocol where Model == Pledge {
+    /// Fetches pledges for a specific donor.
+    func getPledgesForDonor(donorId: Int) async throws -> [Pledge]
+    /// Fetches pledges for a specific campaign.
+    func getPledgesForCampaign(campaignId: Int) async throws -> [Pledge]
+    /// Fetches pledges based on their status.
+    func getPledgesByStatus(status: PledgeStatus) async throws -> [Pledge]
+    // Add any other pledge-specific methods here if needed
+}
