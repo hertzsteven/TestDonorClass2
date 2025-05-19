@@ -33,6 +33,7 @@ struct Pledge: Identifiable, Codable, FetchableRecord, PersistableRecord, Hashab
     var donorId: Int?
     var campaignId: Int? // Optional: Pledges can be associated with campaigns
     var pledgeAmount: Double
+    var currentBalance: Double
     var status: PledgeStatus // From PledgeStatus.swift
     var expectedFulfillmentDate: Date
     var prayerNote: String?
@@ -49,6 +50,7 @@ struct Pledge: Identifiable, Codable, FetchableRecord, PersistableRecord, Hashab
         static let donorId = Column(CodingKeys.donorId)
         static let campaignId = Column(CodingKeys.campaignId)
         static let pledgeAmount = Column(CodingKeys.pledgeAmount)
+        static let currentBalance = Column(CodingKeys.currentBalance)
         static let status = Column(CodingKeys.status)
         static let expectedFulfillmentDate = Column(CodingKeys.expectedFulfillmentDate)
         static let prayerNote = Column(CodingKeys.prayerNote)
@@ -63,6 +65,7 @@ struct Pledge: Identifiable, Codable, FetchableRecord, PersistableRecord, Hashab
         case donorId = "donor_id"
         case campaignId = "campaign_id"
         case pledgeAmount = "pledge_amount"
+        case currentBalance = "current_balance"
         case status
         case expectedFulfillmentDate = "expected_fulfillment_date"
         case prayerNote = "prayer_note"
@@ -78,6 +81,7 @@ struct Pledge: Identifiable, Codable, FetchableRecord, PersistableRecord, Hashab
         donorId: Int?,
         campaignId: Int? = nil,
         pledgeAmount: Double,
+        currentBalance: Double? = nil,
         status: PledgeStatus,
         expectedFulfillmentDate: Date,
         prayerNote: String? = nil,
@@ -90,6 +94,7 @@ struct Pledge: Identifiable, Codable, FetchableRecord, PersistableRecord, Hashab
         self.donorId = donorId
         self.campaignId = campaignId
         self.pledgeAmount = pledgeAmount
+        self.currentBalance = currentBalance ?? pledgeAmount
         self.status = status
         self.expectedFulfillmentDate = expectedFulfillmentDate
         self.prayerNote = prayerNote
@@ -105,6 +110,9 @@ extension Pledge {
         if pledgeAmount <= 0 {
             throw PledgeValidationError.invalidAmount
         }
+        if currentBalance < 0 {
+            throw PledgeValidationError.invalidAmount // Could create a more specific error
+        }
         if donorId == nil {
             throw PledgeValidationError.missingDonor
         }
@@ -118,12 +126,15 @@ extension Pledge {
 struct MockPledgeGenerator {
     static func generatePledge(id: Int, donorId: Int, campaignId: Int? = nil) -> Pledge {
         let statuses: [PledgeStatus] = [.pledged, .partiallyFulfilled, .fulfilled, .cancelled]
-        
+        let amount = Double.random(in: 10...1000)
+        let balance = Bool.random() ? amount : Double.random(in: 0...amount)
+
         return Pledge(
             id: id,
             donorId: donorId,
             campaignId: campaignId,
-            pledgeAmount: Double.random(in: 10...1000),
+            pledgeAmount: amount,
+            currentBalance: balance,
             status: statuses.randomElement()!,
             expectedFulfillmentDate: Calendar.current.date(byAdding: .day, value: Int.random(in: 7...90), to: Date())!,
             prayerNote: Bool.random() ? "Pray for family health." : nil,

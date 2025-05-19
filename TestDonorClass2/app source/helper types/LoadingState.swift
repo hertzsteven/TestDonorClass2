@@ -5,7 +5,6 @@
 //  Created by Steven Hertz on 1/2/25.
 //
 
-
 import SwiftUI
 
 // Define loading states
@@ -15,19 +14,26 @@ enum LoadingState: Equatable {
     case loaded
     case error(String)
     
-        // Custom Equatable implementation to handle the associated value
-        static func == (lhs: LoadingState, rhs: LoadingState) -> Bool {
-            switch (lhs, rhs) {
-            case (.notLoaded, .notLoaded):
-                return true
-            case (.loading, .loading):
-                return true
-            case (.loaded, .loaded):
-                return true
-            case (.error(let lhsError), .error(let rhsError)):
-                return lhsError == rhsError
-            default:
-                return false
-            }
+    var isError: Bool {
+        if case .error = self {
+            return true
         }
+        return false
+    }
+    
+    // Custom Equatable implementation to handle the associated value
+    static func == (lhs: LoadingState, rhs: LoadingState) -> Bool {
+        switch (lhs, rhs) {
+        case (.notLoaded, .notLoaded):
+            return true
+        case (.loading, .loading):
+            return true
+        case (.loaded, .loaded):
+            return true
+        case (.error(let lhsError), .error(let rhsError)):
+            return lhsError == rhsError
+        default:
+            return false
+        }
+    }
 }
