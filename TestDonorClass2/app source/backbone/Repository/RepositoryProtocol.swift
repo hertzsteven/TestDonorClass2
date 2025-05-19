@@ -17,7 +17,7 @@ protocol RepositoryProtocol {
     /// Read
     func getAll() async throws -> [Model]
     
-    func getCount() async throws -> Int 
+    func getCount() async throws -> Int
     
     func getOne(_ id: Int) async throws -> Model?
     /// Update
@@ -88,5 +88,7 @@ protocol PledgeSpecificRepositoryProtocol: RepositoryProtocol where Model == Ple
     func getPledgesForCampaign(campaignId: Int) async throws -> [Pledge]
     /// Fetches pledges based on their status.
     func getPledgesByStatus(status: PledgeStatus) async throws -> [Pledge]
+    /// Updates the balance of a specific pledge and optionally its status.
+    func updatePledgeBalance(pledgeId: Int, newBalance: Double, newStatus: PledgeStatus?) async throws
     // Add any other pledge-specific methods here if needed
 }

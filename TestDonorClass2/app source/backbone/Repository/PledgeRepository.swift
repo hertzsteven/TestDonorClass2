@@ -69,6 +69,7 @@ class PledgeRepository: PledgeSpecificRepositoryProtocol {
         var mutableItem = item
         do {
             // Perform validation before inserting
+            // The Pledge init now handles setting currentBalance to pledgeAmount if nil
             try mutableItem.validate()
             
             // Ensure createdAt and updatedAt are set
@@ -77,7 +78,7 @@ class PledgeRepository: PledgeSpecificRepositoryProtocol {
             mutableItem.updatedAt = now
             
             try await dbPool.write { db in
-                try mutableItem.insert(db)
+                try mutableItem.insert(db) // GRDB should populate the ID back into mutableItem if it's autoincrementing
             }
         } catch let validationError as PledgeValidationError {
              handleError(validationError, context: "insert validation")
@@ -178,6 +179,63 @@ class PledgeRepository: PledgeSpecificRepositoryProtocol {
         } catch {
             handleError(error, context: "getPledgesByStatus with status: \(status.rawValue)")
             throw RepositoryError.fetchFailed(error.localizedDescription)
+        }
+    }
+
+    func updatePledgeBalance(pledgeId: Int, newBalance: Double, newStatus: PledgeStatus?) async throws {
+        guard let currentPledge = try await getOne(pledgeId) else {
+            throw RepositoryError.fetchFailed("Pledge with ID \(pledgeId) not found for balance update.")
+        }
+
+        var updatedPledge = currentPledge
+        updatedPledge.currentBalance = newBalance
+        if let status = newStatus {
+            updatedPledge.status = status
+        }
+        // Ensure updatedAt is fresh
+        updatedPledge.updatedAt = Date()
+
+        // Validate before updating (e.g., balance not negative, status transition is valid)
+        do {
+            try updatedPledge.validate() // Basic validation from model
+            // Add more specific validation for balance updates if needed here
+            if newBalance < 0 {
+                 throw PledgeValidationError.invalidAmount // Or a more specific error for balance
+            }
+            if newBalance == 0 && updatedPledge.status != .fulfilled && updatedPledge.status != .cancelled {
+                // If balance is zero, it should ideally be 'fulfilled' unless cancelled.
+                // This logic might be better handled at a higher level (ViewModel/Service)
+                // For now, we just update. Or force status to fulfilled if not provided and balance is 0.
+                if newStatus == nil { // If status wasn't explicitly set and balance is 0, mark as fulfilled
+                    updatedPledge.status = .fulfilled
+                }
+            } else if newBalance > 0 && newBalance < updatedPledge.pledgeAmount && updatedPledge.status != .partiallyFulfilled && updatedPledge.status != .cancelled {
+                 if newStatus == nil {
+                    updatedPledge.status = .partiallyFulfilled
+                 }
+            }
+
+
+        } catch let validationError as PledgeValidationError {
+            handleError(validationError, context: "updatePledgeBalance validation for pledgeId: \(pledgeId)")
+            throw RepositoryError.updateFailed("Validation failed for balance update: \(validationError.localizedDescription)")
+        }
+
+
+        do {
+            try await dbPool.write { db in
+                // Update specific columns to avoid overwriting other fields unintentionally
+                // if only balance and status are meant to change.
+                // Using the full update() method from PersistableRecord is also fine if the updatedPledge object is fully consistent.
+                try updatedPledge.update(db, columns: [
+                    Pledge.Columns.currentBalance,
+                    Pledge.Columns.status,
+                    Pledge.Columns.updatedAt
+                ])
+            }
+        } catch {
+            handleError(error, context: "updatePledgeBalance for pledgeId: \(pledgeId)")
+            throw RepositoryError.updateFailed(error.localizedDescription)
         }
     }
 }
