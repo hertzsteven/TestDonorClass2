@@ -208,6 +208,76 @@ class PledgeObjectClass: ObservableObject {
             errorMessage = error.localizedDescription
         }
     }
+    
+    func applyDonationToPledge(pledgeId: Int, donationAmount: Double) async {
+        guard donationAmount > 0 else {
+            print("PledgeObjectClass: Donation amount must be positive.")
+            // Optionally set an error message
+            return
+        }
+
+        loadingState = .loading
+        errorMessage = nil
+
+        do {
+            var pledgeToUpdate: Pledge? = pledges.first { $0.id == pledgeId }
+
+            if pledgeToUpdate == nil {
+                pledgeToUpdate = try await repository.getOne(pledgeId)
+            }
+
+            guard var pledgeToUpdate else {
+                print("PledgeObjectClass: Pledge with ID \(pledgeId) not found.")
+                errorMessage = "Pledge not found."
+                loadingState = .error(errorMessage!)
+                return
+            }
+
+            let newBalance = pledgeToUpdate.currentBalance - donationAmount
+            var newStatus = pledgeToUpdate.status
+
+            if newBalance <= 0 {
+                // Pledge is fully paid or overpaid
+                newStatus = .fulfilled
+                // It's important the repository sets the balance to 0 if it's negative,
+                // or we cap it here. The repository example caps at 0 implicitly if newBalance < 0 for .fulfilled.
+                // Let's ensure the newBalance passed to repo is not negative for clarity, or that repo handles it.
+                // The current repo implementation will just set the balance as calculated.
+                // For this business logic layer, we might say the balance cannot be negative.
+            } else if newBalance < pledgeToUpdate.pledgeAmount {
+                // Pledge is partially paid
+                newStatus = .partiallyFulfilled
+            }
+            // If newBalance == pledgeToUpdate.pledgeAmount, status remains .pledged (no change from initial)
+            // Or if it was .cancelled, it should remain .cancelled. This logic might need refinement
+            // based on exact business rules for status transitions (e.g., can't apply donation to .cancelled pledge).
+
+            // For simplicity, we'll let the repository handle the exact balance value (even if negative, though
+            // our UI/reports should show 0). The status update is key.
+            // The repository method also has some logic for auto-setting status if not provided.
+            try await repository.updatePledgeBalance(pledgeId: pledgeId, newBalance: max(0, newBalance), newStatus: newStatus)
+
+            // Refresh the specific pledge in the local array or reload all
+            if let index = pledges.firstIndex(where: { $0.id == pledgeId }) {
+                // Fetch the updated pledge to ensure all fields are current
+                if let updatedPledgeFromServer = try await repository.getOne(pledgeId) {
+                    pledges[index] = updatedPledgeFromServer
+                } else {
+                    // Pledge might have been deleted or an issue occurred, reload all
+                    await loadPledges()
+                }
+            } else {
+                // Pledge was not in the local list, reload all
+                await loadPledges()
+            }
+            
+            loadingState = .loaded
+        } catch {
+            print("PledgeObjectClass: Error applying donation to pledge: \(error.localizedDescription)")
+            loadingState = .error(error.localizedDescription)
+            errorMessage = "Failed to apply donation to pledge: \(error.localizedDescription)"
+        }
+    }
             
     // MARK: - Error Handling
     func clearError() {
