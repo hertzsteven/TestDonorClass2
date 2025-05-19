@@ -36,7 +36,9 @@ struct BatchDonationView: View {
     // Custom Initializer
     init() {
         do {
-             let donorRepo = try! DonorRepository()
+            let donorRepo = try! DonorRepository()
+
+//            let donorRepo = try! MockDonorRepository()
              let donationRepo = try! DonationRepository()
              _viewModel = StateObject(wrappedValue: BatchDonationViewModel(
                  repository: donorRepo,

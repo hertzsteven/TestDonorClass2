@@ -52,7 +52,10 @@ class DashboardViewModel {
                     image: Image(systemName: "megaphone")),
             Category(name: "Incentives",
                     color: .orange,
-                    image: Image(systemName: "gift"))
+                    image: Image(systemName: "gift")),
+            Category(name: "Pledges",
+                    color: .orange,
+                     image: Image(systemName: "calendar.badge.clock")) // Changed from "gift"
         ]
         
         // Reports & Analytics section

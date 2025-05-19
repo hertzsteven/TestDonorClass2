@@ -108,6 +108,9 @@ struct DashboardView: View {
                         .task {
                             await donorObject.loadDonors()
                         }
+                case "Pledges" :
+                    BatchPledgeView()
+                        .environmentObject(donorObject)
                 case "Reports": // Add a new category for reports
                     DonationReportView()
                          // Pass necessary environment objects if needed by subviews
