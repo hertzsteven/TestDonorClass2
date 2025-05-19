@@ -1,18 +1,3 @@
-//
-//  BatchPledgeView.swift
-//  TestDonorClass2
-//
-//  Created by Steven Hertz on 5/19/25.
-//
-
-
-//
-//  BatchPledgeView.swift
-//  Batch pledges
-//
-//  Created by Steven Hertz on 5/18/25.
-//
-
 import SwiftUI
 
 // BatchPledgeView (and its subviews like MockDonorSearchView)
@@ -21,7 +6,8 @@ import SwiftUI
 // are also included within BatchPledgeView.
 
 struct BatchPledgeView: View {
-    // Add this near the top of BatchPledgeView
+    @EnvironmentObject var campaignObject: CampaignObjectClass
+    // KEEP: EnvironmentObject for DonorObjectClass
     @EnvironmentObject var donorObject: DonorObjectClass
     // KEEP: viewModel and other state properties
     
@@ -148,6 +134,9 @@ struct BatchPledgeView: View {
             if let donor = selectedDonorForPrayer { PrayerNoteSheet(donor: donor, prayerNote: $currentPrayerNote) }
             else { PrayerNoteSheet(donor: nil, prayerNote: $currentPrayerNote) }
         }
+        .task {
+            await campaignObject.loadCampaigns()
+        }
     }
     
     // MODIFY: globalPledgeSettingsBar styling to match BatchDonationView
@@ -165,7 +154,10 @@ struct BatchPledgeView: View {
                     .foregroundColor(.secondary)
                 Menu {
                     Button("None") { selectedCampaign = nil }
-                    ForEach(viewModel.getMockCampaigns()) { campaign in Button(campaign.name) { selectedCampaign = campaign } }
+                    // MODIFY: Use campaignObject for campaigns
+                    ForEach(campaignObject.campaigns.filter { $0.status == .active }) { campaign in
+                        Button(campaign.name) { selectedCampaign = campaign }
+                    }
                 } label: {
                     Text(selectedCampaign?.name ?? "None")
                         .foregroundColor(.blue) // Match BatchDonationView
@@ -197,7 +189,7 @@ struct BatchPledgeView: View {
         .background(Color(.systemGray6)) // Match BatchDonationView
     }
     
-    // MODIFY: pledgeColumnHeaders styling to match BatchDonationView
+    // KEEP: pledgeColumnHeaders styling and content
     private var pledgeColumnHeaders: some View {
         HStack { // This HStack itself will get an outer padding
             Text("Status").frame(width: 50)
@@ -222,7 +214,7 @@ struct BatchPledgeView: View {
         .padding(.horizontal) // Outer padding to match BatchDonationView's structure
     }
     
-    // MODIFY: pledgeRowView styling to match batchRowView from BatchDonationView
+    // KEEP: pledgeRowView styling and content
     @ViewBuilder
     private func pledgeRowView(row: Binding<BatchPledgeViewModel.PledgeEntry>) -> some View {
         let r = row.wrappedValue
@@ -303,14 +295,14 @@ struct BatchPledgeView: View {
             Button { viewModel.rows.removeAll { $0.id == r.id } } label: { Image(systemName: "trash").foregroundColor(.red) }.buttonStyle(PlainButtonStyle())
         } else {
             Menu {
-                Button { 
-                    Task { 
+                Button {
+                    Task {
                         if let donorID = r.donorID {
-                            await viewModel.findDonor(for: r.id) 
+                            await viewModel.findDonor(for: r.id)
                         }
-                    } 
-                } label: { 
-                    Label("Find by ID", systemImage: "number") 
+                    }
+                } label: {
+                    Label("Find by ID", systemImage: "number")
                 }
                 .disabled(r.donorID == nil)
                 Button { currentRowIDForSearch = r.id; showingDonorSearch = true } label: { Label("Search Donor", systemImage: "magnifyingglass") }

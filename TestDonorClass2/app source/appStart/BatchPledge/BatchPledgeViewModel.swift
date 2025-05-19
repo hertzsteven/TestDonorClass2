@@ -5,7 +5,6 @@
 //  Created by Steven Hertz on 5/19/25.
 //
 
-
 import SwiftUI
 
 @MainActor
@@ -66,7 +65,6 @@ class BatchPledgeViewModel: ObservableObject {
     @Published var focusedRowID: UUID? = nil
     
     private var mockDonors: [Donor] = []
-    private var mockCampaigns: [Campaign] = []
     
     init(repository: any DonorSpecificRepositoryProtocol) {
         self.repository = repository
@@ -82,11 +80,6 @@ class BatchPledgeViewModel: ObservableObject {
 //            Donor(id: 103, firstName: "Carol", lastName: "Williams", address: "30 Oak Ln", city: "Pledgeton", state: "TX", email: "carol@example.com"),
 //            Donor(id: 104, firstName: "David", lastName: "Brown", address: "40 Pine Rd", city: "Pledgeside", state: "FL", email: "dave@example.com")
 //        ]
-        mockCampaigns = [
-            Campaign( campaignCode: "SPRING24", name: "Spring Forward Pledge Drive", status: .active),
-            Campaign( campaignCode: "BUILD25", name: "Building Fund 2025", status: .active),
-            Campaign( campaignCode: "EDUCARE", name: "Education First", status: .draft)
-        ]
     }
     
     func addRow() {
@@ -223,10 +216,6 @@ class BatchPledgeViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 100_000_000)
         }
         return (successfulPledgesCount, failedPledgesCount, totalPledgeAmount)
-    }
-    
-    func getMockCampaigns() -> [Campaign] {
-        return mockCampaigns.filter { $0.status == .active }
     }
     
     func searchMockDonors(query: String) -> [Donor] {
