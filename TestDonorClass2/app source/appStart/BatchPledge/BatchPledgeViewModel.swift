@@ -55,6 +55,7 @@ class BatchPledgeViewModel: ObservableObject {
     // MARK: - Private Properties
     // Use protocols and remove default values
     private let repository: any DonorSpecificRepositoryProtocol
+    private let pledgeRepository: any PledgeSpecificRepositoryProtocol
     
     
     @Published var globalPledgeAmount: Double = 50.0
@@ -66,20 +67,22 @@ class BatchPledgeViewModel: ObservableObject {
     
     private var mockDonors: [Donor] = []
     
-    init(repository: any DonorSpecificRepositoryProtocol) {
+    // MODIFY: init to accept pledgeRepository
+    init(repository: any DonorSpecificRepositoryProtocol, pledgeRepository: any PledgeSpecificRepositoryProtocol) {
         self.repository = repository
+        self.pledgeRepository = pledgeRepository
         setupMockData()
         addRow()
-        print("BatchPledgeViewModel Initialized")
+        print("BatchPledgeViewModel Initialized with Donor and Pledge Repositories")
     }
     
     private func setupMockData() {
-//        mockDonors = [
-//            Donor(id: 101, firstName: "Alice", lastName: "Smith", address: "10 Park Ave", city: "Pledgeville", state: "NY", email: "alice@example.com"),
-//            Donor(id: 102, firstName: "Bob", lastName: "Johnson", company: "Pledge Corp", address: "20 Main St", city: "Pledgeburg", state: "CA", email: "bob@example.com"),
-//            Donor(id: 103, firstName: "Carol", lastName: "Williams", address: "30 Oak Ln", city: "Pledgeton", state: "TX", email: "carol@example.com"),
-//            Donor(id: 104, firstName: "David", lastName: "Brown", address: "40 Pine Rd", city: "Pledgeside", state: "FL", email: "dave@example.com")
-//        ]
+        //        mockDonors = [
+        //            Donor(id: 101, firstName: "Alice", lastName: "Smith", address: "10 Park Ave", city: "Pledgeville", state: "NY", email: "alice@example.com"),
+        //            Donor(id: 102, firstName: "Bob", lastName: "Johnson", company: "Pledge Corp", address: "20 Main St", city: "Pledgeburg", state: "CA", email: "bob@example.com"),
+        //            Donor(id: 103, firstName: "Carol", lastName: "Williams", address: "30 Oak Ln", city: "Pledgeton", state: "TX", email: "carol@example.com"),
+        //            Donor(id: 104, firstName: "David", lastName: "Brown", address: "40 Pine Rd", city: "Pledgeside", state: "FL", email: "dave@example.com")
+        //        ]
     }
     
     func addRow() {
@@ -186,34 +189,59 @@ class BatchPledgeViewModel: ObservableObject {
         }
     }
     
+    // MODIFY: saveBatchPledges to actually save pledges
     func saveBatchPledges(selectedCampaignId: Int?) async -> (success: Int, failed: Int, totalAmount: Double) {
         var successfulPledgesCount = 0
         var totalPledgeAmount: Double = 0
         var failedPledgesCount = 0
-        for index in rows.indices {
-            guard rows[index].isValidDonor, let donorID = rows[index].donorID else {
-                if rows[index].donorID != nil && !rows[index].isValidDonor {
-                    rows[index].processStatus = .failure(message: "Donor not validated")
+        
+        // Create a snapshot for iteration, similar to BatchDonationViewModel
+        let rowsToProcess = rows
+
+        for row in rowsToProcess {
+            // Find current index in the actual rows array
+            guard let index = rows.firstIndex(where: { $0.id == row.id }) else { continue }
+
+            guard row.isValidDonor, let donorID = row.donorID else {
+                if row.donorID != nil && !row.isValidDonor {
+                    // This case implies a donorID was entered but not validated (e.g., not found)
+                    await MainActor.run { rows[index].processStatus = .failure(message: "Donor not validated") }
                     failedPledgesCount += 1
                 }
+                // Silently skip rows that are not ready (e.g. empty rows without donorID)
                 continue
             }
-            let pledgeAmount = rows[index].hasPledgeOverride ? rows[index].pledgeOverride : globalPledgeAmount
+
+            let pledgeAmount = row.hasPledgeOverride ? row.pledgeOverride : globalPledgeAmount
             guard pledgeAmount > 0 else {
-                rows[index].processStatus = .failure(message: "Amount is zero")
+                await MainActor.run { rows[index].processStatus = .failure(message: "Pledge amount must be greater than zero") }
                 failedPledgesCount += 1
                 continue
             }
-            print("Simulating save for Pledge: Donor ID \(donorID), Amount: \(pledgeAmount), Campaign: \(selectedCampaignId ?? 0)")
-            if Bool.random() || mockDonors.count < 2 {
-                rows[index].processStatus = .success
+
+            let prayerNoteText = row.prayerNoteSW ? row.prayerNote : nil
+
+            let newPledge = Pledge(
+                donorId: donorID,
+                campaignId: selectedCampaignId,
+                pledgeAmount: pledgeAmount,
+                // currentBalance will default to pledgeAmount in Pledge init
+                status: row.pledgeStatusOverride,
+                expectedFulfillmentDate: row.expectedFulfillmentDate,
+                prayerNote: prayerNoteText,
+                notes: nil // No general notes field in PledgeEntry currently
+            )
+
+            do {
+                try await pledgeRepository.insert(newPledge)
+                await MainActor.run { rows[index].processStatus = .success }
                 successfulPledgesCount += 1
                 totalPledgeAmount += pledgeAmount
-            } else {
-                rows[index].processStatus = .failure(message: "Simulated save error")
+            } catch {
+                print("Error saving pledge for donor \(donorID): \(error.localizedDescription)")
+                await MainActor.run { rows[index].processStatus = .failure(message: error.localizedDescription) }
                 failedPledgesCount += 1
             }
-            try? await Task.sleep(nanoseconds: 100_000_000)
         }
         return (successfulPledgesCount, failedPledgesCount, totalPledgeAmount)
     }

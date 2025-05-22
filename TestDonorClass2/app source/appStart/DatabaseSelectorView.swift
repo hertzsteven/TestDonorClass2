@@ -21,7 +21,7 @@ struct DatabaseSelectorView: View {
 //                          .alert("Database Error", error: $initError)
             } else {
                 VStack(spacing: 16) {
-                    Text("Select an Organization")
+                    Text("Select the Organization")
                         .font(.headline)
                     
                     List(availableDatabases, id: \.self) { db in

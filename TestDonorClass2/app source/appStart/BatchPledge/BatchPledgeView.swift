@@ -27,50 +27,44 @@ struct BatchPledgeView: View {
     
     init() {
         do {
-            let donorRepo = try! DonorRepository()
+            let donorRepo = try DonorRepository()
+            let pledgeRepo = try PledgeRepository()
             _viewModel = StateObject(wrappedValue: BatchPledgeViewModel(
-                repository: donorRepo
+                repository: donorRepo,
+                pledgeRepository: pledgeRepo
             ))
         } catch {
             fatalError("Failed to initialize repositories for BatchPledgeView: \(error)")
         }
     }
     
-    // KEEP: body structure
     var body: some View {
         VStack(spacing: 0) {
-            // MODIFY: globalPledgeSettingsBar will have its padding applied directly within its definition
             globalPledgeSettingsBar
-            // MODIFY: pledgeColumnHeaders will have its padding applied directly within its definition
             pledgeColumnHeaders
             List {
                 ForEach(Array(viewModel.rows.enumerated()), id: \.element.id) { index, _ in
                     pledgeRowView(row: $viewModel.rows[index])
                         .focused($focusedRowID, equals: viewModel.rows[index].id)
-                    // MODIFY: List row insets to match BatchDonationView's default or explicit settings if any.
-                    // BatchDonationView used .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                    // Let's keep this consistent for now, assuming the padding inside pledgeRowView is adjusted.
                         .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                         .listRowSeparator(.visible)
                         .listRowBackground( index % 2 == 0 ? Color(.systemBackground) :  Color(.systemGray6).opacity(0.3) )
                 }
             }
             .listStyle(.plain)
-            // MODIFY: Match BatchDonationView's background and padding for the List container
-            .background(Color(.systemBackground)) // Match BatchDonationView
-            .clipShape(RoundedRectangle(cornerRadius: 8)) // Match BatchDonationView
-            .padding(.horizontal, 16) // Match BatchDonationView
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 16)
         }
         .navigationTitle("Batch Pledges")
         .navigationBarTitleDisplayMode(.inline)
-        // KEEP: toolbar, sheets, alerts
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 HStack {
                     if !viewModel.rows.contains(where: { $0.isValidDonor }) {
                         Button(action: { print("Back pressed") }) {
                             HStack(spacing: 5) { Image(systemName: "chevron.left"); Text("Back") }
-                                .foregroundColor(.blue) // Match BatchDonationView
+                                .foregroundColor(.blue)
                         }
                     }
                     if viewModel.rows.contains(where: { $0.isValidDonor }) {
@@ -89,24 +83,11 @@ struct BatchPledgeView: View {
                             showingSaveSummary = true
                         }
                     }
-                    .foregroundColor(.blue) // Match BatchDonationView
+                    .foregroundColor(.blue)
                     .disabled(viewModel.rows.allSatisfy { !$0.isValidDonor })
                 }
             }
         }
-        //        .sheet(isPresented: $showingDonorSearch) {
-        //            MockDonorSearchView( // Assuming MockDonorSearchView is styled appropriately or is simple enough not to clash.
-        //                                // If DonorSearchSelectionView from BatchDonationView is preferred, this would be a larger change.
-        //                searchAction: { query in viewModel.searchMockDonors(query: query) },
-        //                onDonorSelected: { selectedDonor in
-        //                    if let rowID = currentRowIDForSearch {
-        //                        Task { await viewModel.setDonorFromSearch(selectedDonor, for: rowID) }
-        //                    }
-        //                    showingDonorSearch = false
-        //                    currentRowIDForSearch = nil
-        //                }
-        //            )
-        //        }
         .sheet(isPresented: $showingDonorSearch) {
             DonorSearchSelectionView { selectedDonor in
                 if let rowID = currentRowIDForSearch {
@@ -139,28 +120,26 @@ struct BatchPledgeView: View {
         }
     }
     
-    // MODIFY: globalPledgeSettingsBar styling to match BatchDonationView
     private var globalPledgeSettingsBar: some View {
-        HStack(spacing: 20) { // Match BatchDonationView spacing
-            HStack(spacing: 8) { // Match BatchDonationView inner spacing
+        HStack(spacing: 20) {
+            HStack(spacing: 8) {
                 Text("Amount:")
-                    .foregroundColor(.secondary) // Keep
+                    .foregroundColor(.secondary)
                 TextField("", value: $viewModel.globalPledgeAmount, format: .currency(code: "USD"))
-                    .textFieldStyle(.roundedBorder) // Keep
-                    .frame(width: 80) // Match BatchDonationView
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 80)
             }
             HStack(spacing: 8) {
                 Text("Campaign:")
                     .foregroundColor(.secondary)
                 Menu {
                     Button("None") { selectedCampaign = nil }
-                    // MODIFY: Use campaignObject for campaigns
                     ForEach(campaignObject.campaigns.filter { $0.status == .active }) { campaign in
                         Button(campaign.name) { selectedCampaign = campaign }
                     }
                 } label: {
                     Text(selectedCampaign?.name ?? "None")
-                        .foregroundColor(.blue) // Match BatchDonationView
+                        .foregroundColor(.blue)
                 }
             }
             HStack(spacing: 8) {
@@ -170,79 +149,71 @@ struct BatchPledgeView: View {
                     ForEach(PledgeStatus.allCases) { status in Button(status.displayName) { viewModel.globalPledgeStatus = status } }
                 } label: {
                     Text(viewModel.globalPledgeStatus.displayName)
-                        .foregroundColor(.blue) // Match BatchDonationView
+                        .foregroundColor(.blue)
                 }
             }
             HStack(spacing: 8) {
                 Text("Fulfill by:")
                     .foregroundColor(.secondary)
                 DatePicker("", selection: $viewModel.globalExpectedFulfillmentDate, displayedComponents: .date)
-                    .labelsHidden() // Keep
-                    .frame(minWidth: 90) // Keep, or adjust if BatchDonationView has a different approach
+                    .labelsHidden()
+                    .frame(minWidth: 90)
             }
-            // Removed "Confirm" toggle section
-            
-            Spacer() // Match BatchDonationView
+            Spacer()
         }
-        .padding(.horizontal) // Match BatchDonationView
-        .padding(.vertical, 8) // Match BatchDonationView
-        .background(Color(.systemGray6)) // Match BatchDonationView
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(.systemGray6))
     }
     
-    // KEEP: pledgeColumnHeaders styling and content
     private var pledgeColumnHeaders: some View {
-        HStack { // This HStack itself will get an outer padding
+        HStack {
             Text("Status").frame(width: 50)
             Text("Donor ID").frame(width: 70)
             Text("Name & Address").frame(maxWidth: .infinity, alignment: .leading)
             Text("Prayer").frame(width: 50)
-            // Removed "Confirm" header
             Text("Pledge Status").frame(width: 110)
-            Text("Fulfill By").frame(width: 90) // Keep width or adjust
+            Text("Fulfill By").frame(width: 90)
             Text("Amount").frame(width: 70, alignment: .trailing)
             Text("Action").frame(width: 50)
         }
-        .font(.caption.bold()) // Keep
-        .foregroundColor(.secondary) // Keep
-        .padding(.horizontal) // Inner padding
-        .padding(.vertical, 8) // Match BatchDonationView vertical padding
+        .font(.caption.bold())
+        .foregroundColor(.secondary)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
         .background(
             Rectangle()
-                .fill(Color(.systemGray6).opacity(0.7)) // Match BatchDonationView
-                .shadow(color: .black.opacity(0.05), radius: 1, y: 1) // Match BatchDonationView
+                .fill(Color(.systemGray6).opacity(0.7))
+                .shadow(color: .black.opacity(0.05), radius: 1, y: 1)
         )
-        .padding(.horizontal) // Outer padding to match BatchDonationView's structure
+        .padding(.horizontal)
     }
     
-    // KEEP: pledgeRowView styling and content
     @ViewBuilder
     private func pledgeRowView(row: Binding<BatchPledgeViewModel.PledgeEntry>) -> some View {
         let r = row.wrappedValue
         HStack {
-            Image(systemName: statusIcon(for: r.processStatus)).foregroundColor(statusColor(for: r.processStatus)).frame(width: 50, alignment: .center) // Keep
+            Image(systemName: statusIcon(for: r.processStatus)).foregroundColor(statusColor(for: r.processStatus)).frame(width: 50, alignment: .center)
             
             TextField("ID", value: row.donorID, format: .number)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 70)
                 .keyboardType(.numberPad)
                 .disabled(r.isValidDonor)
-                .foregroundColor(r.isValidDonor ? .gray : .primary) // Keep
-                .background(r.isValidDonor ? Color(.systemGray6) : Color(.systemBackground)) // Match BatchDonationView
+                .foregroundColor(r.isValidDonor ? .gray : .primary)
+                .background(r.isValidDonor ? Color(.systemGray6) : Color(.systemBackground))
             
             Text(r.displayInfo.isEmpty && r.donorID == nil ? "Enter ID or Search" : r.displayInfo)
-                .font(r.isValidDonor ? .body : .callout) // MODIFY: Match BatchDonationView fonts
-                .foregroundColor(r.isValidDonor ? .primary : (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ? .red : .secondary)) // Keep
+                .font(r.isValidDonor ? .body : .callout)
+                .foregroundColor(r.isValidDonor ? .primary : (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ? .red : .secondary))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .lineLimit(2) // Keep
+                .lineLimit(2)
                 .help(r.displayInfo)
             
             Toggle("", isOn: row.prayerNoteSW).labelsHidden().frame(width: 50, alignment: .center).toggleStyle(.button).disabled(!r.isValidDonor)
                 .onChange(of: row.prayerNoteSW.wrappedValue) { oldValue, newValue in
                     if newValue {
                         currentPrayerRowID = r.id
-                        //                        selectedDonorForPrayer = viewModel.getDonor(by: r.donorID)
-                        //                        currentPrayerNote = r.prayerNote ?? ""
-                        //                        showingPrayerNoteSheet = true
                         Task {
                             if let donorId = r.donorID {
                                 selectedDonorForPrayer = try? await donorObject.getDonor(donorId)
@@ -253,41 +224,38 @@ struct BatchPledgeView: View {
                     }
                 }
             
-            // Removed "Confirm" toggle
-            
             Picker("", selection: row.pledgeStatusOverride) { ForEach(PledgeStatus.allCases) { status in Text(status.displayName).tag(status) } }
                 .pickerStyle(.menu)
-                .frame(width: 110) // Adjust width as needed
+                .frame(width: 110)
                 .disabled(!r.isValidDonor)
             
             DatePicker("", selection: row.expectedFulfillmentDate, displayedComponents: .date)
                 .labelsHidden()
-                .frame(width: 90) // Adjust width as needed
+                .frame(width: 90)
                 .disabled(!r.isValidDonor)
             
             TextField("Amount", value: row.pledgeOverride, format: .currency(code: "USD"))
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .keyboardType(.decimalPad)
                 .frame(width: 70)
-                .foregroundColor(r.hasPledgeOverride ? .blue : .primary) // Keep
+                .foregroundColor(r.hasPledgeOverride ? .blue : .primary)
                 .disabled(!r.isValidDonor)
             
-            actionButton(row: row).frame(width: 50, alignment: .center) // Keep
+            actionButton(row: row).frame(width: 50, alignment: .center)
         }
-        .padding(.vertical, 8) // MODIFY: Match BatchDonationView padding
+        .padding(.vertical, 8)
         .overlay(
-            RoundedRectangle(cornerRadius: 4) // Keep overlay logic
+            RoundedRectangle(cornerRadius: 4)
                 .stroke(
                     r.isValidDonor ? Color.clear :
                         (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ?
                          Color.red.opacity(0.3) : Color.gray.opacity(0.3)),
                     lineWidth: 1
                 )
-                .padding(.horizontal, 8) // Keep
+                .padding(.horizontal, 8)
         )
     }
     
-    // KEEP: actionButton and helper functions (statusIcon, statusColor, formatCurrency, isFailureStatus)
     @ViewBuilder
     private func actionButton(row: Binding<BatchPledgeViewModel.PledgeEntry>) -> some View {
         let r = row.wrappedValue
@@ -306,7 +274,7 @@ struct BatchPledgeView: View {
                 }
                 .disabled(r.donorID == nil)
                 Button { currentRowIDForSearch = r.id; showingDonorSearch = true } label: { Label("Search Donor", systemImage: "magnifyingglass") }
-            } label: { Image(systemName: "ellipsis.circle").foregroundColor(.blue).imageScale(.large) }.buttonStyle(PlainButtonStyle()).disabled(isFailureStatus(r.processStatus)) // Match BatchDonationView's imageScale
+            } label: { Image(systemName: "ellipsis.circle").foregroundColor(.blue).imageScale(.large) }.buttonStyle(PlainButtonStyle()).disabled(isFailureStatus(r.processStatus))
         }
     }
     
@@ -324,7 +292,6 @@ struct BatchPledgeView: View {
     }
 }
 
-// KEEP: MockDonorSearchView
 struct MockDonorSearchView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var searchText: String = ""
@@ -342,7 +309,7 @@ struct MockDonorSearchView: View {
                     if !searchText.isEmpty { Button { searchText = ""; searchResults = searchAction("") } label: { Image(systemName: "xmark.circle.fill").foregroundColor(.gray) } }
                 }.padding()
                 List(searchResults) { donor in
-                    VStack(alignment: .leading) { Text(donor.fullName); Text(donor.address ?? "").font(.caption).foregroundColor(.gray) } // Mock view styling can be separate
+                    VStack(alignment: .leading) { Text(donor.fullName); Text(donor.address ?? "").font(.caption).foregroundColor(.gray) }
                         .contentShape(Rectangle()).onTapGesture { onDonorSelected(donor) }
                 }
             }
