@@ -1,11 +1,3 @@
-//
-//  FolderPickerView.swift
-//  TestDonorClass2
-//
-//  Created by Steven Hertz on 1/10/25.
-//
-
-
 import SwiftUI
 import UniformTypeIdentifiers
 import UIKit
@@ -15,6 +7,12 @@ struct FolderPickerView: UIViewControllerRepresentable {
     typealias CompletionHandler = (URL?) -> Void
     
     let completionHandler: CompletionHandler
+    let startInICloud: Bool
+    
+    init(startInICloud: Bool = false, completion: @escaping CompletionHandler) {
+        self.startInICloud = startInICloud
+        self.completionHandler = completion
+    }
     
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
         // For iOS 14+, you can use UTType.folder.identifier directly (if you import UniformTypeIdentifiers).
@@ -28,6 +26,10 @@ struct FolderPickerView: UIViewControllerRepresentable {
         // We want the user to pick a folder, not multiple items
         controller.allowsMultipleSelection = false
         
+        if startInICloud, let iCloudURL = getICloudDriveURL() {
+            controller.directoryURL = iCloudURL
+        }
+        
         return controller
     }
     
@@ -37,6 +39,29 @@ struct FolderPickerView: UIViewControllerRepresentable {
     
     func makeCoordinator() -> Coordinator {
         Coordinator(completion: completionHandler)
+    }
+    
+    private func getICloudDriveURL() -> URL? {
+        let fileManager = FileManager.default
+        
+        if let iCloudURL = fileManager.url(forUbiquityContainerIdentifier: nil) {
+            return iCloudURL.appendingPathComponent("Documents")
+        }
+        
+        if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let iCloudPath = documentsURL
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .appendingPathComponent("Library")
+                .appendingPathComponent("Mobile Documents")
+                .appendingPathComponent("com~apple~CloudDocs")
+            
+            if fileManager.fileExists(atPath: iCloudPath.path) {
+                return iCloudPath
+            }
+        }
+        
+        return nil
     }
     
     class Coordinator: NSObject, UIDocumentPickerDelegate {

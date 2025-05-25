@@ -5,19 +5,28 @@ struct BackupDatabaseView: View {
     
     @State private var showFolderPicker = false
     @State private var backupStatus: String = ""
+    @State private var useICloudBackup = true
     
     var body: some View {
         VStack(spacing: 20) {
             Text("Backup Your Database")
                 .font(.title)
             
-            Button("copy over resource") {
-                performCopy()
-            }
-            
-             
-            Button("Pick Folder to Backup") {
-                showFolderPicker = true
+            Toggle("Backup to iCloud Drive", isOn: $useICloudBackup)
+                .padding(.horizontal)
+                .onChange(of: useICloudBackup) { _ in
+                    backupStatus = ""
+                }
+            if useICloudBackup {
+                Button("Backup to iCloud Drive") {
+                    backupStatus = performICloudBackup()
+                }
+                .buttonStyle(.borderedProminent)
+            } else {
+                Button("Pick Folder to Backup") {
+                    showFolderPicker = true
+                }
+                .buttonStyle(.borderedProminent)
             }
             
             if !backupStatus.isEmpty {
@@ -27,42 +36,138 @@ struct BackupDatabaseView: View {
             }
         }
         .sheet(isPresented: $showFolderPicker) {
-            FolderPickerView { folderURL in
+            FolderPickerView(startInICloud: useICloudBackup) { folderURL in
                 guard let folderURL = folderURL else {
                     backupStatus = "Folder selection cancelled."
                     return
                 }
                 
-                    // Perform the backup with security scope
-                backupStatus = performBackup(to: folderURL)
+                if useICloudBackup && !isICloudURL(folderURL) {
+                    backupStatus = "Warning: Selected folder may not be in iCloud Drive. Proceeding with backup..."
+                }
                 
+                backupStatus = performBackup(to: folderURL)
                 showFolderPicker = false
             }
         }
         .padding()
     }
     
+    private func performICloudBackup() -> String {
+        // For now, always use folder picker but start in iCloud
+        showFolderPicker = true
+        return "Opening folder picker in iCloud Drive..."
+    }
+    
+    private func getICloudDriveURL() -> URL? {
+        let fileManager = FileManager.default
+        
+        // Method 1: Try ubiquity container
+        print("Trying method 1: ubiquity container")
+        if let iCloudURL = fileManager.url(forUbiquityContainerIdentifier: nil) {
+            let documentsURL = iCloudURL.appendingPathComponent("Documents")
+            print("Checking path: \(documentsURL.path)")
+            if fileManager.fileExists(atPath: documentsURL.path) {
+                print("Method 1 successful!")
+                return documentsURL
+            }
+            print("Documents folder doesn't exist, trying root iCloud URL")
+            if fileManager.fileExists(atPath: iCloudURL.path) {
+                print("Method 1 successful with root URL!")
+                return iCloudURL
+            }
+        } else {
+            print("ubiquity container returned nil")
+        }
+        
+        // Method 2: Try standard iCloud Drive path via Documents directory
+        print("Trying method 2: Documents directory approach")
+        if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let iCloudPath = documentsURL
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .appendingPathComponent("Library")
+                .appendingPathComponent("Mobile Documents")
+                .appendingPathComponent("com~apple~CloudDocs")
+            
+            print("Checking path: \(iCloudPath.path)")
+            if fileManager.fileExists(atPath: iCloudPath.path) {
+                print("Method 2 successful!")
+                return iCloudPath
+            }
+        }
+        
+        // Method 3: Alternative path using Application Support directory
+        print("Trying method 3: Application Support approach")
+        do {
+            let appSupportURL = try fileManager.url(for: .applicationSupportDirectory,
+                                                  in: .userDomainMask,
+                                                  appropriateFor: nil,
+                                                  create: false)
+            let iCloudPath = appSupportURL
+                .deletingLastPathComponent()
+                .deletingLastPathComponent()
+                .appendingPathComponent("Library")
+                .appendingPathComponent("Mobile Documents")
+                .appendingPathComponent("com~apple~CloudDocs")
+            
+            print("Checking path: \(iCloudPath.path)")
+            if fileManager.fileExists(atPath: iCloudPath.path) {
+                print("Method 3 successful!")
+                return iCloudPath
+            }
+        } catch {
+            print("Error accessing alternative iCloud path: \(error)")
+        }
+        
+        // Method 4: Try alternative iCloud container approach
+        print("Trying method 4: Alternative container approach")
+        if let iCloudURL = fileManager.url(forUbiquityContainerIdentifier: nil) {
+            print("Got ubiquity container, checking if it exists: \(iCloudURL.path)")
+            if fileManager.fileExists(atPath: iCloudURL.path) {
+                print("Method 4 successful!")
+                return iCloudURL
+            }
+        }
+        
+        print("All methods failed to find iCloud Drive")
+        return nil
+    }
+    
+    private func isICloudURL(_ url: URL) -> Bool {
+        do {
+            let resourceValues = try url.resourceValues(forKeys: [.isUbiquitousItemKey])
+            if let isUbiquitous = resourceValues.isUbiquitousItem {
+                return isUbiquitous
+            }
+        } catch {
+            print("Error checking ubiquitous status: \(error)")
+        }
+        
+        let path = url.path
+        return path.contains("com~apple~CloudDocs") ||
+               path.contains("iCloud Drive") ||
+               path.contains("Mobile Documents") ||
+               path.contains("iCloud")
+    }
+
     private func performBackup(to folderURL: URL) -> String {
         
-        //  Attempt to start accessing the security-scoped folder
         guard folderURL.startAccessingSecurityScopedResource() else {
             return "Error: Couldn't access security-scoped folder."
         }
         
-        //  Guarantee we stop accessing when this function exits
         defer { folderURL.stopAccessingSecurityScopedResource() }
         
         let backupManager = BackupManager()
         var dbWasOpen = true
         
-        // Close database before backup
         do {
             try backupManager.closeDatabase()
         } catch {
             return "Error closing database before backup: \(error.localizedDescription)"
         }
         
-        // Ensure database gets reopened
         defer {
             if dbWasOpen {
                 do {
@@ -73,23 +178,27 @@ struct BackupDatabaseView: View {
             }
         }
         
-        //  Generate a timestamp string
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyyMMdd_HHmmss" // Adjust as needed
+        dateFormatter.dateFormat = "yyyyMMdd_HHmmss"
         let timestamp = dateFormatter.string(from: Date())
- 
         
-        // Do the file operation
+        let backupSubfolderName = "DonorApp_Backup_\(timestamp)"
+        let backupFolderURL = folderURL.appendingPathComponent(backupSubfolderName)
+ 
         let fileManager = FileManager.default
         
         do {
-            // Get the Application Support directory
+            try fileManager.createDirectory(at: backupFolderURL, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            return "Error creating backup subfolder: \(error.localizedDescription)"
+        }
+        
+        do {
             let appSupportURL = try fileManager.url(for: .applicationSupportDirectory,
                                       in: .userDomainMask,
                                       appropriateFor: nil,
                                       create: true)
         
-            // Get all files in the directory
             let fileURLs = try fileManager.contentsOfDirectory(
                 at: appSupportURL,
                 includingPropertiesForKeys: nil
@@ -100,7 +209,7 @@ struct BackupDatabaseView: View {
             
             for fileURL in fileURLs {
                 print(fileURL.lastPathComponent)
-                let destinationURL = folderURL.appendingPathComponent("\(timestamp)_\(fileURL.lastPathComponent)")
+                let destinationURL = backupFolderURL.appendingPathComponent(fileURL.lastPathComponent)
                 do {
                     print("from \(fileURL.lastPathComponent) to \(destinationURL.lastPathComponent)")
                     try fileManager.copyItem(at: fileURL, to: destinationURL)
@@ -111,62 +220,21 @@ struct BackupDatabaseView: View {
             }
             
             if errors.isEmpty {
-                return "Successfully backed up \(successCount) files"
+                let locationText = isICloudURL(folderURL) ? " to iCloud Drive" : ""
+                return "Successfully backed up \(successCount) files\(locationText) in folder: \(backupSubfolderName)"
             } else {
-                return "Backed up \(successCount) files with errors:\n" + errors.joined(separator: "\n")
+                return "Backed up \(successCount) files with errors in folder \(backupSubfolderName):\n" + errors.joined(separator: "\n")
             }
             
         } catch {
             return "Error accessing files: \(error.localizedDescription)"
         }
-        
-//        return "Successfully backed up to: ---"
     }
 
-    private func performBackupOld(to folderURL: URL) -> String {
-            // 1. Attempt to start accessing the security-scoped folder
-        guard folderURL.startAccessingSecurityScopedResource() else {
-            return "Error: Couldn't access security-scoped folder."
-        }
-            // 2. Guarantee we stop accessing when this function exits
-        defer { folderURL.stopAccessingSecurityScopedResource() }
-        
-            // 3. Do the file operation
-        let fileManager = FileManager.default
-        
-        guard let dbURL = backupManager.getDatabaseURL() else {
-            return "Database file not found."
-        }
-        
-            // 1. Generate a timestamp string
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyyMMdd_HHmmss" // Adjust as needed
-        let timestamp = dateFormatter.string(from: Date())
-        
-            // 2. Use the timestamp in your backup filename
-        let backupFileName = "databaseBackup-\(timestamp).sqlite"
-        let destinationURL = folderURL.appendingPathComponent(backupFileName)
-        
-        
-        do {
-                // If a file already exists at the same name, remove it
-            if fileManager.fileExists(atPath: destinationURL.path) {
-                try fileManager.removeItem(at: destinationURL)
-            }
-                // Copy your DB file
-            try fileManager.copyItem(at: dbURL, to: destinationURL)
-            return "Successfully backed up to: \(destinationURL.lastPathComponent)"
-        } catch {
-            return "Error copying database: \(error.localizedDescription)"
-        }
-    }
-    
     private func performCopy() -> String {
         
-            // Do the file operation
         let fileManager = FileManager.default
         
-            // get a file from project resources
         let fileURL = Bundle.main.url(forResource: "UTIMAIN", withExtension: "csv")!
         print("fileURL: \(fileURL)")
         
@@ -174,11 +242,9 @@ struct BackupDatabaseView: View {
         let destinationURL = documentsURL.appendingPathComponent(fileURL.lastPathComponent)
         
         do {
-                // If a file already exists at the same name, remove it
             if fileManager.fileExists(atPath: destinationURL.path) {
                 try fileManager.removeItem(at: destinationURL)
             }
-                // Copy your DB file
             try fileManager.copyItem(at: fileURL, to: destinationURL)
             return "Successfully backed up to: \(destinationURL.lastPathComponent)"
         } catch {
