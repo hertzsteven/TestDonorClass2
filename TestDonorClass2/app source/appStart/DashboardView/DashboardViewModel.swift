@@ -40,7 +40,7 @@ class DashboardViewModel {
             Category(name: CategoryType.donorHub.name,
                     color: .blue,
                     image: Image(systemName: "person")),
-            Category(name: "Receipt Management",
+            Category(name: "Receipts",
                     color: .red,
                     image: Image(systemName: "printer.fill"))
         ]
@@ -52,17 +52,17 @@ class DashboardViewModel {
                     image: Image(systemName: "megaphone")),
             Category(name: "Incentives",
                     color: .orange,
-                    image: Image(systemName: "gift")),
-            Category(name: "Pledges",
-                    color: .orange,
-                     image: Image(systemName: "calendar.badge.clock")) // Changed from "gift"
+                    image: Image(systemName: "gift"))
         ]
         
         // Reports & Analytics section
         let reportCategories: [Category] = [
             Category(name: "Reports", 
                     color: .blue, 
-                    image: Image(systemName: "chart.bar.fill"))
+                    image: Image(systemName: "chart.bar.fill")),
+            Category(name: "Pledges",
+                    color: .orange,
+                     image: Image(systemName: "calendar.badge.clock")) // Changed from "gift"
         ]
         
         // Combine all categories in order

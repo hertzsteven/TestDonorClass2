@@ -149,7 +149,7 @@ struct ReceiptManagementView: View {
                 .padding()
             }
         }
-        .navigationTitle("Receipt Management")
+        .navigationTitle("Receipts")
         .alert(isPresented: $showingAlert) {
             Alert(
                 title: Text("Receipt Status"),

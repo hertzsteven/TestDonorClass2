@@ -100,7 +100,7 @@ struct DashboardView: View {
                     CampaignListView(campaignObject: campaignObject)
                 case "Incentives":
                     DonationIncentiveListView(incentiveObject: incentiveObject)
-                case "Receipt Management":
+                case "Receipts":
                     ReceiptManagementView()
                         .environmentObject(donationObject) // Pass any needed objects
                 case "Donors":
