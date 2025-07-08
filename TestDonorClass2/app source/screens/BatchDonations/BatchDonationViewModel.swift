@@ -50,6 +50,7 @@ class BatchDonationViewModel: ObservableObject {
     struct RowEntry: Identifiable {
         let id = UUID()
         var donorID: Int? = nil
+        var lastNameSearch: String = ""
         var displayInfo: String = ""
         var donationOverride: Double = 0.0 // Use Double
         var printReceipt: Bool = false
@@ -115,6 +116,9 @@ class BatchDonationViewModel: ObservableObject {
                 await MainActor.run {
                     rows[rowIndex].displayInfo = "\(displayName)\n\(address)".trimmingCharacters(in: .newlines)
                     
+                    // Clear the last name search field since donor is now found
+                    rows[rowIndex].lastNameSearch = ""
+                    
                     // Apply all global defaults when donor is validated
                     if !rows[rowIndex].hasDonationOverride {
                         rows[rowIndex].donationOverride = self.globalDonation
@@ -169,6 +173,9 @@ class BatchDonationViewModel: ObservableObject {
         await MainActor.run {
             // Set the donor ID from the selected donor
             rows[rowIndex].donorID = donorID
+            
+            // Clear the last name search field since donor is now selected
+            rows[rowIndex].lastNameSearch = ""
 
             // Update the display info
             let displayName = donor.fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (donor.company ?? "ID: \(donorID)") : donor.fullName

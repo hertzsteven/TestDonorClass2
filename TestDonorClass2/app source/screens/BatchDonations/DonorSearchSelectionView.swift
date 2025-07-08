@@ -22,6 +22,12 @@ struct DonorSearchSelectionView: View {
     @FocusState private var isSecondarySearchFocused: Bool
     
     var onDonorSelected: (Donor) -> Void
+    let initialSearchText: String?
+    
+    init(onDonorSelected: @escaping (Donor) -> Void, initialSearchText: String? = nil) {
+        self.onDonorSelected = onDonorSelected
+        self.initialSearchText = initialSearchText
+    }
     
     var body: some View {
         NavigationView {
@@ -228,6 +234,13 @@ struct DonorSearchSelectionView: View {
             }
             .task {
                 isSearchFieldFocused = true
+                
+                // Pre-populate search field if initial search text is provided
+                if let initialText = initialSearchText, !initialText.isEmpty {
+                    searchText = initialText
+                    // Automatically perform search if initial text is provided
+                    await performSearch()
+                }
             }
         }
     }

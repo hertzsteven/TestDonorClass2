@@ -22,6 +22,7 @@ struct BatchDonationView: View {
     @State private var selectedCampaign: Campaign?
     @State private var showingDonorSearch = false
     @State private var currentRowID: UUID? = nil
+    @State private var initialSearchText: String? = nil
     @FocusState private var focusedRowID: UUID?
 
     @State private var showingSaveSummary = false
@@ -82,73 +83,71 @@ struct BatchDonationView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Global Settings Bar
-
-                HStack(spacing: 20) {
-                    HStack(spacing: 8) {
-                        Text("Amount:")
-                            .foregroundColor(.secondary)
-                        TextField("", value: $viewModel.globalDonation, format: .currency(code: "USD"))
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 80)
-                    }
-
-                    HStack(spacing: 8) {
-                        Text("Campaign:")
-                            .foregroundColor(.secondary)
-                        Menu {
-                            Button("None") {
-                                selectedCampaign = nil
-                            }
-                            ForEach(campaignObject.campaigns.filter( {$0.status == .active})  ) { campaign in
-                                Button(campaign.name) {
-                                    selectedCampaign = campaign
-                                }
-                            }
-                        } label: {
-                            Text(selectedCampaign?.name ?? "None")
-                                .foregroundColor(.blue)
-                        }
-                    }
-
-                    HStack(spacing: 8) {
-                        Text("Type:")
-                            .foregroundColor(.secondary)
-                        Menu {
-                            ForEach(DonationType.allCases, id: \.self) { type in
-                                Button(type.rawValue) {
-                                    viewModel.globalDonationType = type
-                                }
-                            }
-                        } label: {
-                            Text(viewModel.globalDonationType.rawValue)
-                                .foregroundColor(.blue)
-                        }
-                    }
-
-                    HStack(spacing: 8) {
-                        Text("Status:")
-                            .foregroundColor(.secondary)
-                        Menu {
-                            ForEach([PaymentStatus.completed, .pending], id: \.self) { status in
-                                Button(status.rawValue.capitalized) {
-                                    viewModel.globalPaymentStatus = status
-                                }
-                            }
-                        } label: {
-                            Text(viewModel.globalPaymentStatus.rawValue.capitalized)
-                                .foregroundColor(.blue)
-                        }
-                    }
-
-                    HStack(spacing: 8) {
-                        Text("Receipt:")
-                            .foregroundColor(.secondary)
-                        Toggle("", isOn: $viewModel.globalPrintReceipt)
-                            .labelsHidden()
-                    }
-
-                    Spacer()
+            HStack(spacing: 20) {
+                HStack(spacing: 8) {
+                    Text("Amount:")
+                        .foregroundColor(.secondary)
+                    TextField("", value: $viewModel.globalDonation, format: .currency(code: "USD"))
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 80)
                 }
+
+                HStack(spacing: 8) {
+                    Text("Campaign:")
+                        .foregroundColor(.secondary)
+                    Menu {
+                        Button("None") {
+                            selectedCampaign = nil
+                        }
+                        ForEach(campaignObject.campaigns.filter( {$0.status == .active})  ) { campaign in
+                            Button(campaign.name) {
+                                selectedCampaign = campaign
+                            }
+                        }
+                    } label: {
+                        Text(selectedCampaign?.name ?? "None")
+                            .foregroundColor(.blue)
+                    }
+                }
+
+                HStack(spacing: 8) {
+                    Text("Type:")
+                        .foregroundColor(.secondary)
+                    Menu {
+                        ForEach(DonationType.allCases, id: \.self) { type in
+                            Button(type.rawValue) {
+                                viewModel.globalDonationType = type
+                            }
+                        }
+                    } label: {
+                        Text(viewModel.globalDonationType.rawValue)
+                            .foregroundColor(.blue)
+                    }
+                }
+
+                HStack(spacing: 8) {
+                    Text("Status:")
+                        .foregroundColor(.secondary)
+                    Menu {
+                        ForEach([PaymentStatus.completed, .pending], id: \.self) { status in
+                            Button(status.rawValue.capitalized) {
+                                viewModel.globalPaymentStatus = status
+                            }
+                        }
+                    } label: {
+                        Text(viewModel.globalPaymentStatus.rawValue.capitalized)
+                            .foregroundColor(.blue)
+                    }
+                }
+
+                HStack(spacing: 8) {
+                    Text("Receipt:")
+                        .foregroundColor(.secondary)
+                    Toggle("", isOn: $viewModel.globalPrintReceipt)
+                        .labelsHidden()
+                }
+
+                Spacer()
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -160,6 +159,8 @@ struct BatchDonationView: View {
                     .frame(width: 50)
                 Text("Donor ID")
                     .frame(width: 70)
+                Text("Last Name")
+                    .frame(width: 100)
                 Text("Name & Address")
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text("Receipt")
@@ -207,6 +208,7 @@ struct BatchDonationView: View {
             Button("Check First Row") {
                 if let row = firstRow {
                     print("Donor ID: \(row.donorID ?? 0)")
+                    print("Last Name Search: \(row.lastNameSearch)")
                     print("Amount: \(row.donationOverride)")
                     print("Type: \(row.donationTypeOverride)")
                     print("Status: \(row.paymentStatusOverride)")
@@ -226,6 +228,7 @@ struct BatchDonationView: View {
                     .foregroundColor(.green)
             }
         */
+        }
         .navigationTitle("Batch Donations")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
@@ -267,16 +270,17 @@ struct BatchDonationView: View {
             }
         }
         .sheet(isPresented: $showingDonorSearch) {
-            DonorSearchSelectionView { selectedDonor in
+            DonorSearchSelectionView(onDonorSelected: { selectedDonor in
                 if let rowID = currentRowID {
                     Task {
                         await viewModel.setDonorFromSearch(selectedDonor, for: rowID)
                         currentRowID = nil
+                        initialSearchText = nil
                     }
                 } else {
                       print("Error: currentRowID was nil when donor search returned.")
                  }
-             }
+             }, initialSearchText: initialSearchText)
              .environmentObject(donorObject)
          }
          .alert("Batch Save Summary", isPresented: $showingSaveSummary, presenting: saveResult) { result in
@@ -344,6 +348,21 @@ struct BatchDonationView: View {
                 .onSubmit {
                      Task { await viewModel.findDonor(for: r.id) }
                  }
+
+            // Last Name Search Field
+            TextField("Last Name", text: row.lastNameSearch)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .frame(width: 100)
+                .disabled(r.isValidDonor)
+                .foregroundColor(r.isValidDonor ? .gray : .primary)
+                .background(r.isValidDonor ? Color(.systemGray6) : Color(.systemBackground))
+                .onSubmit {
+                    if !r.lastNameSearch.isEmpty {
+                        currentRowID = r.id
+                        initialSearchText = r.lastNameSearch
+                        showingDonorSearch = true
+                    }
+                }
 
             // Donor Info Display
             Text(r.displayInfo.isEmpty && r.donorID == nil ? "Enter ID or Search" : r.displayInfo)
@@ -451,6 +470,7 @@ struct BatchDonationView: View {
 
                 Button {
                     currentRowID = r.id
+                    initialSearchText = nil
                     showingDonorSearch = true
                 } label: {
                     Label("Search Donor", systemImage: "magnifyingglass")
