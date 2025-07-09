@@ -7,9 +7,6 @@
 
 import SwiftUI
 
-// Contents of ./screens/BatchDonations/BatchDonationView.swift
-import SwiftUI
-
 struct BatchDonationView: View {
     // ... (EnvironmentObjects, StateObject, init remain the same) ...
     @EnvironmentObject private var donorObject: DonorObjectClass
@@ -28,11 +25,13 @@ struct BatchDonationView: View {
     @State private var showingSaveSummary = false
     @State private var saveResult: (success: Int, failed: Int, totalAmount: Double)? = nil
     
-    
+    // Existing code...
     @State private var showingPrayerNoteSheet = false
     @State private var selectedDonorForPrayer: Donor? = nil
     @State private var currentPrayerNote: String = ""
     @State private var currentPrayerRowID: UUID? = nil
+    
+    @State private var showingClearAllConfirmation = false
 
     // Custom Initializer
     init() {
@@ -48,36 +47,6 @@ struct BatchDonationView: View {
          } catch {
               fatalError("Failed to initialize repositories for BatchDonationView: \(error)")
          }
-    }
-
-    // Add computed properties for first row access
-    private var firstRow: BatchDonationViewModel.RowEntry? {
-        viewModel.rows.first
-    }
-    
-    private var firstRowIsValid: Bool {
-        guard let row = firstRow else { return false }
-        return row.isValidDonor && row.donorID != nil
-    }
-    
-    // Example validation method
-    private func validateFirstRow() -> (isValid: Bool, message: String?) {
-        guard let row = firstRow else {
-            return (false, "No rows available")
-        }
-        
-        // Check donor ID
-        guard let donorId = row.donorID else {
-            return (false, "No donor ID specified")
-        }
-        
-        // Check amount
-        if row.donationOverride <= 0 {
-            return (false, "Invalid amount")
-        }
-        
-        // All checks passed
-        return (true, nil)
     }
 
     var body: some View {
@@ -170,7 +139,7 @@ struct BatchDonationView: View {
                 Text("Pay Status")
                     .frame(width: 90)
                 Text("Amount")
-                    .frame(width: 70, alignment: .trailing)
+                    .frame(width: 50, alignment: .trailing)
                 Text("Action")
                     .frame(width: 50)
             }
@@ -203,31 +172,6 @@ struct BatchDonationView: View {
             .background(Color(.systemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .padding(.horizontal, 16)
-            
-            // Example button to check first row
-            Button("Check First Row") {
-                if let row = firstRow {
-                    print("Donor ID: \(row.donorID ?? 0)")
-                    print("Last Name Search: \(row.lastNameSearch)")
-                    print("Amount: \(row.donationOverride)")
-                    print("Type: \(row.donationTypeOverride)")
-                    print("Status: \(row.paymentStatusOverride)")
-                    print("Is Valid: \(row.isValidDonor)")
-                    
-                    // Validate the row
-                    let validation = validateFirstRow()
-                    if !validation.isValid {
-                        print("Validation failed: \(validation.message ?? "Unknown error")")
-                    }
-                }
-            }
-          /*
-            // Example of conditional rendering based on first row state
-            if let row = firstRow, row.isValidDonor {
-                Text("Valid donor: ID \(row.donorID ?? 0)")
-                    .foregroundColor(.green)
-            }
-        */
         }
         .navigationTitle("Batch Donations")
         .navigationBarTitleDisplayMode(.inline)
@@ -248,10 +192,10 @@ struct BatchDonationView: View {
                     }
                     
                     if viewModel.rows.contains(where: { $0.isValidDonor }) {
-                            Button("Clear All", role: .destructive) {
-                                viewModel.clearBatch()
-                            }
+                        Button("Clear All", role: .destructive) {
+                            showingClearAllConfirmation = true
                         }
+                    }
                 }
             }
             
@@ -295,6 +239,14 @@ struct BatchDonationView: View {
           } message: { result in
               Text("Successfully saved: \(result.success)\nFailed: \(result.failed)\nTotal Amount: \(formatCurrency(result.totalAmount))")
           }
+        .alert("Clear All Entries", isPresented: $showingClearAllConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear All", role: .destructive) {
+                viewModel.clearBatch()
+            }
+        } message: {
+            Text("Are you sure you want to clear all entries? This action cannot be undone.")
+        }
         
         // Add the sheet:
         .sheet(isPresented: $showingPrayerNoteSheet, onDismiss: {
@@ -364,36 +316,37 @@ struct BatchDonationView: View {
 
                 // Search Button - Only show when no valid donor
                 Button {
-                    if !r.lastNameSearch.isEmpty {
-                        currentRowID = r.id
-                        initialSearchText = r.lastNameSearch
-                        showingDonorSearch = true
-                    }
+                    currentRowID = r.id
+                    initialSearchText = r.lastNameSearch.isEmpty ? nil : r.lastNameSearch
+                    showingDonorSearch = true
                 } label: {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 14))
-                        .foregroundColor(r.lastNameSearch.isEmpty ? .gray : .blue)
+                        .foregroundColor(.blue)
                 }
                 .frame(width: 60, height: 32)
-                .background(r.lastNameSearch.isEmpty ? Color(.systemGray6) : Color(.systemGray5))
+                .background(Color(.systemGray5))
                 .cornerRadius(6)
-                .disabled(r.lastNameSearch.isEmpty)
                 .buttonStyle(PlainButtonStyle())
             }
 
             // Donor Info Display
             HStack(alignment: .center, spacing: 8) {
                 Text(r.isValidDonor ? getDonorName(from: r.displayInfo) : (r.displayInfo.isEmpty && r.donorID == nil ? "Enter ID or Search" : r.displayInfo))
-                    .font(r.isValidDonor ? .body : .callout)
+                    .font(r.isValidDonor ? .subheadline : .caption)
                     .foregroundColor(r.isValidDonor ? .primary : (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ? .red : .secondary))
                     .lineLimit(1)
+                    .frame(minWidth: 180, maxWidth: 280, alignment: .leading)
                 
                 if r.isValidDonor {
                     Text(getDonorAddress(from: r.displayInfo))
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
+                        .frame(maxWidth: 120, alignment: .leading)
                 }
+                
+                Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(minHeight: 40, alignment: .center)
@@ -451,9 +404,8 @@ struct BatchDonationView: View {
             TextField("Amount", value: row.donationOverride, format: .currency(code: "USD"))
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .keyboardType(.decimalPad)
-                .frame(width: 70)
-                // **** FIX 2: Remove .wrappedValue ****
-                .foregroundColor(r.hasDonationOverride ? .blue : .primary) // Use 'r' here
+                .frame(width: 80)
+                .foregroundColor(r.hasDonationOverride ? .blue : .primary)
                 .disabled(!r.isValidDonor)
 
             // Action Button (Search/Find/Delete)
@@ -487,40 +439,10 @@ struct BatchDonationView: View {
             .buttonStyle(PlainButtonStyle())
 
         } else {
-            Menu {
-                Button {
-                    Task { await viewModel.findDonor(for: r.id) }
-                } label: {
-                    Label("Find by ID", systemImage: "number")
-                }
-                .disabled(r.donorID == nil)
-
-                Button {
-                    currentRowID = r.id
-                    initialSearchText = nil
-                    showingDonorSearch = true
-                } label: {
-                    Label("Search Donor", systemImage: "magnifyingglass")
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .foregroundColor(.blue)
-                    .imageScale(.large)
-            }
-            .buttonStyle(PlainButtonStyle())
-            // **** FIX 3 (Add Helper Function): Add this inside BatchDonationView ****
-            .disabled(isFailureStatus(r.processStatus)) // Maybe disable if failed?
+            // Show empty space when no valid donor instead of the three-dot menu
+            Spacer()
         }
     }
-
-    // **** FIX 3 (Add Helper Function): Add this inside BatchDonationView ****
-    private func isFailureStatus(_ status: BatchDonationViewModel.RowProcessStatus) -> Bool {
-        if case .failure = status {
-            return true
-        }
-        return false
-    }
-    // **** End FIX 3 ****
 
     private func statusIcon(for status: BatchDonationViewModel.RowProcessStatus) -> String { 
          switch status {
@@ -557,28 +479,13 @@ struct BatchDonationView: View {
     }
 }
 
-// Example extension for additional row validation
-extension BatchDonationViewModel.RowEntry {
-    var isAmountValid: Bool {
-        return donationOverride > 0
-    }
-    
-    var isDonorValid: Bool {
-        return isValidDonor && donorID != nil
-    }
-    
-    var isReadyToProcess: Bool {
-        return isAmountValid && isDonorValid
-    }
-}
-
 //  MARK: - Toolbar Builder
 extension BatchDonationView {
     @ToolbarContentBuilder
     func SaveCancelToolBar() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
             Button("Clear All") {
-                viewModel.clearBatch() // Corrected typo if needed
+                showingClearAllConfirmation = true
             }
             .tint(.red)
         }
