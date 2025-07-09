@@ -364,6 +364,23 @@ struct BatchDonationView: View {
                     }
                 }
 
+            Button {
+                if !r.lastNameSearch.isEmpty {
+                    currentRowID = r.id
+                    initialSearchText = r.lastNameSearch
+                    showingDonorSearch = true
+                }
+            } label: {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 14))
+                    .foregroundColor(r.isValidDonor || r.lastNameSearch.isEmpty ? .gray : .blue)
+            }
+            .frame(width: 60, height: 32)
+            .background(r.isValidDonor || r.lastNameSearch.isEmpty ? Color(.systemGray6) : Color(.systemGray5))
+            .cornerRadius(6)
+            .disabled(r.isValidDonor || r.lastNameSearch.isEmpty)
+            .buttonStyle(PlainButtonStyle())
+
             // Donor Info Display
             Text(r.displayInfo.isEmpty && r.donorID == nil ? "Enter ID or Search" : r.displayInfo)
                 .font(r.isValidDonor ? .body : .callout)
