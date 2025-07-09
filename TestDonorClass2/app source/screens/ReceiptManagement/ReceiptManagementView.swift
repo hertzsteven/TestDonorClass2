@@ -16,7 +16,6 @@ struct ReceiptManagementView: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     
-    // ADD: Initializer for main view
     init() {
         let donationRepo = try! DonationRepository()
         _viewModel = StateObject(wrappedValue: ReceiptManagementViewModel(
@@ -419,7 +418,11 @@ class ReceiptManagementViewModel: ObservableObject {
             let donationInfo = DonationInfo(
                 donorName: donorName,
                 donationAmount: donation.amount,
-                date: dateString
+                date: dateString,
+                donorAddress: nil,
+                donorCity: nil,
+                donorState: nil,
+                donorZip: nil
             )
             
             // Create receipt printing service
@@ -515,12 +518,22 @@ class ReceiptService {
         // Get donor details
         print("Printing receipt for donation ID: \(donation.id ?? 0)")
         var donorName = "Anonymous"
+        var donorAddress: String? = nil
+        var donorCity: String? = nil
+        var donorState: String? = nil
+        var donorZip: String? = nil
+        
         if let donorId = donation.donorId, !donation.isAnonymous {
             if let donor = try? await donationRepository.getDonorForDonation(donorId: donorId) {
                 donorName = "\(donor.firstName ?? "") \(donor.lastName ?? "")"
                 if donorName.trimmingCharacters(in: .whitespaces).isEmpty {
                     donorName = donor.company ?? "Unknown"
                 }
+                // GET: Address information
+                donorAddress = donor.address
+                donorCity = donor.city
+                donorState = donor.state
+                donorZip = donor.zip
             }
         }
         
@@ -533,7 +546,11 @@ class ReceiptService {
         let donationInfo = DonationInfo(
             donorName: donorName,
             donationAmount: donation.amount,
-            date: dateString
+            date: dateString,
+            donorAddress: donorAddress,
+            donorCity: donorCity,
+            donorState: donorState,
+            donorZip: donorZip
         )
         
         // Create a task completion source to handle the async completion
@@ -755,12 +772,22 @@ struct PrintReceiptSheetView: View {
                 }
                 
                 var donorName = "Anonymous"
+                var donorAddress: String? = nil
+                var donorCity: String? = nil
+                var donorState: String? = nil
+                var donorZip: String? = nil
+                
                 if let donorId = donation.donorId, !donation.isAnonymous {
                     if let donor = try? await donationRepository.getDonorForDonation(donorId: donorId) {
                         donorName = "\(donor.firstName ?? "") \(donor.lastName ?? "")"
                         if donorName.trimmingCharacters(in: .whitespaces).isEmpty {
                             donorName = donor.company ?? "Unknown"
                         }
+                        // GET: Address information
+                        donorAddress = donor.address
+                        donorCity = donor.city
+                        donorState = donor.state
+                        donorZip = donor.zip
                     }
                 }
                 
@@ -773,7 +800,11 @@ struct PrintReceiptSheetView: View {
                 let donationInfo = DonationInfo(
                     donorName: donorName,
                     donationAmount: donation.amount,
-                    date: dateString
+                    date: dateString,
+                    donorAddress: donorAddress,
+                    donorCity: donorCity,
+                    donorState: donorState,
+                    donorZip: donorZip
                 )
                 
                 // Print the receipt

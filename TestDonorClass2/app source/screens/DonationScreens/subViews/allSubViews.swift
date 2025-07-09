@@ -31,8 +31,16 @@ struct PrintReceiptView: View {
                 dateFormatter.dateStyle = .medium
                 let dateString = dateFormatter.string(from: receipt.date)
                 
-                
-                let donation = DonationInfo(donorName: receipt.donorName, donationAmount: receipt.total, date: dateString)
+                // CREATE: DonationInfo with address (for now using placeholder since we don't have donor access here)
+                let donation = DonationInfo(
+                    donorName: receipt.donorName,
+                    donationAmount: receipt.total,
+                    date: dateString,
+                    donorAddress: nil,  // TODO: Get from donor record
+                    donorCity: nil,     // TODO: Get from donor record
+                    donorState: nil,    // TODO: Get from donor record
+                    donorZip: nil       // TODO: Get from donor record
+                )
                 let receiptPrintService = ReceiptPrintingService()
                 receiptPrintService.printReceipt(for: donation) {
                     self.presentationMode.wrappedValue.dismiss()

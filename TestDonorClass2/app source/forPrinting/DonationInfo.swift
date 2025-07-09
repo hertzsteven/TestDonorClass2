@@ -20,6 +20,36 @@ struct DonationInfo {
     let donorName: String
     let donationAmount: Double
     let date: String
+    let donorAddress: String?
+    let donorCity: String?
+    let donorState: String?
+    let donorZip: String?
+    
+    // Computed property for formatted address
+    var formattedAddress: String {
+        var addressLines: [String] = []
+        
+        if let address = donorAddress, !address.isEmpty {
+            addressLines.append(address)
+        }
+        
+        var cityStateZip: [String] = []
+        if let city = donorCity, !city.isEmpty {
+            cityStateZip.append(city)
+        }
+        if let state = donorState, !state.isEmpty {
+            cityStateZip.append(state)
+        }
+        if let zip = donorZip, !zip.isEmpty {
+            cityStateZip.append(zip)
+        }
+        
+        if !cityStateZip.isEmpty {
+            addressLines.append(cityStateZip.joined(separator: ", "))
+        }
+        
+        return addressLines.joined(separator: "\n")
+    }
 }
 
 final class ReceiptPrintingService {
@@ -60,7 +90,6 @@ final class ReceiptPrintingService {
     }
 
     /// ✅ Generates a formatted receipt PDF using `NSAttributedString`
-//    func createReceiptPDF(donorName: String, donationAmount: Double, date: String) -> URL? {
     private func createReceiptPDFOld(for donation: DonationInfo) -> URL? {
         let pageSize = CGSize(width: 612, height: 792) // 8.5" x 11"
         let pdfFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("receipt.pdf")
@@ -201,10 +230,10 @@ final class ReceiptPrintingService {
                 let organizationZipCode = "12345"
                 
                 let donorName = donation.donorName
-                let donorAddress = "456 Donor Street"
-                let donorCity = "Donor City"
-                let donorState = "DC"
-                let donorZipCode = "67890"
+                let donorAddress = donation.donorAddress ?? "No address provided"
+                let donorCity = donation.donorCity ?? ""
+                let donorState = donation.donorState ?? ""
+                let donorZip = donation.donorZip ?? ""
                 
                 // Return Address Window (Upper Left) - Organization Address
                 let returnAddressX: CGFloat = 36 // ~0.5" from left
@@ -245,11 +274,21 @@ final class ReceiptPrintingService {
                     height: recipientAddressHeight
                 )
                 
-                let donorAddressText = """
-                \(donorName)
-                \(donorAddress)
-                \(donorCity), \(donorState) \(donorZipCode)
-                """
+                var donorAddressLines: [String] = [donorName]
+                if !donorAddress.isEmpty {
+                    donorAddressLines.append(donorAddress)
+                }
+                
+                var cityStateZip: [String] = []
+                if !donorCity.isEmpty { cityStateZip.append(donorCity) }
+                if !donorState.isEmpty { cityStateZip.append(donorState) }
+                if !donorZip.isEmpty { cityStateZip.append(donorZip) }
+                
+                if !cityStateZip.isEmpty {
+                    donorAddressLines.append(cityStateZip.joined(separator: ", "))
+                }
+                
+                let donorAddressText = donorAddressLines.joined(separator: "\n")
                 
                 let recipientAddressAttributes: [NSAttributedString.Key: Any] = [
                     .font: UIFont.systemFont(ofSize: 11),
