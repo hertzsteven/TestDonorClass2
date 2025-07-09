@@ -21,7 +21,7 @@ class BatchDonationViewModel: ObservableObject {
     @Published var globalDonation: Double = 10.0
     @Published var globalDonationType: DonationType = .check
     @Published var globalPaymentStatus: PaymentStatus = .completed
-    @Published var globalPrintReceipt: Bool = false  // ADD: Global receipt setting
+    @Published var globalPrintReceipt: Bool = false
 
     @Published var rows: [RowEntry] = []
     @Published var focusedRowID: UUID? = nil // Keep track of which row should get focus
@@ -32,7 +32,6 @@ class BatchDonationViewModel: ObservableObject {
     private let donationRepository: any DonationSpecificRepositoryProtocol
 
     // MARK: - Initialization
-    // REMOVE default arguments
     init(
         repository: any DonorSpecificRepositoryProtocol,
         donationRepository: any DonationSpecificRepositoryProtocol
@@ -112,41 +111,31 @@ class BatchDonationViewModel: ObservableObject {
                 let displayName = matchedDonor.fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (matchedDonor.company ?? "ID: \(donorID)") : matchedDonor.fullName
                 let address = [matchedDonor.address, matchedDonor.city, matchedDonor.state].compactMap { $0 }.joined(separator: ", ")
 
-                // Update row ON MAIN THREAD
+                let fullDisplayInfo = address.isEmpty ? displayName : "\(displayName)\n\(address)"
                 await MainActor.run {
-                    rows[rowIndex].displayInfo = "\(displayName)\n\(address)".trimmingCharacters(in: .newlines)
-                    
-                    // Clear the last name search field since donor is now found
+                    rows[rowIndex].displayInfo = fullDisplayInfo
                     rows[rowIndex].lastNameSearch = ""
-                    
-                    // Apply all global defaults when donor is validated
+                    rows[rowIndex].isValidDonor = true
+                    rows[rowIndex].processStatus = .none
                     if !rows[rowIndex].hasDonationOverride {
                         rows[rowIndex].donationOverride = self.globalDonation
                     }
                     rows[rowIndex].donationTypeOverride = self.globalDonationType
                     rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
                     rows[rowIndex].printReceipt = self.globalPrintReceipt
-                    
-                    rows[rowIndex].isValidDonor = true
-                    rows[rowIndex].processStatus = .none // Reset process status
                 }
-
-                // Add a new row and shift focus AFTER updating the current one
                 await MainActor.run {
-                    // Only add a new row if this is the LAST row
                     if rowIndex == rows.count - 1 {
                         addRow()
-                        focusedRowID = rows.last?.id // Focus the newly added row
+                        focusedRowID = rows.last?.id
                         print("Added new row automatically. Focusing \(focusedRowID?.uuidString ?? "nil")")
                     } else {
-                        // If not the last row, maybe focus the next row?
-                         focusedRowID = rows[rowIndex + 1].id
-                         print("Focusing next existing row: \(focusedRowID?.uuidString ?? "nil")")
+                        focusedRowID = rows[rowIndex + 1].id
+                        print("Focusing next existing row: \(focusedRowID?.uuidString ?? "nil")")
                     }
                 }
             } else {
                  print("Donor ID \(donorID) not found.")
-                // Update row ON MAIN THREAD
                 await MainActor.run {
                     rows[rowIndex].displayInfo = "Donor ID \(donorID) not found"
                     rows[rowIndex].isValidDonor = false
@@ -154,7 +143,6 @@ class BatchDonationViewModel: ObservableObject {
             }
         } catch {
             print("Error finding donor \(donorID): \(error)")
-            // Update row ON MAIN THREAD
             await MainActor.run {
                 rows[rowIndex].displayInfo = "Error finding donor: \(error.localizedDescription)"
                 rows[rowIndex].isValidDonor = false
@@ -171,37 +159,27 @@ class BatchDonationViewModel: ObservableObject {
          print("Setting donor from search for row \(rowID): \(donor.fullName)")
 
         await MainActor.run {
-            // Set the donor ID from the selected donor
             rows[rowIndex].donorID = donorID
-            
-            // Clear the last name search field since donor is now selected
             rows[rowIndex].lastNameSearch = ""
-
-            // Update the display info
             let displayName = donor.fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (donor.company ?? "ID: \(donorID)") : donor.fullName
             let address = [donor.address, donor.city, donor.state].compactMap { $0 }.joined(separator: ", ")
-
-            rows[rowIndex].displayInfo = "\(displayName)\n\(address)".trimmingCharacters(in: .newlines)
-
-            // Apply all global defaults when donor is validated
+            let fullDisplayInfo = address.isEmpty ? displayName : "\(displayName)\n\(address)"
+            rows[rowIndex].displayInfo = fullDisplayInfo
+            rows[rowIndex].isValidDonor = true
+            rows[rowIndex].processStatus = .none
             if !rows[rowIndex].hasDonationOverride {
                 rows[rowIndex].donationOverride = self.globalDonation
             }
             rows[rowIndex].donationTypeOverride = self.globalDonationType
             rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
             rows[rowIndex].printReceipt = self.globalPrintReceipt
-            
-            rows[rowIndex].isValidDonor = true
-            rows[rowIndex].processStatus = .none // Reset process status
-
-            // Add a new row and shift focus if it's the last row
             if rowIndex == rows.count - 1 {
                 addRow()
                 focusedRowID = rows.last?.id
-                 print("Added new row automatically after search selection. Focusing \(focusedRowID?.uuidString ?? "nil")")
+                print("Added new row automatically after search selection. Focusing \(focusedRowID?.uuidString ?? "nil")")
             } else {
-                 focusedRowID = rows[rowIndex + 1].id
-                 print("Focusing next existing row after search selection: \(focusedRowID?.uuidString ?? "nil")")
+                focusedRowID = rows[rowIndex + 1].id
+                print("Focusing next existing row after search selection: \(focusedRowID?.uuidString ?? "nil")")
             }
         }
     }
@@ -213,12 +191,9 @@ class BatchDonationViewModel: ObservableObject {
         var totalDonationAmount: Double = 0
         var failedDonationsCount = 0
 
-        // Create a snapshot of rows to prevent modification during iteration
         let rowsToProcess = rows
 
-        // Iterate over the snapshot instead of direct indices
         for row in rowsToProcess {
-            // Find current index in the actual rows array
             guard let index = rows.firstIndex(where: { $0.id == row.id }) else { continue }
             
             guard row.isValidDonor, let donorID = row.donorID else {
@@ -275,13 +250,11 @@ class BatchDonationViewModel: ObservableObject {
         return (successfulDonationsCount, failedDonationsCount, totalDonationAmount)
     }
 
-     // Add this if you still need direct access from ViewModel, though less common
-     // func getDonor(_ id: Int) async throws -> Donor? {
-     //     try await repository.getOne(id)
-     // }
+     func getDonor(_ id: Int) async throws -> Donor? {
+         try await repository.getOne(id)
+     }
 
-     // Add this if you still need direct access from ViewModel
-     // func addDonation(_ donation: Donation) async throws {
-     //     try await donationRepository.insert(donation)
-     // }
+     func addDonation(_ donation: Donation) async throws {
+         try await donationRepository.insert(donation)
+     }
 }

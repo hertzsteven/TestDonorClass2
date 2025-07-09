@@ -349,45 +349,55 @@ struct BatchDonationView: View {
                      Task { await viewModel.findDonor(for: r.id) }
                  }
 
-            // Last Name Search Field
-            TextField("Last Name", text: row.lastNameSearch)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .frame(width: 100)
-                .disabled(r.isValidDonor)
-                .foregroundColor(r.isValidDonor ? .gray : .primary)
-                .background(r.isValidDonor ? Color(.systemGray6) : Color(.systemBackground))
-                .onSubmit {
+            // Last Name Search Field - Only show when no valid donor
+            if !r.isValidDonor {
+                TextField("Last Name", text: row.lastNameSearch)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(width: 100)
+                    .onSubmit {
+                        if !r.lastNameSearch.isEmpty {
+                            currentRowID = r.id
+                            initialSearchText = r.lastNameSearch
+                            showingDonorSearch = true
+                        }
+                    }
+
+                // Search Button - Only show when no valid donor
+                Button {
                     if !r.lastNameSearch.isEmpty {
                         currentRowID = r.id
                         initialSearchText = r.lastNameSearch
                         showingDonorSearch = true
                     }
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 14))
+                        .foregroundColor(r.lastNameSearch.isEmpty ? .gray : .blue)
                 }
-
-            Button {
-                if !r.lastNameSearch.isEmpty {
-                    currentRowID = r.id
-                    initialSearchText = r.lastNameSearch
-                    showingDonorSearch = true
-                }
-            } label: {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 14))
-                    .foregroundColor(r.isValidDonor || r.lastNameSearch.isEmpty ? .gray : .blue)
+                .frame(width: 60, height: 32)
+                .background(r.lastNameSearch.isEmpty ? Color(.systemGray6) : Color(.systemGray5))
+                .cornerRadius(6)
+                .disabled(r.lastNameSearch.isEmpty)
+                .buttonStyle(PlainButtonStyle())
             }
-            .frame(width: 60, height: 32)
-            .background(r.isValidDonor || r.lastNameSearch.isEmpty ? Color(.systemGray6) : Color(.systemGray5))
-            .cornerRadius(6)
-            .disabled(r.isValidDonor || r.lastNameSearch.isEmpty)
-            .buttonStyle(PlainButtonStyle())
 
             // Donor Info Display
-            Text(r.displayInfo.isEmpty && r.donorID == nil ? "Enter ID or Search" : r.displayInfo)
-                .font(r.isValidDonor ? .body : .callout)
-                .foregroundColor(r.isValidDonor ? .primary : (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ? .red : .secondary))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .lineLimit(2)
-                .help(r.displayInfo)
+            HStack(alignment: .center, spacing: 8) {
+                Text(r.isValidDonor ? getDonorName(from: r.displayInfo) : (r.displayInfo.isEmpty && r.donorID == nil ? "Enter ID or Search" : r.displayInfo))
+                    .font(r.isValidDonor ? .body : .callout)
+                    .foregroundColor(r.isValidDonor ? .primary : (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ? .red : .secondary))
+                    .lineLimit(1)
+                
+                if r.isValidDonor {
+                    Text(getDonorAddress(from: r.displayInfo))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: 40, alignment: .center)
+            .help(r.displayInfo)
 
             // Prayer Note Toggle
             Toggle("Pray", isOn: row.prayerNoteSW)
@@ -498,32 +508,10 @@ struct BatchDonationView: View {
                     .imageScale(.large)
             }
             .buttonStyle(PlainButtonStyle())
-            // **** FIX 3: Use helper function to check status case ****
+            // **** FIX 3 (Add Helper Function): Add this inside BatchDonationView ****
             .disabled(isFailureStatus(r.processStatus)) // Maybe disable if failed?
         }
     }
-
-    // ... (statusIcon, statusColor, formatCurrency helpers remain the same) ...
-      private func statusIcon(for status: BatchDonationViewModel.RowProcessStatus) -> String { /* ... */
-         switch status {
-         case .none: return "circle"
-         case .success: return "checkmark.circle.fill"
-         case .failure: return "xmark.octagon.fill"
-         }
-    }
-      private func statusColor(for status: BatchDonationViewModel.RowProcessStatus) -> Color { /* ... */
-         switch status {
-         case .none: return .gray.opacity(0.5)
-         case .success: return .green
-         case .failure: return .red
-         }
-    }
-      private func formatCurrency(_ amount: Double) -> String { /* ... */
-          let formatter = NumberFormatter()
-          formatter.numberStyle = .currency
-          formatter.currencyCode = "USD"
-          return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
-      }
 
     // **** FIX 3 (Add Helper Function): Add this inside BatchDonationView ****
     private func isFailureStatus(_ status: BatchDonationViewModel.RowProcessStatus) -> Bool {
@@ -533,6 +521,40 @@ struct BatchDonationView: View {
         return false
     }
     // **** End FIX 3 ****
+
+    private func statusIcon(for status: BatchDonationViewModel.RowProcessStatus) -> String { 
+         switch status {
+         case .none: return "circle"
+         case .success: return "checkmark.circle.fill"
+         case .failure: return "xmark.octagon.fill"
+         }
+    }
+    private func statusColor(for status: BatchDonationViewModel.RowProcessStatus) -> Color { 
+         switch status {
+         case .none: return .gray.opacity(0.5)
+         case .success: return .green
+         case .failure: return .red
+         }
+    }
+    private func formatCurrency(_ amount: Double) -> String { 
+          let formatter = NumberFormatter()
+          formatter.numberStyle = .currency
+          formatter.currencyCode = "USD"
+          return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+      }
+
+    func getDonorName(from donorInfo: String) -> String {
+        let components = donorInfo.components(separatedBy: "\n")
+        return components.first ?? donorInfo
+    }
+    
+    func getDonorAddress(from donorInfo: String) -> String {
+        let components = donorInfo.components(separatedBy: "\n")
+        if components.count > 1 {
+            return components.dropFirst().joined(separator: ", ")
+        }
+        return ""
+    }
 }
 
 // Example extension for additional row validation
