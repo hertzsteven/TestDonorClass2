@@ -65,7 +65,7 @@ class PledgeRepository: PledgeSpecificRepositoryProtocol {
         }
     }
 
-    func insert(_ item: Pledge) async throws {
+    func insert(_ item: Pledge) async throws -> Pledge {
         var mutableItem = item
         do {
             // Perform validation before inserting
@@ -78,8 +78,12 @@ class PledgeRepository: PledgeSpecificRepositoryProtocol {
             mutableItem.updatedAt = now
             
             try await dbPool.write { db in
-                try mutableItem.insert(db) // GRDB should populate the ID back into mutableItem if it's autoincrementing
+                try mutableItem.insert(db)
+                let id = db.lastInsertedRowID
+                mutableItem.id = Int(id)
             }
+            
+            return mutableItem
         } catch let validationError as PledgeValidationError {
              handleError(validationError, context: "insert validation")
              throw RepositoryError.insertFailed("Validation failed: \(validationError.localizedDescription)")

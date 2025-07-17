@@ -79,11 +79,15 @@ class DonationIncentiveRepository: DonationIncentiveSpecificRepositoryProtocol {
     }
     
     // MARK: - CRUD Operations
-    func insert(_ incentive: DonationIncentive) async throws {
+    func insert(_ incentive: DonationIncentive) async throws -> DonationIncentive {
+        var newIncentive = incentive
         do {
             try await dbPool.write { db in
-                try incentive.insert(db)
+                try newIncentive.insert(db)
+                let id = db.lastInsertedRowID
+                newIncentive.id = Int(id)
             }
+            return newIncentive
         } catch {
             handleError(error, context: "Inserting incentive")
             throw RepositoryError.insertFailed(error.localizedDescription)

@@ -128,6 +128,156 @@
 			<key>type</key>
 			<string>group</string>
 		</dict>
+		<dict>
+			<key>children</key>
+			<array>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>0</string>
+							<key>EndingLineNumber</key>
+							<string>138</string>
+							<key>StartingColumnNumber</key>
+							<string>0</string>
+							<key>StartingLineNumber</key>
+							<string>137</string>
+							<key>Timestamp</key>
+							<string>773844870.982024</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/screens/BatchDonations/DonorSearchSelectionView.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>                    Button {
+</string>
+						<key>leading</key>
+						<string>                    }
+                    
+</string>
+						<key>trailing</key>
+						<string>                        prepareNewDonor()
+                        showingAddDonor = true
+                    } label: {
+</string>
+					</dict>
+					<key>title</key>
+					<string>Add Donor Button</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>0</string>
+							<key>EndingLineNumber</key>
+							<string>253</string>
+							<key>StartingColumnNumber</key>
+							<string>0</string>
+							<key>StartingLineNumber</key>
+							<string>252</string>
+							<key>Timestamp</key>
+							<string>773845126.2897511</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/reporting/DonationReportView.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>            .sheet(isPresented: $showingDonorSearchView) {
+</string>
+						<key>leading</key>
+						<string>                    }
+            }
+</string>
+						<key>trailing</key>
+						<string>                DonorSearchSelectionView { selectedDonor in
+                    viewModel.donorSelected(selectedDonor)
+                }
+</string>
+					</dict>
+					<key>title</key>
+					<string>The sheet modifier that will pop up the donor search selection view</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>0</string>
+							<key>EndingLineNumber</key>
+							<string>277</string>
+							<key>StartingColumnNumber</key>
+							<string>0</string>
+							<key>StartingLineNumber</key>
+							<string>276</string>
+							<key>Timestamp</key>
+							<string>773846865.33219</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/screens/BatchDonations/DonorSearchSelectionView.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>        .sheet(isPresented: $showingAddDonor, onDismiss: {
+</string>
+						<key>leading</key>
+						<string>            }
+        }
+</string>
+						<key>trailing</key>
+						<string>            print("Add New Donor sheet dismissed. Current donor data:")
+            print("Name: \(newDonor.firstName ?? "") \(newDonor.lastName ?? "")")
+            print("Email: \(newDonor.email ?? "Not provided")")
+</string>
+					</dict>
+					<key>title</key>
+					<string>The adding donor sheet popping up from the search in batch donations</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+			</array>
+			<key>title</key>
+			<string>Add Donor In Donations</string>
+			<key>type</key>
+			<string>group</string>
+		</dict>
 	</array>
 </dict>
 </plist>

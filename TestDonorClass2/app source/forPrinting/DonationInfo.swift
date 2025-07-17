@@ -53,6 +53,72 @@ struct DonationInfo {
 }
 
 final class ReceiptPrintingService {
+
+    /// Layout constants for receipt PDF.
+    private struct Layout {
+        static let pageMargin: CGFloat = 50
+        static let paragraphSpacing: CGFloat = 20
+        static let envelopeMarginX: CGFloat = 36
+        static let envelopeMarginY: CGFloat = 36
+        static let envelopeWidth: CGFloat = 252
+        static let envelopeHeight: CGFloat = 63
+        static let recipientWidth: CGFloat = 297
+        static let recipientHeight: CGFloat = 81
+        static let recipientMarginX: CGFloat = envelopeMarginX
+        static let recipientMarginY: CGFloat = envelopeMarginY + envelopeHeight + paragraphSpacing
+        // Add other common metrics here as needed
+    }
+
+    /// A nested struct to hold all the formatting constants for the PDF receipt.
+    private struct PDFFormatting {
+        // MARK: - Fonts
+        static let titleFont = UIFont.boldSystemFont(ofSize: 18)
+        static let headerFont = UIFont.boldSystemFont(ofSize: 12)
+        static let bodyFont = UIFont.systemFont(ofSize: 12)
+        static let recipientFont = UIFont.systemFont(ofSize: 11)
+        static let returnAddressFont = UIFont.systemFont(ofSize: 10)
+
+        // MARK: - Paragraph Styles
+        static let leftAlign = leftAlignedParagraphStyle()
+        static let centerAlign = centeredParagraphStyle()
+        static let justifiedAlign = justifiedParagraphStyle()
+        
+        // MARK: - Attribute Dictionaries
+        static let titleAttributes: [NSAttributedString.Key: Any] = [
+            .font: titleFont,
+            .paragraphStyle: centerAlign
+        ]
+        
+        static let headerAttributes: [NSAttributedString.Key: Any] = [
+            .font: headerFont,
+            .paragraphStyle: leftAlign
+        ]
+
+        static let bodyLeftAttributes: [NSAttributedString.Key: Any] = [
+            .font: bodyFont,
+            .paragraphStyle: leftAlign
+        ]
+        
+        static let bodyJustifiedAttributes: [NSAttributedString.Key: Any] = [
+            .font: bodyFont,
+            .paragraphStyle: justifiedAlign
+        ]
+
+        static let bodyCenteredAttributes: [NSAttributedString.Key: Any] = [
+            .font: bodyFont,
+            .paragraphStyle: centerAlign
+        ]
+
+        static let recipientAddressAttributes: [NSAttributedString.Key: Any] = [
+            .font: recipientFont,
+            .paragraphStyle: leftAlign
+        ]
+
+        static let returnAddressAttributes: [NSAttributedString.Key: Any] = [
+            .font: returnAddressFont,
+            .paragraphStyle: leftAlign
+        ]
+    }
     
     private let organizationProvider: OrganizationProvider
     // Add static reference to maintain print controller across instances
@@ -89,7 +155,6 @@ final class ReceiptPrintingService {
         }
     }
 
-    /// ✅ Generates a formatted receipt PDF using `NSAttributedString`
     private func createReceiptPDFOld(for donation: DonationInfo) -> URL? {
         let pageSize = CGSize(width: 612, height: 792) // 8.5" x 11"
         let pdfFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("receipt.pdf")
@@ -105,7 +170,7 @@ final class ReceiptPrintingService {
                 let fontSize: CGFloat = 12
                 let font = UIFont.systemFont(ofSize: fontSize)
                 
-                // 🖼 Draw the header image (if available)
+                // Draw the header image (if available)
                 if let headerImage = UIImage(named: "header") {
                     let imageWidth: CGFloat = 75
                     let imageHeight: CGFloat = 75
@@ -117,7 +182,7 @@ final class ReceiptPrintingService {
                     headerImage.draw(in: imageRect)
                     
                     // Get the organization information from the injected provider.
-                    // 🏷 Organization Header (placed to the left of the image)
+                    // Organization Header (placed to the left of the image)
                     let organizationText = organizationProvider.organizationInfo.formattedInfo
 
                     let orgAttributes: [NSAttributedString.Key: Any] = [
@@ -130,7 +195,7 @@ final class ReceiptPrintingService {
                     yOffset += max(imageHeight, 60) + paragraphSpacing // Move down based on tallest element
                 }
                 
-                // 🔹 Receipt Title
+                // Receipt Title
                 let title = "Donation Receipt"
                 let titleAttributes: [NSAttributedString.Key: Any] = [
                     .font: UIFont.boldSystemFont(ofSize: 18),
@@ -140,7 +205,7 @@ final class ReceiptPrintingService {
                 title.draw(in: titleRect, withAttributes: titleAttributes)
                 yOffset += 40 + paragraphSpacing
                 
-                // 🔹 Receipt Information
+                // Receipt Information
                 let receiptDetails = NSMutableAttributedString(string: "Receipt Details\n", attributes: [
                     .font: UIFont.boldSystemFont(ofSize: fontSize),
                     .paragraphStyle: leftAlignedParagraphStyle()
@@ -161,7 +226,7 @@ final class ReceiptPrintingService {
                 receiptDetails.draw(in: receiptRect)
                 yOffset += 80 + paragraphSpacing
                 
-                // 🔹 Thank You Section
+                // Thank You Section
                 let thankYouText = NSMutableAttributedString(string: "Thank You!\n", attributes: [
                     .font: UIFont.boldSystemFont(ofSize: fontSize),
                     .paragraphStyle: leftAlignedParagraphStyle()
@@ -184,7 +249,7 @@ final class ReceiptPrintingService {
                 thankYouText.draw(in: thankYouRect)
                 yOffset += 120 + paragraphSpacing
                 
-                // 🔹 Footer
+                // Footer
                 let footerText = """
             \(organizationProvider.organizationInfo.name)
             This receipt is valid for tax purposes.
@@ -207,195 +272,154 @@ final class ReceiptPrintingService {
     private func createReceiptPDF(for donation: DonationInfo) -> URL? {
         let pageSize = CGSize(width: 612, height: 792) // 8.5" x 11"
         let pdfFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("receipt.pdf")
-        
+
         let renderer = UIGraphicsPDFRenderer(bounds: CGRect(origin: .zero, size: pageSize))
         do {
             try renderer.writePDF(to: pdfFilePath, withActions: { context in
                 context.beginPage()
-                
-                let margin: CGFloat = 50
-                var yOffset: CGFloat = 50
-                let paragraphSpacing: CGFloat = 20
-                let fontSize: CGFloat = 12
-                let font = UIFont.systemFont(ofSize: fontSize)
-                
-                // 📧 ENVELOPE WINDOW POSITIONING
-                // Convert inches to points (1 inch = 72 points)
-                
-                // 📧 Address Information (using let declarations)
-                let organizationName = "Your Organization Name"
-                let organizationAddress = "123 Main Street"
-                let organizationCity = "Your City"
-                let organizationState = "ST"
-                let organizationZipCode = "12345"
-                
-                let donorName = donation.donorName
-                let donorAddress = donation.donorAddress ?? "No address provided"
-                let donorCity = donation.donorCity ?? ""
-                let donorState = donation.donorState ?? ""
-                let donorZip = donation.donorZip ?? ""
-                
-                // Return Address Window (Upper Left) - Organization Address
-                let returnAddressX: CGFloat = 36 // ~0.5" from left
-                let returnAddressY: CGFloat = 36 // ~0.5" from top
-                let returnAddressWidth: CGFloat = 252 // ~3.5"
-                let returnAddressHeight: CGFloat = 63 // ~0.875"
-                
-                let returnAddressRect = CGRect(
-                    x: returnAddressX,
-                    y: returnAddressY,
-                    width: returnAddressWidth,
-                    height: returnAddressHeight
-                )
-                
-                let organizationAddressText = """
-                \(organizationName)
-                \(organizationAddress)
-                \(organizationCity), \(organizationState) \(organizationZipCode)
-                """
-                
-                let returnAddressAttributes: [NSAttributedString.Key: Any] = [
-                    .font: UIFont.systemFont(ofSize: 10),
-                    .paragraphStyle: leftAlignedParagraphStyle()
-                ]
-                
-                organizationAddressText.draw(in: returnAddressRect, withAttributes: returnAddressAttributes)
-                
-                // Recipient Address Window (Center) - Donor Address
-                let recipientAddressX: CGFloat = 36 // ~4" from left
-                let recipientAddressY: CGFloat = 198 // ~2.75" from top
-                let recipientAddressWidth: CGFloat = 297 // ~4.125"
-                let recipientAddressHeight: CGFloat = 81 // ~1.125"
-                
-                let recipientAddressRect = CGRect(
-                    x: recipientAddressX,
-                    y: recipientAddressY,
-                    width: recipientAddressWidth,
-                    height: recipientAddressHeight
-                )
-                
-                var donorAddressLines: [String] = [donorName]
-                if !donorAddress.isEmpty {
-                    donorAddressLines.append(donorAddress)
-                }
-                
-                var cityStateZip: [String] = []
-                if !donorCity.isEmpty { cityStateZip.append(donorCity) }
-                if !donorState.isEmpty { cityStateZip.append(donorState) }
-                if !donorZip.isEmpty { cityStateZip.append(donorZip) }
-                
-                if !cityStateZip.isEmpty {
-                    donorAddressLines.append(cityStateZip.joined(separator: ", "))
-                }
-                
-                let donorAddressText = donorAddressLines.joined(separator: "\n")
-                
-                let recipientAddressAttributes: [NSAttributedString.Key: Any] = [
-                    .font: UIFont.systemFont(ofSize: 11),
-                    .paragraphStyle: leftAlignedParagraphStyle()
-                ]
-                
-                donorAddressText.draw(in: recipientAddressRect, withAttributes: recipientAddressAttributes)
-                
-                // Move yOffset down past the address windows
-                yOffset = max(returnAddressY + returnAddressHeight, recipientAddressY + recipientAddressHeight) + paragraphSpacing
-                
-                // 🖼 Draw the header image (if available) - positioned below address windows
-                if let headerImage = UIImage(named: "header") {
-                    let imageWidth: CGFloat = 75
-                    let imageHeight: CGFloat = 75
-                    let imageX = pageSize.width - margin - imageWidth // Position image on the right
-                    let textStartX = margin // Keep text on the left
-                    
-                    // Position image on the right
-                    let imageRect = CGRect(x: imageX, y: yOffset, width: imageWidth, height: imageHeight)
-                    headerImage.draw(in: imageRect)
-                    
-                    // Get the organization information from the let declarations above
-                    // 🏷 Organization Header (placed to the left of the image)
-                    let organizationText = "\(organizationName)\n\(organizationAddress)\n\(organizationCity), \(organizationState) \(organizationZipCode)"
 
-                    let orgAttributes: [NSAttributedString.Key: Any] = [
-                        .font: UIFont.boldSystemFont(ofSize: fontSize),
-                        .paragraphStyle: leftAlignedParagraphStyle()
-                    ]
-                    let orgRect = CGRect(x: textStartX, y: yOffset, width: imageX - textStartX - 10, height: 60)
-                    organizationText.draw(in: orgRect, withAttributes: orgAttributes)
-                    
-                    yOffset += max(imageHeight, 60) + paragraphSpacing // Move down based on tallest element
-                }
+                let orgInfo = self.organizationProvider.organizationInfo
+                var yOffset: CGFloat = 0
+
+               // yOffset = drawHeaderSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
+//                yOffset = drawTitle(in: context, yOffset: yOffset)
                 
-                // 🔹 Receipt Title
-                let title = "Donation Receipt"
-                let titleAttributes: [NSAttributedString.Key: Any] = [
-                    .font: UIFont.boldSystemFont(ofSize: 18),
-                    .paragraphStyle: centeredParagraphStyle()
-                ]
-                let titleRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 30)
-                title.draw(in: titleRect, withAttributes: titleAttributes)
-                yOffset += 40 + paragraphSpacing
+                yOffset = drawHeaderSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
+                yOffset = drawReturnAddress(in: context, orgInfo: orgInfo)
+                yOffset = drawRecipientAddress(in: context, donation: donation)
+                // …then title, details, etc.
                 
-                // 🔹 Receipt Information
-                let receiptDetails = NSMutableAttributedString(string: "Receipt Details\n", attributes: [
-                    .font: UIFont.boldSystemFont(ofSize: fontSize),
-                    .paragraphStyle: leftAlignedParagraphStyle()
-                ])
                 
-                let details = """
-                Donor Name: \(donation.donorName)
-                Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
-                Date: \(donation.date)
-                """
-                let detailsAttributes: [NSAttributedString.Key: Any] = [
-                    .font: font,
-                    .paragraphStyle: leftAlignedParagraphStyle()
-                ]
-                receiptDetails.append(NSAttributedString(string: details, attributes: detailsAttributes))
-                
-                let receiptRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 80)
-                receiptDetails.draw(in: receiptRect)
-                yOffset += 80 + paragraphSpacing
-                
-                // 🔹 Thank You Section
-                let thankYouText = NSMutableAttributedString(string: "Thank You!\n", attributes: [
-                    .font: UIFont.boldSystemFont(ofSize: fontSize),
-                    .paragraphStyle: leftAlignedParagraphStyle()
-                ])
-                
-                let message = """
-            Your generous donation helps us to continue our mission.
-            
-            If you have any questions regarding this receipt, please contact us:
-            Email: contact@yourorganization.org
-            Phone: (555) 123-4567
-            """
-                let messageAttributes: [NSAttributedString.Key: Any] = [
-                    .font: font,
-                    .paragraphStyle: justifiedParagraphStyle()
-                ]
-                thankYouText.append(NSAttributedString(string: message, attributes: messageAttributes))
-                
-                let thankYouRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 120)
-                thankYouText.draw(in: thankYouRect)
-                yOffset += 120 + paragraphSpacing
-                
-                // 🔹 Footer
-                let footerText = """
-            \(organizationName)
-            This receipt is valid for tax purposes.
-            """
-                let footerAttributes: [NSAttributedString.Key: Any] = [
-                    .font: font,
-                    .paragraphStyle: centeredParagraphStyle()
-                ]
-                let footerRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 40)
-                footerText.draw(in: footerRect, withAttributes: footerAttributes)
-                
+//                yOffset = drawReturnAddress(in: context, orgInfo: orgInfo)
+//                yOffset = drawRecipientAddress(in: context, donation: donation, yOffset: yOffset)
+ 
+                yOffset = drawReceiptDetails(in: context, donation: donation, yOffset: yOffset)
+                yOffset = drawThankYouSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
+                _ = drawFooter(in: context, orgInfo: orgInfo, yOffset: yOffset)
             })
             return pdfFilePath
         } catch {
             print("Failed to create PDF: \(error)")
             return nil
         }
+    }
+
+    // MARK: - Drawing helper methods
+    private func drawReturnAddress(in context: UIGraphicsPDFRendererContext, orgInfo: OrganizationInfo) -> CGFloat {
+        let rect = CGRect(
+            x: Layout.envelopeMarginX,
+            y: Layout.envelopeMarginY,
+            width: Layout.envelopeWidth,
+            height: Layout.envelopeHeight
+        )
+        let text = """
+\(orgInfo.name)
+\(orgInfo.addressLine1)
+\(orgInfo.city), \(orgInfo.state) \(orgInfo.zip)
+"""
+        text.draw(in: rect, withAttributes: PDFFormatting.returnAddressAttributes)
+        return rect.maxY + Layout.paragraphSpacing
+    }
+
+    private func drawRecipientAddress(in context: UIGraphicsPDFRendererContext,
+                                      donation: DonationInfo) -> CGFloat {
+        let rect = CGRect(x: Layout.recipientMarginX,
+                          y: Layout.recipientMarginY,
+                          width: Layout.recipientWidth,
+                          height: Layout.recipientHeight)
+
+        var donorLines: [String] = [donation.donorName]
+        if let addr = donation.donorAddress, !addr.isEmpty {
+            donorLines.append(addr)
+        }
+        var cityStateZip: [String] = []
+        if let c = donation.donorCity, !c.isEmpty { cityStateZip.append(c) }
+        if let s = donation.donorState, !s.isEmpty { cityStateZip.append(s) }
+        if let z = donation.donorZip, !z.isEmpty { cityStateZip.append(z) }
+        if !cityStateZip.isEmpty {
+            donorLines.append(cityStateZip.joined(separator: ", "))
+        }
+        let text = donorLines.joined(separator: "\n")
+        text.draw(in: rect, withAttributes: PDFFormatting.recipientAddressAttributes)
+        return rect.maxY + Layout.paragraphSpacing
+    }
+
+    private func drawHeaderSection(in context: UIGraphicsPDFRendererContext, orgInfo: OrganizationInfo, yOffset: CGFloat) -> CGFloat {
+        let pageSize = context.pdfContextBounds.size
+        let margin = Layout.pageMargin
+        var y = yOffset
+        // Just draw the organization text—no logo.
+        let organizationText = """
+        \(orgInfo.name)
+        \(orgInfo.addressLine1)
+        \(orgInfo.city), \(orgInfo.state) \(orgInfo.zip)
+        """
+        // Full page width minus margins
+        let textRect = CGRect(
+            x: margin,
+            y: y,
+            width: pageSize.width - 2 * margin,
+            height: 60
+        )
+        organizationText.draw(in: textRect, withAttributes: PDFFormatting.headerAttributes)
+
+        // Advance past the text block
+        y += 60 + Layout.paragraphSpacing
+        return y
+    }
+
+    private func drawTitle(in context: UIGraphicsPDFRendererContext, yOffset: CGFloat) -> CGFloat {
+        let pageSize = context.pdfContextBounds.size
+        let margin = Layout.pageMargin
+        let title = "Donation Receipt"
+        let titleRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 30)
+        title.draw(in: titleRect, withAttributes: PDFFormatting.titleAttributes)
+        return yOffset + 40 + Layout.paragraphSpacing
+    }
+
+    private func drawReceiptDetails(in context: UIGraphicsPDFRendererContext, donation: DonationInfo, yOffset: CGFloat) -> CGFloat {
+        let pageSize = context.pdfContextBounds.size
+        let margin = Layout.pageMargin
+        let receiptDetails = NSMutableAttributedString(string: "Receipt Details\n", attributes: PDFFormatting.headerAttributes)
+        let details = """
+Donor Name: \(donation.donorName)
+Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
+Date: \(donation.date)
+"""
+        receiptDetails.append(NSAttributedString(string: details, attributes: PDFFormatting.bodyLeftAttributes))
+        let receiptRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 80)
+        receiptDetails.draw(in: receiptRect)
+        return yOffset + 80 + Layout.paragraphSpacing
+    }
+
+    private func drawThankYouSection(in context: UIGraphicsPDFRendererContext, orgInfo: OrganizationInfo, yOffset: CGFloat) -> CGFloat {
+        let pageSize = context.pdfContextBounds.size
+        let margin = Layout.pageMargin
+        let thankYouText = NSMutableAttributedString(string: "Thank You!\n", attributes: PDFFormatting.headerAttributes)
+        let message = """
+Your generous donation helps us to continue our mission.
+
+If you have any questions regarding this receipt, please contact us:
+Email: \(orgInfo.email ?? "contact@organization.org")
+Phone: \(orgInfo.phone ?? "Phone not available")
+Website: \(orgInfo.website ?? "")
+"""
+        thankYouText.append(NSAttributedString(string: message, attributes: PDFFormatting.bodyJustifiedAttributes))
+        let thankYouRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 120)
+        thankYouText.draw(in: thankYouRect)
+        return yOffset + 120 + Layout.paragraphSpacing
+    }
+
+    private func drawFooter(in context: UIGraphicsPDFRendererContext, orgInfo: OrganizationInfo, yOffset: CGFloat) -> CGFloat {
+        let pageSize = context.pdfContextBounds.size
+        let margin = Layout.pageMargin
+        let footerText = """
+\(orgInfo.name)
+EIN: \(orgInfo.ein)
+This receipt is valid for tax purposes.
+"""
+        let footerRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 40)
+        footerText.draw(in: footerRect, withAttributes: PDFFormatting.bodyCenteredAttributes)
+        return yOffset + 40
     }
 }

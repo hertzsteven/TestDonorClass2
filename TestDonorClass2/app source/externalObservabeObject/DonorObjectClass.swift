@@ -1,9 +1,9 @@
-    //
-    //  DonorObjectClass.swift
-    //  TestDonorClass2
-    //
-    //  Created by Steven Hertz on 12/24/24.
-    //
+//
+//  DonorObjectClass.swift
+//  TestDonorClass2
+//
+//  Created by Steven Hertz on 12/24/24.
+//
 
 import Foundation
 import GRDB
@@ -158,9 +158,10 @@ extension DonorObjectClass {
     // MARK: - CRUD Operations
 extension DonorObjectClass {
     
-    func addDonor(_ donor: Donor) async throws {
+    func addDonor(_ donor: Donor) async throws -> Donor {
         dump(donor)
-        try await repository.insert(donor)
+        let savedDonor = try await repository.insert(donor)
+        return savedDonor
     }
     
     func updateDonor(_ donor: Donor) async throws {
@@ -201,4 +202,3 @@ extension DonorObjectClass {
         errorMessage = nil
     }
 }
-

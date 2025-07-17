@@ -7,15 +7,6 @@
 
 import SwiftUI
 
-extension String {
-    var isEmptyOrWhitespace: Bool {
-        return trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-    var nillIfEmptyOrWhite: String? {
-        return isEmptyOrWhitespace ? nil : self
-    }
-}
-
 // MARK: - Edit View
 struct DonorEditView: View {
     
@@ -355,6 +346,16 @@ extension DonorEditView {
     }
 }
 
+// Existing code...
+
+extension String {
+    var isEmptyOrWhitespace: Bool {
+        return trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+//    var nillIfEmptyOrWhite: String? {
+//        return isEmptyOrWhitespace ? nil : self
+//    }
+}
 
 //    // MARK: - Preview
 //    #Preview {

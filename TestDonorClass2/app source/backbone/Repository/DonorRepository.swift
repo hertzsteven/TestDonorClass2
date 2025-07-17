@@ -12,7 +12,6 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
     typealias Model = Donor
     private let dbPool: DatabasePool
 
-    
     //        init(dbPool: DatabasePool = DatabaseManager.shared.getDbPool()) {
     //                self.dbPool = dbPool
     //            }
@@ -86,13 +85,32 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
     }
 
         // MARK: - CRUD
-    func insert(_ donor: Donor) async throws  {
+    /// Inserts a new donor into the database and returns the saved instance with its ID.
+    func insert(_ donor: Donor) async throws -> Donor {
+        var newDonor = donor
         do {
             try await dbPool.write { db in
-                try donor.insert(db) }
+                try newDonor.insert(db)
+                let id = db.lastInsertedRowID
+                newDonor.id = Int(id)
+            }            
+            return newDonor
         } catch {
-            handleError(error, context: "Inserting donor: \(donor.firstName) \(donor.lastName)")
-            throw RepositoryError.insertFailed(error.localizedDescription)        }
+            // Re-throw the error as our custom RepositoryError type.
+            throw RepositoryError.insertFailed(error.localizedDescription)
+        }
+    }
+    
+    /// Updates an existing donor in the database.
+    func update(_ donor: Donor) async throws  {
+        do {
+            try await dbPool.write { db in
+                try donor.update(db)
+            }
+        } catch {
+            handleError(error, context: "Updating donor: \(donor.firstName) \(donor.lastName)")
+            throw RepositoryError.updateFailed(error.localizedDescription)
+        }
     }
     
     func delete(_ donor: Donor) async throws  {
@@ -103,17 +121,6 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
         } catch {
             handleError(error, context: "Deleting donor: \(donor.firstName) \(donor.lastName)")
             throw RepositoryError.deleteFailed(error.localizedDescription)
-        }
-    }
-    
-    func update(_ donor: Donor) async throws  {
-        do {
-            try await dbPool.write { db in
-                try donor.update(db)
-            }
-        } catch {
-            handleError(error, context: "Updating donor: \(donor.firstName) \(donor.lastName)")
-            throw RepositoryError.updateFailed(error.localizedDescription)
         }
     }
     
@@ -153,7 +160,7 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
         }
         
         // Implement findByName (renamed from searchDonors)
-        func findByNameX(_ name: String) async throws -> [Donor] {
+    func findByNameX(_ name: String) async throws -> [Donor] {
             try await dbPool.read { db in
                 try Donor
                     .filter(Column("firstName").lowercased.like("%\(name.lowercased())%")

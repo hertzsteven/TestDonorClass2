@@ -40,7 +40,7 @@ class MockDonorRepository: DonorSpecificRepositoryProtocol {
     // MARK: - DonorSpecificRepositoryProtocol Methods
 
     // From RepositoryProtocol
-    func insert(_ donor: Donor) async throws {
+    func insert(_ donor: Donor) async throws -> Donor {
         var newDonor = donor
         if newDonor.id == nil {
             newDonor.id = nextId
@@ -53,6 +53,7 @@ class MockDonorRepository: DonorSpecificRepositoryProtocol {
         }
         mockDonors.append(newDonor)
         print("MockDonorRepository: Inserted donor \(newDonor.fullName) with ID \(newDonor.id ?? -1). Total donors: \(mockDonors.count)")
+        return newDonor
     }
 
     func getAll() async throws -> [Donor] {

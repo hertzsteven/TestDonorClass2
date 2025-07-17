@@ -13,7 +13,7 @@ import Foundation
 protocol RepositoryProtocol {
     associatedtype Model
     /// Create
-    func insert(_ item: Model) async throws
+    func insert(_ item: Model) async throws -> Model
     /// Read
     func getAll() async throws -> [Model]
     

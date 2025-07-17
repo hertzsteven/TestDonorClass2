@@ -21,6 +21,9 @@ struct DonorSearchSelectionView: View {
     @FocusState private var isSearchFieldFocused: Bool
     @FocusState private var isSecondarySearchFocused: Bool
     
+    @State private var showingAddDonor = false
+    @State private var newDonor = Donor()
+    
     var onDonorSelected: (Donor) -> Void
     let initialSearchText: String?
     
@@ -109,29 +112,47 @@ struct DonorSearchSelectionView: View {
                     }
                 }
 
-                if searchResults.isEmpty {
-                    Button {
-                        Task {
-                            await performSearch()
+                HStack(spacing: 12) {
+                    if searchResults.isEmpty {
+                        Button {
+                            Task {
+                                await performSearch()
+                            }
+                        } label: {
+                            HStack {
+                                Text("Search")
+                                if isSearching {
+                                    ProgressView()
+                                        .padding(.leading, 5)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
                         }
+                        .disabled(searchText.isEmpty || isSearching)
+                    }
+                    
+                    Button {
+                        prepareNewDonor()
+                        showingAddDonor = true
                     } label: {
                         HStack {
-                            Text("Search")
-                            if isSearching {
-                                ProgressView()
-                                    .padding(.leading, 5)
-                            }
+                            Image(systemName: "person.badge.plus")
+                            Text("Add New Donor")
                         }
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: searchResults.isEmpty ? .infinity : nil)
                         .padding(.vertical, 12)
-                        .background(Color.blue)
+                        .padding(.horizontal, searchResults.isEmpty ? 0 : 16)
+                        .background(Color.green)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .disabled(searchText.isEmpty || isSearching)
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
 
                 switch (isSearching, errorMessage, searchResults.isEmpty, searchText.isEmpty) {
                 case (true, _, _, _):
@@ -164,6 +185,11 @@ struct DonorSearchSelectionView: View {
                         Text("No donors found matching '\(searchText)'")
                             .padding()
                         
+                        Text("Try a different search or add a new donor")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .padding(.bottom)
+                        
                         Spacer()
                     }
                     .padding()
@@ -178,6 +204,11 @@ struct DonorSearchSelectionView: View {
                         Text("Enter a name, company, or address to search for donors")
                             .multilineTextAlignment(.center)
                             .padding()
+                        
+                        Text("or create a new donor")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .padding(.bottom)
                         
                         Spacer()
                     }
@@ -195,7 +226,7 @@ struct DonorSearchSelectionView: View {
                         
                         List {
                             ForEach(secondarySearchText.isEmpty ? searchResults : filteredResults) { donor in
-                                DonorResultRow(donor: donor)
+                                Text("\(donor.firstName ?? "") \(donor.lastName ?? "")")
                                     .contentShape(Rectangle())
                                     .onTapGesture {
                                         withAnimation(.easeInOut(duration: 0.1)) {
@@ -243,6 +274,26 @@ struct DonorSearchSelectionView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingAddDonor, onDismiss: {
+            print("Add New Donor sheet dismissed. Current donor data:")
+            print("Name: \(newDonor.firstName ?? "") \(newDonor.lastName ?? "")")
+            print("Email: \(newDonor.email ?? "Not provided")")
+            print("Company: \(newDonor.company ?? "Not provided")")
+        }) {
+            BatchDonorEditView(
+                donor: $newDonor,
+                onSave: { savedDonor in
+                    onDonorSelected(savedDonor)
+                    dismiss()
+                },
+                onCancel: { showingAddDonor = false }
+            )
+            .environmentObject(donorObject)
+        }
+    }
+    
+    private func prepareNewDonor() {
+        newDonor = Donor()
     }
     
     private func filterResults(query: String) {
@@ -280,48 +331,5 @@ struct DonorSearchSelectionView: View {
                 self.isSearching = false
             }
         }
-    }
-}
-
-struct DonorResultRow: View {
-    let donor: Donor
-    @State private var isPressed = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(formatName())
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            if let company = donor.company, !company.isEmpty {
-                Text(company)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            if let address = donor.address, !address.isEmpty {
-                Text(address)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            if let city = donor.city, let state = donor.state {
-                Text("\(city), \(state)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemBackground))
-        .scaleEffect(isPressed ? 0.98 : 1.0)
-        .animation(.easeInOut(duration: 0.1), value: isPressed)
-    }
-    
-    private func formatName() -> String {
-        var nameComponents = [String]()
-        if let firstName = donor.firstName { nameComponents.append(firstName) }
-        if let lastName = donor.lastName { nameComponents.append(lastName) }
-        return nameComponents.joined(separator: " ")
     }
 }

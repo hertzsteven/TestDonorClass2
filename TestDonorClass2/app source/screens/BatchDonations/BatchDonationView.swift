@@ -164,7 +164,7 @@ struct BatchDonationView: View {
                 .frame(width: 50)
             Text("Donor ID")
                 .frame(width: 70)
-            Text("Last Name")
+            Text("Name")
                 .frame(width: 100)
             Text("Name & Address")
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -337,7 +337,7 @@ struct BatchDonationView: View {
 
             // Last Name Search Field - Only show when no valid donor
             if !r.isValidDonor {
-                TextField("Last Name", text: row.lastNameSearch)
+                TextField("Name", text: row.lastNameSearch)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .frame(width: 100)
                     .onSubmit {
@@ -365,19 +365,19 @@ struct BatchDonationView: View {
             }
 
             // Donor Info Display
-            HStack(alignment: .center, spacing: 8) {
-                Text(r.isValidDonor ? getDonorName(from: r.displayInfo) : (r.displayInfo.isEmpty && r.donorID == nil ? "Enter ID or Search" : r.displayInfo))
+            HStack(alignment: .center, spacing: 12) {
+                Text(r.isValidDonor ? getDonorName(from: r.displayInfo) : (r.displayInfo.isEmpty && r.donorID == nil ? "Enter ID or Name" : r.displayInfo))
                     .font(r.isValidDonor ? .subheadline : .caption)
                     .foregroundColor(r.isValidDonor ? .primary : (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ? .red : .secondary))
                     .lineLimit(1)
-                    .frame(minWidth: 180, maxWidth: 280, alignment: .leading)
+                    .frame(minWidth: 120, maxWidth: 160, alignment: .leading)
                 
                 if r.isValidDonor {
                     Text(getDonorAddress(from: r.displayInfo))
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
-                        .frame(maxWidth: 120, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
                 Spacer()
@@ -507,10 +507,15 @@ struct BatchDonationView: View {
     func getDonorAddress(from donorInfo: String) -> String {
         let components = donorInfo.components(separatedBy: "\n")
         if components.count > 1 {
-            return components.dropFirst().joined(separator: ", ")
+            let addressComponents = components.dropFirst()
+            let addressString = addressComponents.joined(separator: ", ")
+            // Remove leading/trailing whitespace and any leading periods or commas
+            return addressString.trimmingCharacters(in: .whitespacesAndNewlines)
+                .replacingOccurrences(of: "^[.,\\s]+", with: "", options: .regularExpression)
         }
         return ""
     }
+
 }
 
 //  MARK: - Toolbar Builder

@@ -78,13 +78,19 @@ class CampaignRepository: CampaignSpecificRepositoryProtocol {
     }
 
     // MARK: - CRUD
-    func insert(_ campaign: Campaign) async throws  {
+    func insert(_ campaign: Campaign) async throws -> Campaign {
+        var newCampaign = campaign
         do {
             try await dbPool.write { db in
-                try campaign.insert(db) }
+                try newCampaign.insert(db)
+                let id = db.lastInsertedRowID
+                newCampaign.id = Int(id)
+            }
+            return newCampaign
         } catch {
             handleError(error, context: "Inserting campaign: ")
-            throw RepositoryError.insertFailed(error.localizedDescription)        }
+            throw RepositoryError.insertFailed(error.localizedDescription)
+        }
     }
     
     func delete(_ campaign: Campaign) async throws  {
