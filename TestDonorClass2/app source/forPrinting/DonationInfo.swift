@@ -58,17 +58,53 @@ final class ReceiptPrintingService {
     private struct Layout {
         static let pageMargin: CGFloat = 50
         static let paragraphSpacing: CGFloat = 20
-        static let envelopeMarginX: CGFloat = 36
-        static let envelopeMarginY: CGFloat = 36
-        static let envelopeWidth: CGFloat = 252
-        static let envelopeHeight: CGFloat = 63
-        static let recipientWidth: CGFloat = 297
-        static let recipientHeight: CGFloat = 81
-        static let recipientMarginX: CGFloat = envelopeMarginX
-        static let recipientMarginY: CGFloat = envelopeMarginY + envelopeHeight + paragraphSpacing
-        // Add other common metrics here as needed
-    }
+        
+        // Return address (envelope format)
+        static let envelopeMarginX: CGFloat = 36      // 0.5" from left
+        static let envelopeMarginY: CGFloat = 28      // 0.5" from top
+//        static let envelopeMarginY: CGFloat = 36      // 0.5" from top
+        static let envelopeWidth: CGFloat = 252       // 3.5" wide
+        static let envelopeHeight: CGFloat = 63       // 0.875" high
+        
+        // Updated recipient positioning for standard window envelope compatibility
+        static let recipientWidth: CGFloat = 252      // 3.5" wide
+        static let recipientHeight: CGFloat = 81      // 1.125" high
+        static let recipientMarginX: CGFloat = 124    // 2" from left edge
+//        static let recipientMarginX: CGFloat = 144    // 2" from left edge
+        static let recipientMarginY: CGFloat = 168    // 2" from top edge
+//        static let recipientMarginY: CGFloat = 144    // 2" from top edge
 
+        // Header section with organization info
+        static let headerMarginX: CGFloat = 50        // 0.69" from left (50/72)
+        static let headerMarginY: CGFloat = 0         // 0" from top
+        static let headerWidth: CGFloat = 512         // 7.11" wide (512/72)
+        static let headerHeight: CGFloat = 60         // 0.83" high (60/72)
+        
+        // Title section  
+        static let titleMarginX: CGFloat = 50         // 0.69" from left (50/72)
+        static let titleMarginY: CGFloat = 80         // 1.11" from top (80/72)
+        static let titleWidth: CGFloat = 512          // 7.11" wide (512/72)
+        static let titleHeight: CGFloat = 30          // 0.42" high (30/72)
+        
+        // Receipt details section
+        static let receiptDetailsMarginX: CGFloat = 50    // 0.69" from left (50/72)
+        static let receiptDetailsMarginY: CGFloat = 245   // 3.40" from top (245/72)
+        static let receiptDetailsWidth: CGFloat = 512     // 7.11" wide (512/72)
+        static let receiptDetailsHeight: CGFloat = 80     // 1.11" high (80/72)
+        
+        // Thank you section
+        static let thankYouMarginX: CGFloat = 50      // 0.69" from left (50/72)
+        static let thankYouMarginY: CGFloat = 345     // 4.79" from top (345/72)
+        static let thankYouWidth: CGFloat = 512       // 7.11" wide (512/72)
+        static let thankYouHeight: CGFloat = 120      // 1.67" high (120/72)
+        
+        // Footer section
+        static let footerMarginX: CGFloat = 50        // 0.69" from left (50/72)
+        static let footerMarginY: CGFloat = 485       // 6.74" from top (485/72)
+        static let footerWidth: CGFloat = 512         // 7.11" wide (512/72)
+        static let footerHeight: CGFloat = 40         // 0.56" high (40/72)
+    }
+    
     /// A nested struct to hold all the formatting constants for the PDF receipt.
     private struct PDFFormatting {
         // MARK: - Fonts
@@ -284,7 +320,7 @@ final class ReceiptPrintingService {
                // yOffset = drawHeaderSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
 //                yOffset = drawTitle(in: context, yOffset: yOffset)
                 
-                yOffset = drawHeaderSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
+//                yOffset = drawHeaderSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
                 yOffset = drawReturnAddress(in: context, orgInfo: orgInfo)
                 yOffset = drawRecipientAddress(in: context, donation: donation)
                 // …then title, details, etc.
@@ -387,8 +423,15 @@ Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
 Date: \(donation.date)
 """
         receiptDetails.append(NSAttributedString(string: details, attributes: PDFFormatting.bodyLeftAttributes))
+        
         let receiptRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 80)
-        receiptDetails.draw(in: receiptRect)
+        
+        let receiptRectFixed = CGRect(x: Layout.receiptDetailsMarginX,
+                                 y: Layout.receiptDetailsMarginY,
+                                 width: Layout.receiptDetailsWidth,
+                                 height: Layout.receiptDetailsHeight)
+        
+        receiptDetails.draw(in: receiptRectFixed)
         return yOffset + 80 + Layout.paragraphSpacing
     }
 
@@ -405,8 +448,16 @@ Phone: \(orgInfo.phone ?? "Phone not available")
 Website: \(orgInfo.website ?? "")
 """
         thankYouText.append(NSAttributedString(string: message, attributes: PDFFormatting.bodyJustifiedAttributes))
+        
         let thankYouRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 120)
-        thankYouText.draw(in: thankYouRect)
+        
+        let thankYouRectFixed = CGRect(x: Layout.thankYouMarginX,
+                                  y: Layout.thankYouMarginY,
+                                  width: Layout.thankYouWidth,
+                                  height: Layout.thankYouHeight)
+        
+        thankYouText.draw(in: thankYouRectFixed)
+        
         return yOffset + 120 + Layout.paragraphSpacing
     }
 
@@ -419,7 +470,13 @@ EIN: \(orgInfo.ein)
 This receipt is valid for tax purposes.
 """
         let footerRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 40)
-        footerText.draw(in: footerRect, withAttributes: PDFFormatting.bodyCenteredAttributes)
+        let footerRectFixed = CGRect(x: Layout.footerMarginX,
+                                y: Layout.footerMarginY,
+                                width: Layout.footerWidth,
+                                height: Layout.footerHeight)
+
+        footerText.draw(in: footerRectFixed, withAttributes: PDFFormatting.bodyCenteredAttributes)
+        
         return yOffset + 40
     }
 }
