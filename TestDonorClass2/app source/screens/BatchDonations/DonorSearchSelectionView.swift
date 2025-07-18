@@ -314,7 +314,21 @@ struct DonorSearchSelectionView: View {
         
         isSearching = true
         errorMessage = nil
-        
+
+        // DEBUG: Test if the repository is working
+        print("DEBUG: Testing repository connection...")
+        do {
+            let testCount = try await donorObject.getCount()
+            print("DEBUG: Repository working - donor count: \(testCount)")
+        } catch {
+            print("DEBUG: Repository failing - error: \(error)")
+            await MainActor.run {
+                self.errorMessage = "Repository connection failed: \(error.localizedDescription)"
+                self.isSearching = false
+            }
+            return
+        }
+
         do {
             let results = try await donorObject.searchDonorsWithReturn(searchText)
             await MainActor.run {

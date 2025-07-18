@@ -1,10 +1,3 @@
-//
-//  DonorObjectClass.swift
-//  TestDonorClass2
-//
-//  Created by Steven Hertz on 12/24/24.
-//
-
 import Foundation
 import GRDB
 
@@ -14,7 +7,7 @@ class DonorObjectClass: ObservableObject {
     @Published var loadingState: LoadingState = .loaded
     @Published var lastUpdatedDonor: Donor? = nil  // Add this property
     
-    private let repository: any DonorSpecificRepositoryProtocol
+    private var repository: any DonorSpecificRepositoryProtocol
        
     // --- CHANGE 1: Designated Initializer ---
     // Requires the repository protocol, doesn't throw
@@ -37,10 +30,31 @@ class DonorObjectClass: ObservableObject {
         }
     }
     
+    // NEW METHOD: Reconnect repository if connection is closed
+    private func reconnectIfNeeded() async throws {
+        do {
+            // Test if current repository is working
+            _ = try await repository.getCount()
+        } catch {
+            // If it fails, try to create a new repository instance
+            print("Repository connection failed, attempting to reconnect...")
+            do {
+                let newRepository = try DonorRepository()
+                self.repository = newRepository
+                print("Successfully reconnected repository")
+            } catch {
+                print("Failed to reconnect repository: \(error)")
+                throw error
+            }
+        }
+    }
+    
 }
+
     //  MARK: -  Retreive Donors
 extension DonorObjectClass {
     func getDonor(_ id: Int) async throws -> Donor? {
+        try await reconnectIfNeeded()
         let donor = try await repository.getOne(id)
         return donor
     }
@@ -48,17 +62,21 @@ extension DonorObjectClass {
     
         // MARK: - Search Operations
     func searchDonors(_ searchText: String) async throws {
-        if searchText.isEmpty {
+        try await reconnectIfNeeded()
+        
+        let trimmedSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if trimmedSearchText.isEmpty {
             await MainActor.run {
                 self.donors = []
             }
             return
         }
-        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 3 {
+        if trimmedSearchText.count < 3 {
             return
         }
         
-        let results = try await repository.findByName(searchText)
+        let results = try await repository.findByName(trimmedSearchText)
         await MainActor.run {
             self.donors = results
         }
@@ -66,14 +84,18 @@ extension DonorObjectClass {
     
         // MARK: - Search Operations
     func searchDonorsWithReturn(_ searchText: String) async throws -> [Donor] {
-        if searchText.isEmpty {
+        try await reconnectIfNeeded()
+        
+        let trimmedSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if trimmedSearchText.isEmpty {
             return []
         }
-        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).count < 3 {
+        if trimmedSearchText.count < 3 {
             return []
         }
         
-        let donors = try await repository.findByName(searchText)
+        let donors = try await repository.findByName(trimmedSearchText)
         
         return donors
         
@@ -84,6 +106,7 @@ extension DonorObjectClass {
     func searchDonorById(_ id: Int) async {
         updateLoadingState(.loading)
         do {
+            try await reconnectIfNeeded()
             if let donor = try await repository.getDonorById(id) {
                 self.donors = [donor]
                 self.loadingState = .loaded
@@ -101,6 +124,7 @@ extension DonorObjectClass {
         updateLoadingState(.loading)
         var donor: Donor? = nil
         do {
+            try await reconnectIfNeeded()
             if let theDonor = try await repository.getDonorById(id) {
                 self.loadingState = .loaded
                 donor = theDonor
@@ -125,6 +149,7 @@ extension DonorObjectClass {
         await MainActor.run { loadingState = .loading }
         
         do {
+            try await reconnectIfNeeded()
             let fetchedDonors = try await repository.getAll()
                 //                let fetchedDonors =    [Donor]()
             print("Fetched donors count: \(fetchedDonors.count)")
@@ -159,16 +184,19 @@ extension DonorObjectClass {
 extension DonorObjectClass {
     
     func addDonor(_ donor: Donor) async throws -> Donor {
+        try await reconnectIfNeeded()
         dump(donor)
         let savedDonor = try await repository.insert(donor)
         return savedDonor
     }
     
     func updateDonor(_ donor: Donor) async throws {
+        try await reconnectIfNeeded()
         try await repository.update(donor)
     }
     
     func deleteDonor(_ donor: Donor) async throws {
+        try await reconnectIfNeeded()
         try await repository.delete(donor)
         await MainActor.run {
             donors.removeAll { $0.id == donor.id }
@@ -186,6 +214,7 @@ extension DonorObjectClass {
     
     
     func getCount() async throws -> Int {
+        try await reconnectIfNeeded()
         let count = try await repository.getCount()
         return count
     }

@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct BackupDatabaseView: View {
     @StateObject private var backupManager = BackupManager()
@@ -6,6 +7,7 @@ struct BackupDatabaseView: View {
     @State private var showFolderPicker = false
     @State private var backupStatus: String = ""
     @State private var useICloudBackup = true
+    @State private var showImportPicker = false
     
     var body: some View {
         VStack(spacing: 20) {
@@ -29,6 +31,12 @@ struct BackupDatabaseView: View {
                 .buttonStyle(.borderedProminent)
             }
             
+            // Step 1: Import from Downloads
+            Button("Import from Downloads") {
+                showImportPicker = true
+            }
+            .buttonStyle(.borderedProminent)
+            
             if !backupStatus.isEmpty {
                 Text(backupStatus)
                     .font(.headline)
@@ -48,6 +56,19 @@ struct BackupDatabaseView: View {
                 
                 backupStatus = performBackup(to: folderURL)
                 showFolderPicker = false
+            }
+        }
+        // File importer to access external files (e.g., Downloads folder)
+        .fileImporter(
+            isPresented: $showImportPicker,
+            allowedContentTypes: [.data],
+            allowsMultipleSelection: true
+        ) { result in
+            switch result {
+            case .success(let urls):
+                backupStatus = performRestore(from: urls)
+            case .failure(let error):
+                backupStatus = "Import error: \(error.localizedDescription)"
             }
         }
         .padding()
@@ -249,6 +270,91 @@ struct BackupDatabaseView: View {
             return "Successfully backed up to: \(destinationURL.lastPathComponent)"
         } catch {
             return "Error copying database: \(error.localizedDescription)"
+        }
+    }
+    
+    /// Restores the selected files into the app’s Application Support directory.
+    private func performRestore(from fileURLs: [URL]) -> String {
+        // Only keep SQLite store files
+        let allowedExtensions = ["sqlite", "sqlite-wal", "sqlite-shm"]
+        let restoreURLs = fileURLs.filter { allowedExtensions.contains($0.pathExtension) }
+        guard !restoreURLs.isEmpty else {
+            return "No database files (.sqlite, .sqlite-wal, .sqlite-shm) selected for restore."
+        }
+        // Ensure all three store files are present
+        let requiredExtensions: Set<String> = ["sqlite", "sqlite-wal", "sqlite-shm"]
+        let selectedExts = Set(restoreURLs.map { $0.pathExtension })
+        guard requiredExtensions.isSubset(of: selectedExts) else {
+            return "Please select all three database files (.sqlite, .sqlite-wal, .sqlite-shm) to restore."
+        }
+
+        // 1. Security-scoped access
+        for url in restoreURLs {
+            _ = url.startAccessingSecurityScopedResource()
+        }
+        defer {
+            for url in restoreURLs {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        // 2. Close the live database
+        do {
+            try backupManager.closeDatabase()
+        } catch {
+            return "Error closing database before restore: \(error.localizedDescription)"
+        }
+
+        // 3. Determine database directory from backupManager or fallback
+        let fileManager = FileManager.default
+        let targetDirectory: URL
+        if let databaseURL = backupManager.getDatabaseURL() {
+            targetDirectory = databaseURL.deletingLastPathComponent()
+//        if let databaseURL = backupManager.databaseURL {
+            // Use the actual directory where the database lives
+//            targetDirectory = databaseURL.deletingLastPathComponent()
+        } else {
+            do {
+                targetDirectory = try fileManager.url(
+                    for: .applicationSupportDirectory,
+                    in: .userDomainMask,
+                    appropriateFor: nil,
+                    create: true
+                )
+            } catch {
+                return "Cannot locate target database directory: \(error.localizedDescription)"
+            }
+        }
+
+        // 4. Copy each file into target directory
+        var successCount = 0
+        var errors: [String] = []
+
+        for src in restoreURLs {
+            let dst = targetDirectory.appendingPathComponent(src.lastPathComponent)
+            do {
+                if fileManager.fileExists(atPath: dst.path) {
+                    try fileManager.removeItem(at: dst)
+                }
+                try fileManager.copyItem(at: src, to: dst)
+                successCount += 1
+            } catch {
+                errors.append("\(src.lastPathComponent): \(error.localizedDescription)")
+            }
+        }
+
+        // 5. Re-open the database
+        do {
+            try backupManager.openDatabase()
+        } catch {
+            return "Restored \(successCount) files, but failed to reopen database: \(error.localizedDescription)"
+        }
+
+        // 6. Build status message
+        if errors.isEmpty {
+            return "Successfully restored \(successCount) files."
+        } else {
+            return "Restored \(successCount) files with errors: " + errors.joined(separator: "; ")
         }
     }
 }
