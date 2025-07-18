@@ -57,7 +57,7 @@ struct SettingsView: View {
                         verifyDatabase()
                     }
                     NavigationLink(destination: BackupDatabaseView()) {
-                        Text("Backup Data")
+                        Text("Backup & Restore")
                             .foregroundColor(.blue)
                     }
                 }

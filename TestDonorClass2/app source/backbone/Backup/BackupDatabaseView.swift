@@ -7,40 +7,70 @@ struct BackupDatabaseView: View {
     @State private var showFolderPicker = false
     @State private var backupStatus: String = ""
     @State private var useICloudBackup = true
-    @State private var showImportPicker = false
+    @State private var showRestorePicker = false
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("Backup Your Database")
+            Text("Backup & Restore Database")
                 .font(.title)
             
-            Toggle("Backup to iCloud Drive", isOn: $useICloudBackup)
-                .padding(.horizontal)
-                .onChange(of: useICloudBackup) { _ in
-                    backupStatus = ""
+            // BACKUP SECTION
+            VStack(spacing: 15) {
+                Text("Backup Database")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+                
+                Toggle("Backup to iCloud Drive", isOn: $useICloudBackup)
+                    .padding(.horizontal)
+                    .onChange(of: useICloudBackup) { _ in
+                        backupStatus = ""
+                    }
+                
+                if useICloudBackup {
+                    Button("Backup to iCloud Drive") {
+                        backupStatus = performICloudBackup()
+                    }
+                    .buttonStyle(.borderedProminent)
+                } else {
+                    Button("Choose Backup Location") {
+                        showFolderPicker = true
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
-            if useICloudBackup {
-                Button("Backup to iCloud Drive") {
-                    backupStatus = performICloudBackup()
-                }
-                .buttonStyle(.borderedProminent)
-            } else {
-                Button("Pick Folder to Backup") {
-                    showFolderPicker = true
-                }
-                .buttonStyle(.borderedProminent)
             }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.blue.opacity(0.1))
+            .cornerRadius(10)
             
-            // Step 1: Import from Downloads
-            Button("Import from Downloads") {
-                showImportPicker = true
+            // RESTORE SECTION
+            VStack(spacing: 15) {
+                Text("Restore Database")
+                    .font(.headline)
+                    .foregroundColor(.orange)
+                
+                Text("Select database files to restore from backup")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                
+                Button("Restore from Files") {
+                    showRestorePicker = true
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
             }
-            .buttonStyle(.borderedProminent)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.orange.opacity(0.1))
+            .cornerRadius(10)
             
             if !backupStatus.isEmpty {
                 Text(backupStatus)
                     .font(.headline)
                     .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
             }
         }
         .sheet(isPresented: $showFolderPicker) {
@@ -58,9 +88,9 @@ struct BackupDatabaseView: View {
                 showFolderPicker = false
             }
         }
-        // File importer to access external files (e.g., Downloads folder)
+        // File importer to access external files for restoration
         .fileImporter(
-            isPresented: $showImportPicker,
+            isPresented: $showRestorePicker,
             allowedContentTypes: [.data],
             allowsMultipleSelection: true
         ) { result in
@@ -68,7 +98,7 @@ struct BackupDatabaseView: View {
             case .success(let urls):
                 backupStatus = performRestore(from: urls)
             case .failure(let error):
-                backupStatus = "Import error: \(error.localizedDescription)"
+                backupStatus = "Restore error: \(error.localizedDescription)"
             }
         }
         .padding()
