@@ -134,22 +134,6 @@ struct DonorSearchSelectionView: View {
                         }
                         .disabled(searchText.isEmpty || isSearching)
                     }
-                    
-                    Button {
-                        prepareNewDonor()
-                        showingAddDonor = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "person.badge.plus")
-                            Text("Add New Donor")
-                        }
-                        .frame(maxWidth: searchResults.isEmpty ? .infinity : nil)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, searchResults.isEmpty ? 0 : 16)
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                    }
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
@@ -226,16 +210,35 @@ struct DonorSearchSelectionView: View {
                         
                         List {
                             ForEach(secondarySearchText.isEmpty ? searchResults : filteredResults) { donor in
-                                Text("\(donor.firstName ?? "") \(donor.lastName ?? "")")
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        withAnimation(.easeInOut(duration: 0.1)) {
-                                            onDonorSelected(donor)
-                                            dismiss()
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text(formatName(donor).capitalized)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                        Spacer()
+                                        if let city = donor.city,
+                                           let state = donor.state {
+                                            Text("\(city), \(state)")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
                                         }
                                     }
-                                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                                    .listRowSeparator(.visible)
+                                    
+                                    if let address = donor.address, !address.isEmpty {
+                                        Text(address)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation(.easeInOut(duration: 0.1)) {
+                                        onDonorSelected(donor)
+                                        dismiss()
+                                    }
+                                }
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .listRowSeparator(.visible)
                             }
                         }
                         .listStyle(PlainListStyle())
@@ -248,6 +251,19 @@ struct DonorSearchSelectionView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        prepareNewDonor()
+                        showingAddDonor = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus")
+                            Text("Add Donor")
+                        }
+                        .font(.subheadline)
                     }
                 }
             }
@@ -307,6 +323,14 @@ struct DonorSearchSelectionView: View {
                 return addressMatch || cityMatch || stateMatch
             }
         }
+    }
+    
+    private func formatName(_ donor: Donor) -> String {
+        var parts: [String] = []
+        if let salutation = donor.salutation { parts.append(salutation) }
+        if let first = donor.firstName { parts.append(first) }
+        if let last = donor.lastName { parts.append(last) }
+        return parts.joined(separator: " ")
     }
     
     private func performSearch() async {

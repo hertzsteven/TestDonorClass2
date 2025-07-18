@@ -65,7 +65,7 @@ struct DonorListView: View {
         .onDisappear {
             doOnDisappearProcess()
         }
-        .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
+//        .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
         
         .sheet(isPresented: $isShowingScanner) {
             BarcodeScannerView(scannedCode: $scannedCode)
@@ -180,43 +180,48 @@ extension DonorListView {
 extension DonorListView {
     
     fileprivate func SearchComponent() -> some View {
-        VStack(spacing: 2) {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.gray)
-                TextField(searchMode == .name ? "Search by name or..." : "Enter donor ID...",
-                         text: $viewModel.searchText)
+        VStack {
+            Rectangle()
+                .fill(.white)
+                .frame(height: 40)
+            VStack(spacing: 2) {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.gray)
+                    TextField(searchMode == .name ? "Search by name or..." : "Enter donor ID...",
+                              text: $viewModel.searchText)
                     .focused($isSearchFieldFocused)
                     .onSubmit {
                         Task {
                             try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
                         }
                     }
-//                TextField("Search by name or...", text: $viewModel.searchText)
+                    //                TextField("Search by name or...", text: $viewModel.searchText)
                     .background(Color(.white))
-                Button("Search") {
-                    Task {
-                        try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                    Button("Search") {
+                        Task {
+                            try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+                        }
                     }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.blue)
+                    .cornerRadius(6)
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.blue)
-                .cornerRadius(6)
+                .padding(8)
+                
+                Picker("Search Mode", selection: $searchMode) {
+                    Text("Name").tag(SearchMode.name)
+                    Text("ID").tag(SearchMode.id)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 8)
             }
-            .padding(8)
-            
-            Picker("Search Mode", selection: $searchMode) {
-                Text("Name").tag(SearchMode.name)
-                Text("ID").tag(SearchMode.id)
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 8)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
         }
-        .padding(.vertical, 12)
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
     
     var newDonorList: some View {
@@ -296,87 +301,90 @@ extension DonorListView {
     }
     
     var donorManagementGuide: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Header
-            Label("Donor Management Guide", systemImage: "book.fill")
-                .font(.headline)
-                .padding(.bottom, 8)
-            
-            // Mode Selection
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Choose Mode")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+        VStack {
+
+            VStack(alignment: .leading, spacing: 16) {
+                // Header
+                Label("Donor Management Guide", systemImage: "book.fill")
+                    .font(.headline)
+                    .padding(.bottom, 8)
                 
-                VStack(spacing: 8) {
-                    Button(action: { viewModel.maintenanceMode = false }) {
-                        HStack {
-                            Label("Donation Mode", systemImage: "dollarsign.circle.fill")
-                            Spacer()
-                            if !viewModel.maintenanceMode {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+                // Mode Selection
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Choose Mode")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 8) {
+                        Button(action: { viewModel.maintenanceMode = false }) {
+                            HStack {
+                                Label("Donation Mode", systemImage: "dollarsign.circle.fill")
+                                Spacer()
+                                if !viewModel.maintenanceMode {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
                             }
                         }
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(!viewModel.maintenanceMode ? .blue : .secondary)
-                    
-                    Button(action: { viewModel.maintenanceMode = true }) {
-                        HStack {
-                            Label("Information Mode", systemImage: "info.circle.fill")
-                            Spacer()
-                            if viewModel.maintenanceMode {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+                        .buttonStyle(.bordered)
+                        .tint(!viewModel.maintenanceMode ? .blue : .secondary)
+                        
+                        Button(action: { viewModel.maintenanceMode = true }) {
+                            HStack {
+                                Label("Information Mode", systemImage: "info.circle.fill")
+                                Spacer()
+                                if viewModel.maintenanceMode {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
                             }
                         }
+                        .buttonStyle(.bordered)
+                        .tint(viewModel.maintenanceMode ? .blue : .secondary)
                     }
-                    .buttonStyle(.bordered)
-                    .tint(viewModel.maintenanceMode ? .blue : .secondary)
                 }
-            }
-            
-            Divider()
-            
-            // Search Options
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Find a Donor")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
                 
-                VStack(spacing: 8) {
-                    searchOptionButton(mode: .name, icon: "magnifyingglass", title: "Search by name/company")
-                    searchOptionButton(mode: .id, icon: "number", title: "Enter donor ID")
-                }
-            }
-            
-            Divider()
-            
-            // Additional Options
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Additional Options")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                Divider()
                 
-                VStack(spacing: 8) {
-                    Button(action: { showingDefaults = true }) {
-                        Label("Default Donation Settings", systemImage: "gear")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .buttonStyle(.bordered)
+                // Search Options
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Find a Donor")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                     
-                    Button(action: { showingAddDonor = true }) {
-                        Label("Add New Donor", systemImage: "person.badge.plus")
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(spacing: 8) {
+                        searchOptionButton(mode: .name, icon: "magnifyingglass", title: "Search by name/company")
+                        searchOptionButton(mode: .id, icon: "number", title: "Enter donor ID")
                     }
-                    .buttonStyle(.bordered)
+                }
+                
+                Divider()
+                
+                // Additional Options
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Additional Options")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(spacing: 8) {
+                        Button(action: { showingDefaults = true }) {
+                            Label("Default Donation Settings", systemImage: "gear")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.bordered)
+                        
+                        Button(action: { showingAddDonor = true }) {
+                            Label("Add New Donor", systemImage: "person.badge.plus")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 }
             }
+            .padding()
+            .background(Color(.systemGroupedBackground))
+            .cornerRadius(10)
         }
-        .padding()
-        .background(Color(.systemGroupedBackground))
-        .cornerRadius(10)
     }
     
     private func searchOptionButton(mode: SearchMode, icon: String, title: String) -> some View {

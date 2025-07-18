@@ -18,15 +18,15 @@
 				<key>location-parameters</key>
 				<dict>
 					<key>EndingColumnNumber</key>
-					<string>16</string>
+					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>196</string>
+					<string>224</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>196</string>
+					<string>223</string>
 					<key>Timestamp</key>
-					<string>768837450.677086</string>
+					<string>774556269.850965</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -42,15 +42,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>                </string>
+				<string>        }
+</string>
 				<key>leading</key>
-				<string>//                TextField("Search by name or...", text: $viewModel.searchText)
-                    .background(Color(.white))
+				<string>            .background(Color(.systemGray6))
+            .cornerRadius(12)
 </string>
 				<key>trailing</key>
-				<string>Button("Search") {
-                    Task {
-                        try await viewModel.performSearch(mode: searchMode, newValue: viewModel.searchText)
+				<string>    }
+    
+    var newDonorList: some View {
 </string>
 			</dict>
 			<key>type</key>
@@ -161,16 +162,16 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>                    Button {
+						<string>                .padding(.horizontal)
 </string>
 						<key>leading</key>
 						<string>                    }
-                    
+                }
 </string>
 						<key>trailing</key>
-						<string>                        prepareNewDonor()
-                        showingAddDonor = true
-                    } label: {
+						<string>                .padding(.vertical, 8)
+
+                switch (isSearching, errorMessage, searchResults.isEmpty, searchText.isEmpty) {
 </string>
 					</dict>
 					<key>title</key>
@@ -255,16 +256,16 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>        .sheet(isPresented: $showingAddDonor, onDismiss: {
+						<string>                } else if !newResults.isEmpty {
 </string>
 						<key>leading</key>
-						<string>            }
-        }
+						<string>                    isSearchFieldFocused = true
+                    isSecondarySearchFocused = false
 </string>
 						<key>trailing</key>
-						<string>            print("Add New Donor sheet dismissed. Current donor data:")
-            print("Name: \(newDonor.firstName ?? "") \(newDonor.lastName ?? "")")
-            print("Email: \(newDonor.email ?? "Not provided")")
+						<string>                    isSearchFieldFocused = false
+                    isSecondarySearchFocused = true
+                }
 </string>
 					</dict>
 					<key>title</key>
