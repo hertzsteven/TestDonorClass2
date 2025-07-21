@@ -32,29 +32,49 @@ struct DashboardView: View {
     // ENHANCE: Animated background
     var enhancedBackgroundView: some View {
         ZStack {
-            // Base gradient
+            // Base gradient with more vibrant colors
             LinearGradient(
                 colors: [
                     Color(.systemBackground),
-                    Color(.systemGray6).opacity(0.4),
-                    Color(.systemGray5).opacity(0.3)
+                    Color.blue.opacity(0.05),
+                    Color(.systemGray6).opacity(0.8),
+                    Color.purple.opacity(0.04)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
             
-            // Animated overlay
+            // Secondary layer for depth
+            RadialGradient(
+                colors: [
+                    Color.clear,
+                    Color.blue.opacity(0.03),
+                    Color.clear
+                ],
+                center: .topTrailing,
+                startRadius: 100,
+                endRadius: 400
+            )
+            .ignoresSafeArea()
+            
+            // Animated overlay with more opacity
             LinearGradient(
                 colors: [
-                    Color.blue.opacity(0.06),
+                    Color.blue.opacity(0.12),
                     Color.clear,
-                    Color.purple.opacity(0.04)
+                    Color.purple.opacity(0.08),
+                    Color.orange.opacity(0.04)
                 ],
                 startPoint: UnitPoint(x: gradientOffset, y: 0),
                 endPoint: UnitPoint(x: gradientOffset + 0.5, y: 1)
             )
             .ignoresSafeArea()
+            
+            // Subtle pattern overlay
+            Color(.systemGray6)
+                .opacity(0.3)
+                .ignoresSafeArea()
         }
     }
     
