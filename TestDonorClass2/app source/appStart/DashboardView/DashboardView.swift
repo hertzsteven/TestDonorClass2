@@ -9,14 +9,12 @@ import SwiftUI
 
 struct DashboardView: View {
     
-    // ADD: Organization settings manager
     @State private var organizationManager = OrganizationSettingsManager()
     
     private let viewModel: DashboardViewModel = DashboardViewModel()
     
     @State var path = NavigationPath()
     
-    // ADD: Animation states
     @State private var isAppearing = false
     @State private var isHelpHovered = false
     @State private var isSettingsHovered = false
@@ -62,17 +60,17 @@ struct DashboardView: View {
                         categories: viewModel.categories,
                         sections: viewModel.sections
                     )
-                    // ADD: Fade in animation
                     .opacity(isAppearing ? 1 : 0)
                     .animation(.easeIn(duration: 0.6), value: isAppearing)
                 }
 //                .navigationTitle("United Tiberias: Dashboard")
                 .toolbar {
                     ToolbarItem(placement: .principal) {
-                        VStack {
+                        VStack(spacing: 1) {
                             HStack {
                                 Text("\(ApplicationData.shared.getOrgTitle()): Dashboard")
                                     .font(.headline)
+                                    .fontWeight(.bold)
                                 ApplicationData.shared.getOrgLogoImage()
 //                                Image("orhtorahlogo")
                                     .resizable()
@@ -81,6 +79,7 @@ struct DashboardView: View {
                             }
                             Text("Management System")
                                 .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
                     }
                 }
@@ -126,11 +125,16 @@ struct DashboardView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: 16) {
-                        // ENHANCE: Interactive help button
                         Button(action: { showingHelp = true }) {
-                            Image(systemName: "questionmark.circle")
-                                .scaleEffect(isHelpHovered ? 1.1 : 1.0)
-                                .foregroundColor(isHelpHovered ? .blue : .primary)
+                            ZStack {
+                                Circle()
+                                    .fill(Color.blue)
+                                Image(systemName: "questionmark")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundColor(.white)
+                            }
+                            .frame(width: 28, height: 28)
+                            .scaleEffect(isHelpHovered ? 1.1 : 1.0)
                         }
                         .buttonStyle(.plain)
                         .onHover { hover in
@@ -139,11 +143,15 @@ struct DashboardView: View {
                             }
                         }
                         
-                        // ENHANCE: Interactive settings button
                         Button(action: { showingSettings = true }) {
-                            Image(systemName: "gear")
-                                .scaleEffect(isSettingsHovered ? 1.1 : 1.0)
-                                .foregroundColor(isSettingsHovered ? .blue : .primary)
+                            ZStack {
+                                Circle()
+                                    .fill(Color(white: 0.9))
+                                Image(systemName: "gearshape.fill")
+                                    .foregroundColor(Color(white: 0.4))
+                            }
+                            .frame(width: 28, height: 28)
+                            .scaleEffect(isSettingsHovered ? 1.1 : 1.0)
                         }
                         .buttonStyle(.plain)
                         .onHover { hover in
