@@ -18,7 +18,7 @@ struct DashboardView: View {
     @State private var isAppearing = false
     @State private var isHelpHovered = false
     @State private var isSettingsHovered = false
-    @State private var gradientStart = UnitPoint(x: 0, y: 0)
+    @State private var gradientOffset: CGFloat = 0
     
     @State private var showingSettings = false
     @State private var showingHelp = false
@@ -30,18 +30,31 @@ struct DashboardView: View {
     @EnvironmentObject private var defaultDonationSettingsViewModel: DefaultDonationSettingsViewModel
     
     // ENHANCE: Animated background
-    var backGroundView: some View {
-        LinearGradient(
-            colors: [Color(.systemGray6), Color(.systemGray5)],
-            startPoint: gradientStart,
-            endPoint: UnitPoint(x: 1, y: 1)
-        )
-        .opacity(0.8)
-        .ignoresSafeArea()
-        .onAppear {
-            withAnimation(.linear(duration: 5.0).repeatForever()) {
-                gradientStart = UnitPoint(x: 1, y: 1)
-            }
+    var enhancedBackgroundView: some View {
+        ZStack {
+            // Base gradient
+            LinearGradient(
+                colors: [
+                    Color(.systemBackground),
+                    Color(.systemGray6).opacity(0.4),
+                    Color(.systemGray5).opacity(0.3)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            // Animated overlay
+            LinearGradient(
+                colors: [
+                    Color.blue.opacity(0.06),
+                    Color.clear,
+                    Color.purple.opacity(0.04)
+                ],
+                startPoint: UnitPoint(x: gradientOffset, y: 0),
+                endPoint: UnitPoint(x: gradientOffset + 0.5, y: 1)
+            )
+            .ignoresSafeArea()
         }
     }
     
@@ -52,7 +65,7 @@ struct DashboardView: View {
             
             ZStack {
                 
-                backGroundView
+                enhancedBackgroundView
                 
                 
                 ScrollView {
@@ -179,8 +192,15 @@ struct DashboardView: View {
             withAnimation {
                 isAppearing = true
             }
+            startBackgroundAnimation()
             dump(DefaultOrganizationProvider().organizationInfo)
             print("kllkjkjkk")
+        }
+    }
+    
+    private func startBackgroundAnimation() {
+        withAnimation(.linear(duration: 10.0).repeatForever(autoreverses: false)) {
+            gradientOffset = 1.0
         }
     }
 }
