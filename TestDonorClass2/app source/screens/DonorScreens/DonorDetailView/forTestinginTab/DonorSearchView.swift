@@ -29,6 +29,7 @@ import SwiftUI
         
         @State private var isTabBarHidden = true
         @Environment(\.dismiss) private var dismiss
+        @EnvironmentObject var keyboardObserver: KeyboardObserver
         
         init(donorObject: DonorObjectClass, selectedTab: Binding<Int> = .constant(0)) {
 //        init(donorObject: DonorObjectClass, ) {

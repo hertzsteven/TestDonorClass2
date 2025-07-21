@@ -20,13 +20,13 @@
 					<key>EndingColumnNumber</key>
 					<string>0</string>
 					<key>EndingLineNumber</key>
-					<string>224</string>
+					<string>226</string>
 					<key>StartingColumnNumber</key>
 					<string>0</string>
 					<key>StartingLineNumber</key>
-					<string>223</string>
+					<string>225</string>
 					<key>Timestamp</key>
-					<string>774556269.850965</string>
+					<string>774761451.235606</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -42,16 +42,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>        }
+				<string>            .cornerRadius(12)
 </string>
 				<key>leading</key>
-				<string>            .background(Color(.systemGray6))
-            .cornerRadius(12)
+				<string>            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
 </string>
 				<key>trailing</key>
-				<string>    }
+				<string>        }
+    }
     
-    var newDonorList: some View {
 </string>
 			</dict>
 			<key>type</key>

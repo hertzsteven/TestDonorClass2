@@ -9,6 +9,7 @@ import SwiftUI
 
 // MARK: - Main List View
 struct DonorListView: View {
+    @EnvironmentObject var keyboardObserver: KeyboardObserver
     
     @EnvironmentObject var donorObject        : DonorObjectClass
     @EnvironmentObject var donationObject     : DonationObjectClass
@@ -52,6 +53,7 @@ struct DonorListView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+//            ExperimentalToolbarView()
             newDonorList
         }
         .onAppear {
@@ -181,9 +183,10 @@ extension DonorListView {
     
     fileprivate func SearchComponent() -> some View {
         VStack {
-            Rectangle()
-                .fill(.white)
-                .frame(height: 40)
+//            ExperimentalToolbarView()
+//            Rectangle()
+//                .fill(.white)
+//                .frame(height: 46)
             VStack(spacing: 2) {
                 HStack {
                     Image(systemName: "magnifyingglass")
@@ -402,6 +405,85 @@ extension DonorListView {
         .tint(searchMode == mode ? .blue : .secondary)
     }
 }
+
+// MARK: - Experimental Toolbar View
+extension DonorListView {
+    
+    /// Experimental duplicate of the toolbar as a standalone view for testing
+    var experimentalToolbarView: some View {
+        HStack {
+            if let donor = selectedDonor {
+                Button(action: {
+                    print("clear")
+                    selectedDonor = nil
+                }) {
+                    Text("Clear").foregroundColor(Color.blue)
+                }
+                .buttonStyle(.plain)
+            } else {
+                HStack {
+                    Text(viewModel.maintenanceMode ? "Information..." : "Donation...")
+                        .foregroundColor(.gray)
+                        .font(.caption.weight(.medium))
+                        .animation(.easeInOut, value: viewModel.maintenanceMode)
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 12) {
+                        if viewModel.maintenanceMode {
+                            Button { showingAddDonor = true } label: {
+                                Image(systemName: "plus")
+                            }
+                            .transition(.scale.combined(with: .opacity))
+                        } else {
+                            Button(action: { showingDefaults = true }) {
+                                Label("Defaults", systemImage: "gear")
+                            }
+                            .transition(.scale.combined(with: .opacity))
+                        }
+                        
+                        if searchMode == .id {
+                            Button(action: {
+                                isShowingScanner.toggle()
+                                print("Scan \(searchMode)")
+                            }) {
+                                Label("Scan Barcode", systemImage: "barcode")
+                            }
+                        }
+                        
+                        // MODIFY: Make divider more visible
+                        Rectangle()
+                            .frame(width: 1, height: 24)
+                            .foregroundColor(Color.gray.opacity(0.3))
+                        
+                        Button {
+                            viewModel.maintenanceMode.toggle()
+                        }  label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: viewModel.maintenanceMode ? "info.circle.fill" : "info.circle")
+                                    .foregroundColor(.blue)
+                                    .imageScale(.large)
+                                
+                                Image(systemName: !viewModel.maintenanceMode ? "dollarsign.circle.fill" : "dollarsign.circle")
+                                    .foregroundColor(.blue)
+                                    .imageScale(.large)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(.systemGray6))
+        .cornerRadius(8)
+    }
+    
+    private func ExperimentalToolbarView() -> some View {
+        experimentalToolbarView
+    }
+}
+
 // MARK: - Life Cycle Methods
 extension DonorListView {
     
@@ -448,6 +530,7 @@ extension DonorListView {
     
     @ToolbarContentBuilder
     func toolBarTrailLeftPane() -> some ToolbarContent {
+        if !keyboardObserver.isKeyboardVisible {
         if let donor = selectedDonor {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
@@ -505,38 +588,39 @@ extension DonorListView {
                             .imageScale(.large)
                     }
                 }
-
-//                Button {
-//                    viewModel.maintenanceMode.toggle()
-//                }  label: {
-//                    HStack(spacing: 8) {
-//                        Image(systemName: "info.circle")
-//                            .foregroundColor(.blue)
-//                            .background(
-//                                Circle()
-//                                    .stroke(viewModel.maintenanceMode ? Color.blue : Color.clear, lineWidth: 2)
-//                                    .padding(-4)
-//                            )
-//
-//                        Image(systemName: "dollarsign.circle")
-//                            .foregroundColor(.blue)
-//                            .background(
-//                                Circle()
-//                                    .stroke(!viewModel.maintenanceMode ? Color.blue : Color.clear, lineWidth: 2)
-//                                    .padding(-4)
-//                            )
-//                    }
-//                }
-
                 
-//                Button {
-//                    viewModel.maintenanceMode.toggle()
-//                }  label: {
-//                    Text(viewModel.maintenanceMode ? Image(systemName: "info.circle") : Image(systemName: "dollarsign.circle"))
-//                }
+                //                Button {
+                //                    viewModel.maintenanceMode.toggle()
+                //                }  label: {
+                //                    HStack(spacing: 8) {
+                //                        Image(systemName: "info.circle")
+                //                            .foregroundColor(.blue)
+                //                            .background(
+                //                                Circle()
+                //                                    .stroke(viewModel.maintenanceMode ? Color.blue : Color.clear, lineWidth: 2)
+                //                                    .padding(-4)
+                //                            )
+                //
+                //                        Image(systemName: "dollarsign.circle")
+                //                            .foregroundColor(.blue)
+                //                            .background(
+                //                                Circle()
+                //                                    .stroke(!viewModel.maintenanceMode ? Color.blue : Color.clear, lineWidth: 2)
+                //                                    .padding(-4)
+                //                            )
+                //                    }
+                //                }
+                
+                
+                //                Button {
+                //                    viewModel.maintenanceMode.toggle()
+                //                }  label: {
+                //                    Text(viewModel.maintenanceMode ? Image(systemName: "info.circle") : Image(systemName: "dollarsign.circle"))
+                //                }
                 
             }
         }
+    }
 //        ToolbarItem(placement: .bottomBar) {
 //            if donorObject.loadingState == .loaded {
 //                Picker("Search Mode", selection: $searchMode) {

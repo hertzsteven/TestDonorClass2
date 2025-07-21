@@ -15,6 +15,8 @@ struct AppRootView: View {
   @StateObject private var campaignObject: CampaignObjectClass
   @StateObject private var incentiveObject: DonationIncentiveObjectClass
   @StateObject private var defaultSettingsVM: DefaultDonationSettingsViewModel
+  @StateObject private var keyboardObserver = KeyboardObserver()
+
 
   init() {
     // 2️⃣ Create each instance (they’ll pull from DatabaseManager.shared internally)
@@ -35,6 +37,7 @@ struct AppRootView: View {
   var body: some View {
 //      Text("Hello, World!")
     LaunchScreenManager()
+      .environmentObject(keyboardObserver)
       .environmentObject(donorObject)
       .environmentObject(donationObject)
       .environmentObject(campaignObject)
