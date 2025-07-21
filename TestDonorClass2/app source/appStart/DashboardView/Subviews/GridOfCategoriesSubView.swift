@@ -21,29 +21,37 @@ struct GridOfCategoriesSubView: View {
         ScrollView {
             VStack(spacing: sectionSpacing) {
                 ForEach(sections) { section in
-                    VStack(alignment: .leading, spacing: 15) {
-                        Text(section.title)
-                            .myHeaderStyle()
-                            .padding(.leading, 5)
+                    VStack(alignment: .leading, spacing: 8) {
+                        let cats = getSectionCategories(section)
+                        HStack(alignment: .center, spacing: 0) {
+                            Text(section.title)
+                                .myHeaderStyle()
+                            if let first = cats.first {
+                                LinearGradient(
+                                    gradient: Gradient(stops: [
+                                        .init(color: first.color.opacity(0.8), location: 0),
+                                        .init(color: first.color.opacity(0.4), location: 0.3),
+                                        .init(color: .clear, location: 1)
+                                    ]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                .frame(height: 2)
+                                .frame(maxWidth: .infinity)
+                                .cornerRadius(1)
+                                .padding(.leading, 8)
+                                .padding(.bottom, 2)
+                            }
+                        }
+                        .padding(.leading, 5)
                         
-                        let sectionCategories = getSectionCategories(section)
-                        sectionLayout(categories: sectionCategories)
+                        sectionLayout(categories: cats)
                     }
                 }
             }
             .padding(.horizontal, 25)
             .padding(.vertical, 20)
         }
-        .background(
-            LinearGradient(
-                colors: [
-                    Color(.systemBackground),
-                    Color(.systemGray6).opacity(0.5)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
     }
 }
 
@@ -71,26 +79,16 @@ extension GridOfCategoriesSubView {
     fileprivate func categoryViewFunc(_ category: Category) -> NavigationLink<some View, Never> {
         NavigationLink(value: category) {
             CategoryCardView(category: category)
-                .padding(.horizontal, 15)
-                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color(.systemBackground))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .strokeBorder(category.color.opacity(0.3), lineWidth: 1)
-                        )
                 )
-                .background(
+                .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(category.color.opacity(0.1))
-                        .shadow(
-                            color: Color.black.opacity(0.1),
-                            radius: hoveredCategory == category ? 8 : 4,
-                            x: 0,
-                            y: hoveredCategory == category ? 4 : 2
-                        )
+                        .strokeBorder(category.color.opacity(0.2), lineWidth: 1)
                 )
+                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                 .scaleEffect(hoveredCategory == category ? 1.03 : 1.0)
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hoveredCategory)
                 .onHover { isHovered in

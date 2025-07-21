@@ -49,6 +49,14 @@ struct BatchDonationView: View {
          }
     }
 
+    /// Initializer for previews that accepts mock repositories
+    init(donorRepo: any DonorSpecificRepositoryProtocol, donationRepo: any DonationSpecificRepositoryProtocol) {
+        _viewModel = StateObject(wrappedValue: BatchDonationViewModel(
+            repository: donorRepo,
+            donationRepository: donationRepo
+        ))
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             globalSettingsBar
@@ -160,16 +168,16 @@ struct BatchDonationView: View {
     
     private var columnHeaders: some View {
         HStack {
-            Text("Status")
-                .frame(width: 50)
-            Text("Donor ID")
+            Text("ST")
+                .frame(width: 28, alignment: .trailing)
+            Text("ID")
                 .frame(width: 70)
             Text("Name")
                 .frame(width: 100)
             Text("Name & Address")
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text("Receipt")
-                .frame(width: 60)
+                .frame(width: 130)
             Text("Type")
                 .frame(width: 90)
             Text("Pay Status")
@@ -179,7 +187,7 @@ struct BatchDonationView: View {
             Text("Action")
                 .frame(width: 50)
         }
-        .font(.caption.bold())
+        .font(.body.bold())
         .foregroundColor(.secondary)
         .padding(.horizontal)
         .padding(.vertical, 8)
@@ -518,7 +526,148 @@ struct BatchDonationView: View {
 
 }
 
-//  MARK: - Toolbar Builder
+class MockDonationRepository: DonationSpecificRepositoryProtocol {
+    typealias Model = Donation
+    
+    private var donations: [Donation] = []
+    private var nextId = 1
+    
+    init() {
+        print("MockDonationRepository initialized")
+    }
+    
+    func insert(_ donation: Donation) async throws -> Donation {
+        var newDonation = donation
+        newDonation.id = nextId
+        nextId += 1
+        donations.append(newDonation)
+        print("MockDonationRepository: Inserted donation with ID \(newDonation.id ?? -1)")
+        return newDonation
+    }
+    
+    func getAll() async throws -> [Donation] {
+        return donations
+    }
+    
+    func getCount() async throws -> Int {
+        return donations.count
+    }
+    
+    func getOne(_ id: Int) async throws -> Donation? {
+        return donations.first { $0.id == id }
+    }
+    
+    func update(_ donation: Donation) async throws {
+        if let index = donations.firstIndex(where: { $0.id == donation.id }) {
+            donations[index] = donation
+        }
+    }
+    
+    func delete(_ donation: Donation) async throws {
+        donations.removeAll { $0.id == donation.id }
+    }
+    
+    func deleteOne(_ id: Int) async throws {
+        donations.removeAll { $0.id == id }
+    }
+    
+    func getTotalDonationsAmount(forDonorId donorId: Int) async throws -> Double {
+        return donations.filter { $0.donorId == donorId }.reduce(0) { $0 + $1.amount }
+    }
+    
+    func getDonationsForCampaign(campaignId: Int) async throws -> [Donation] {
+        return donations.filter { $0.campaignId == campaignId }
+    }
+    
+    func getDonationsForDonor(donorId: Int) async throws -> [Donation] {
+        return donations.filter { $0.donorId == donorId }
+    }
+    
+    func countPendingReceipts() async throws -> Int {
+        return donations.filter { $0.receiptStatus == .requested }.count
+    }
+    
+    func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws {
+        if let index = donations.firstIndex(where: { $0.id == donationId }) {
+            donations[index].receiptStatus = status
+        }
+    }
+    
+    func getReceiptRequests(status: ReceiptStatus) async throws -> [Donation] {
+        return donations.filter { $0.receiptStatus == status }
+    }
+}
+
+class MockCampaignRepository: CampaignSpecificRepositoryProtocol {
+    typealias Model = Campaign
+    
+    private var campaigns: [Campaign] = []
+    
+    init() {
+        // Create sample campaigns
+        campaigns = [
+            Campaign(
+                campaignCode: "2025-SPRING",
+                name: "Spring 2025 Campaign",
+                description: "Annual spring fundraising campaign",
+                startDate: Calendar.current.date(byAdding: .month, value: -1, to: Date()),
+                endDate: Calendar.current.date(byAdding: .month, value: 2, to: Date()),
+                status: .active,
+                goal: 50000.0
+            ),
+            Campaign(
+                campaignCode: "2024-WINTER",
+                name: "Winter 2024 Campaign",
+                description: "Holiday season fundraising",
+                startDate: Calendar.current.date(byAdding: .month, value: -3, to: Date()),
+                endDate: Calendar.current.date(byAdding: .month, value: -1, to: Date()),
+                status: .completed,
+                goal: 25000.0
+            )
+        ]
+        
+        // Assign IDs
+        for i in campaigns.indices {
+            campaigns[i].id = i + 1
+        }
+        
+        print("MockCampaignRepository initialized with \(campaigns.count) campaigns")
+    }
+    
+    func insert(_ campaign: Campaign) async throws -> Campaign {
+        var newCampaign = campaign
+        newCampaign.id = (campaigns.compactMap { $0.id }.max() ?? 0) + 1
+        campaigns.append(newCampaign)
+        return newCampaign
+    }
+    
+    func getAll() async throws -> [Campaign] {
+        return campaigns
+    }
+    
+    func getCount() async throws -> Int {
+        return campaigns.count
+    }
+    
+    func getOne(_ id: Int) async throws -> Campaign? {
+        return campaigns.first { $0.id == id }
+    }
+    
+    func update(_ campaign: Campaign) async throws {
+        if let index = campaigns.firstIndex(where: { $0.id == campaign.id }) {
+            campaigns[index] = campaign
+        }
+    }
+    
+    func delete(_ campaign: Campaign) async throws {
+        campaigns.removeAll { $0.id == campaign.id }
+    }
+    
+    func deleteOne(_ id: Int) async throws {
+        campaigns.removeAll { $0.id == id }
+    }
+}
+
 extension BatchDonationView {
     @ToolbarContentBuilder
     func SaveCancelToolBar() -> some ToolbarContent {
@@ -538,4 +687,67 @@ extension BatchDonationView {
             .disabled(viewModel.rows.allSatisfy { !$0.isValidDonor })
         }
     }
+}
+
+#Preview("Batch Donations - Empty State") {
+    NavigationStack {
+        BatchDonationView(
+            donorRepo: MockDonorRepository(),
+            donationRepo: MockDonationRepository()
+        )
+    }
+    .environmentObject(createMockDonorObject())
+    .environmentObject(createMockDonationObject())
+    .environmentObject(createMockCampaignObject())
+}
+
+#Preview("Batch Donations - With Data") {
+    NavigationStack {
+        BatchDonationView(
+            donorRepo: MockDonorRepository(),
+            donationRepo: MockDonationRepository()
+        )
+    }
+    .environmentObject(createMockDonorObjectWithData())
+    .environmentObject(createMockDonationObject())
+    .environmentObject(createMockCampaignObjectWithData())
+}
+
+private func createMockDonorObject() -> DonorObjectClass {
+    let mockRepo = MockDonorRepository()
+    return DonorObjectClass(repository: mockRepo)
+}
+
+private func createMockDonorObjectWithData() -> DonorObjectClass {
+    let mockRepo = MockDonorRepository()
+    let donorObject = DonorObjectClass(repository: mockRepo)
+    
+    // Pre-populate with some test data
+    Task {
+        await donorObject.loadDonors()
+    }
+    
+    return donorObject
+}
+
+private func createMockDonationObject() -> DonationObjectClass {
+    let mockRepo = MockDonationRepository()
+    return DonationObjectClass(repository: mockRepo)
+}
+
+private func createMockCampaignObject() -> CampaignObjectClass {
+    let mockRepo = MockCampaignRepository()
+    return CampaignObjectClass(repository: mockRepo)
+}
+
+private func createMockCampaignObjectWithData() -> CampaignObjectClass {
+    let mockRepo = MockCampaignRepository()
+    let campaignObject = CampaignObjectClass(repository: mockRepo)
+    
+    // Pre-populate with test data
+    Task {
+        await campaignObject.loadCampaigns()
+    }
+    
+    return campaignObject
 }
