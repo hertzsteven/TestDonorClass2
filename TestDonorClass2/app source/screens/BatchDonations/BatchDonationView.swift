@@ -60,6 +60,12 @@ struct BatchDonationView: View {
     var body: some View {
         VStack(spacing: 0) {
             globalSettingsBar
+
+            Divider()
+                .padding(.horizontal, 0)
+                .padding(.bottom, 12)
+                .background(Color(.systemGray6)) // extra subtlety
+
             columnHeaders
             donationRowsList
         }
@@ -96,6 +102,8 @@ struct BatchDonationView: View {
     
     private var globalSettingsBar: some View {
         HStack(spacing: 20) {
+            Text("Global Settings:")
+                .font(.headline)
             HStack(spacing: 8) {
                 Text("Amount:")
                     .foregroundColor(.secondary)
@@ -320,7 +328,7 @@ struct BatchDonationView: View {
     @ViewBuilder
     private func batchRowView(row: Binding<BatchDonationViewModel.RowEntry>) -> some View {
         let r = row.wrappedValue // Access wrapped value for reading non-binding properties
-        HStack {
+        HStack(alignment: .bottom) {
             // Status Icon - Only show when processing has occurred
             Group {
                 if r.processStatus != .none {

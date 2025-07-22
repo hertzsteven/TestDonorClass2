@@ -761,15 +761,15 @@
 								<key>location-parameters</key>
 								<dict>
 									<key>EndingColumnNumber</key>
-									<string>42</string>
+									<string>0</string>
 									<key>EndingLineNumber</key>
-									<string>153</string>
+									<string>157</string>
 									<key>StartingColumnNumber</key>
-									<string>42</string>
+									<string>0</string>
 									<key>StartingLineNumber</key>
-									<string>153</string>
+									<string>156</string>
 									<key>Timestamp</key>
-									<string>774875007.7452019</string>
+									<string>774890636.442452</string>
 								</dict>
 								<key>rebasable-url</key>
 								<dict>
@@ -785,15 +785,16 @@
 							<key>text-context</key>
 							<dict>
 								<key>focused</key>
-								<string></string>
+								<string>        .padding(.horizontal)
+</string>
 								<key>leading</key>
-								<string>    }
-    
-    private var columnHeaders: some View {</string>
+								<string>            Spacer()
+        }
+</string>
 								<key>trailing</key>
-								<string>
-        HStack {
-            Text("")
+								<string>        .padding(.vertical, 8)
+        .background(Color(.systemGray6))
+    }
 </string>
 							</dict>
 							<key>title</key>
@@ -824,15 +825,15 @@
 								<key>location-parameters</key>
 								<dict>
 									<key>EndingColumnNumber</key>
-									<string>1</string>
+									<string>0</string>
 									<key>EndingLineNumber</key>
-									<string>308</string>
+									<string>312</string>
 									<key>StartingColumnNumber</key>
-									<string>1</string>
+									<string>0</string>
 									<key>StartingLineNumber</key>
-									<string>308</string>
+									<string>311</string>
 									<key>Timestamp</key>
-									<string>774875102.1950819</string>
+									<string>774890636.442436</string>
 								</dict>
 								<key>rebasable-url</key>
 								<dict>
@@ -848,15 +849,16 @@
 							<key>text-context</key>
 							<dict>
 								<key>focused</key>
-								<string></string>
+								<string>        }
+</string>
 								<key>leading</key>
-								<string>    // MARK: - Helper Methods
-    
- </string>
+								<string>                )
+            }
+</string>
 								<key>trailing</key>
-								<string>   private func prayerNoteSheetDismissed() {
-        // When dismissed, update the note in the model
-        if let rowIndex = viewModel.rows.firstIndex(where: { $0.id == currentPrayerRowID }) {
+								<string>    }
+    
+    // MARK: - Helper Methods
 </string>
 							</dict>
 							<key>title</key>
@@ -867,6 +869,60 @@
 					</array>
 					<key>title</key>
 					<string>Row</string>
+					<key>type</key>
+					<string>group</string>
+				</dict>
+				<dict>
+					<key>children</key>
+					<array>
+						<dict>
+							<key>destination</key>
+							<dict>
+								<key>location-parameters</key>
+								<dict>
+									<key>EndingColumnNumber</key>
+									<string>0</string>
+									<key>EndingLineNumber</key>
+									<string>103</string>
+									<key>StartingColumnNumber</key>
+									<string>0</string>
+									<key>StartingLineNumber</key>
+									<string>102</string>
+									<key>Timestamp</key>
+									<string>774890608.543321</string>
+								</dict>
+								<key>rebasable-url</key>
+								<dict>
+									<key>base</key>
+									<string>workspace</string>
+									<key>payload</key>
+									<dict>
+										<key>relative-path</key>
+										<string>TestDonorClass2/app source/screens/BatchDonations/BatchDonationView.swift</string>
+									</dict>
+								</dict>
+							</dict>
+							<key>text-context</key>
+							<dict>
+								<key>focused</key>
+								<string>    private var globalSettingsBar: some View {
+</string>
+								<key>leading</key>
+								<string>    // MARK: - View Components
+    
+</string>
+								<key>trailing</key>
+								<string>        HStack(spacing: 20) {
+            Text("Global Settings:")
+                .font(.headline)
+</string>
+							</dict>
+							<key>type</key>
+							<string>bookmark</string>
+						</dict>
+					</array>
+					<key>title</key>
+					<string>globall</string>
 					<key>type</key>
 					<string>group</string>
 				</dict>
