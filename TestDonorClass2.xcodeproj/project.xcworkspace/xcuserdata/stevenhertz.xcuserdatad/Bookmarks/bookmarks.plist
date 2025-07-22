@@ -279,6 +279,603 @@
 			<key>type</key>
 			<string>group</string>
 		</dict>
+		<dict>
+			<key>children</key>
+			<array>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>49</string>
+							<key>EndingLineNumber</key>
+							<string>337</string>
+							<key>StartingColumnNumber</key>
+							<string>35</string>
+							<key>StartingLineNumber</key>
+							<string>337</string>
+							<key>Timestamp</key>
+							<string>774812917.534103</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/backbone/Database/DatabaseManager.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>receipt_status</string>
+						<key>leading</key>
+						<string>            if !receiptStatusExists {
+                try db.alter(table: "donation") { t in
+                    t.add(column: "</string>
+						<key>trailing</key>
+						<string>", .text).notNull().defaults(to: "NOT_REQUESTED")
+                }
+            } else {
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:                     t.add(column: "receipt_status", .text).notNull().defaults(to: "NOT_REQUESTED")</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>61</string>
+							<key>EndingLineNumber</key>
+							<string>270</string>
+							<key>StartingColumnNumber</key>
+							<string>47</string>
+							<key>StartingLineNumber</key>
+							<string>270</string>
+							<key>Timestamp</key>
+							<string>774812917.534144</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/backbone/Database/DatabaseManager.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>receipt_status</string>
+						<key>leading</key>
+						<string>            
+            
+            // Create donations table (without </string>
+						<key>trailing</key>
+						<string> initially, we'll add it later)
+            if try !db.tableExists("donation") {
+                try db.create(table: "donation") { t in
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:             // Create donations table (without receipt_status initially, we'll add it later)</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>115</string>
+							<key>EndingLineNumber</key>
+							<string>281</string>
+							<key>StartingColumnNumber</key>
+							<string>101</string>
+							<key>StartingLineNumber</key>
+							<string>281</string>
+							<key>Timestamp</key>
+							<string>774812917.53416</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/backbone/Database/DatabaseManager.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>receipt_status</string>
+						<key>leading</key>
+						<string>                    t.column("donation_type", .text).notNull()
+                    t.column("payment_status", .text).notNull().defaults(to: "PENDING") // Added default
+                                                                                        // t.column("</string>
+						<key>trailing</key>
+						<string>", .text) // &lt;-- Leave out for now
+                    t.column("transaction_number", .text)
+                    t.column("receipt_number", .text)
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:                                                                                         // t.column("receipt_status", .text) // &lt;-- Leave out for now</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>37</string>
+							<key>EndingLineNumber</key>
+							<string>340</string>
+							<key>StartingColumnNumber</key>
+							<string>23</string>
+							<key>StartingLineNumber</key>
+							<string>340</string>
+							<key>Timestamp</key>
+							<string>774812917.534171</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/backbone/Database/DatabaseManager.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>receipt_status</string>
+						<key>leading</key>
+						<string>                }
+            } else {
+                print("</string>
+						<key>trailing</key>
+						<string> column already exists, skipping addition.")
+            }
+            // Optionally update existing rows if needed, though likely not necessary if just adding
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:                 print("receipt_status column already exists, skipping addition.")</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>137</string>
+							<key>EndingLineNumber</key>
+							<string>343</string>
+							<key>StartingColumnNumber</key>
+							<string>123</string>
+							<key>StartingLineNumber</key>
+							<string>343</string>
+							<key>Timestamp</key>
+							<string>774812917.534182</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/backbone/Database/DatabaseManager.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>receipt_status</string>
+						<key>leading</key>
+						<string>            }
+            // Optionally update existing rows if needed, though likely not necessary if just adding
+            // try db.execute(sql: "UPDATE donation SET receipt_status = 'REQUESTED' WHERE request_printed_receipt = 1 AND </string>
+						<key>trailing</key>
+						<string> = 'NOT_REQUESTED'")
+        }
+        
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:             // try db.execute(sql: "UPDATE donation SET receipt_status = 'REQUESTED' WHERE request_printed_receipt = 1 AND receipt_status = 'NOT_REQUESTED'")</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>44</string>
+							<key>EndingLineNumber</key>
+							<string>126</string>
+							<key>StartingColumnNumber</key>
+							<string>30</string>
+							<key>StartingLineNumber</key>
+							<string>126</string>
+							<key>Timestamp</key>
+							<string>774812965.841309</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/types/Donation.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>receipt_status</string>
+						<key>leading</key>
+						<string>        case requestEmailReceipt = "request_email_receipt"
+        case requestPrintedReceipt = "request_printed_receipt"
+        case receiptStatus = "</string>
+						<key>trailing</key>
+						<string>"
+        case notes
+        case isAnonymous = "is_anonymous"
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:         case receiptStatus = "receipt_status"</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>0</string>
+							<key>EndingLineNumber</key>
+							<string>249</string>
+							<key>StartingColumnNumber</key>
+							<string>0</string>
+							<key>StartingLineNumber</key>
+							<string>248</string>
+							<key>Timestamp</key>
+							<string>774813789.182719</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/backbone/Repository/DonationRepository.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>    
+</string>
+						<key>leading</key>
+						<string>//        }
+//    }
+</string>
+						<key>trailing</key>
+						<string>    func countPendingReceipts() async throws -&gt; Int {
+        try await dbPool.read { db in
+            try Donation
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:                 SET receipt_status = ?</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>46</string>
+							<key>EndingLineNumber</key>
+							<string>332</string>
+							<key>StartingColumnNumber</key>
+							<string>32</string>
+							<key>StartingLineNumber</key>
+							<string>332</string>
+							<key>Timestamp</key>
+							<string>774812917.534194</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/backbone/Database/DatabaseManager.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>receipt_status</string>
+						<key>leading</key>
+						<string>            
+            let receiptStatusExists = try db.columns(in: "donation").contains { column in
+                column.name == "</string>
+						<key>trailing</key>
+						<string>"
+            }
+            
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:                 column.name == "receipt_status"</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>70</string>
+							<key>EndingLineNumber</key>
+							<string>343</string>
+							<key>StartingColumnNumber</key>
+							<string>56</string>
+							<key>StartingLineNumber</key>
+							<string>343</string>
+							<key>Timestamp</key>
+							<string>774812917.534205</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/backbone/Database/DatabaseManager.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>receipt_status</string>
+						<key>leading</key>
+						<string>            }
+            // Optionally update existing rows if needed, though likely not necessary if just adding
+            // try db.execute(sql: "UPDATE donation SET </string>
+						<key>trailing</key>
+						<string> = 'REQUESTED' WHERE request_printed_receipt = 1 AND receipt_status = 'NOT_REQUESTED'")
+        }
+        
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:             // try db.execute(sql: "UPDATE donation SET receipt_status = 'REQUESTED' WHERE request_printed_receipt = 1 AND receipt_status = 'NOT_REQUESTED'")</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>57</string>
+							<key>EndingLineNumber</key>
+							<string>104</string>
+							<key>StartingColumnNumber</key>
+							<string>43</string>
+							<key>StartingLineNumber</key>
+							<string>104</string>
+							<key>Timestamp</key>
+							<string>774812965.84129</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/types/Donation.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string>receipt_status</string>
+						<key>leading</key>
+						<string>        static let requestEmailReceipt = Column("request_email_receipt")
+        static let requestPrintedReceipt = Column("request_printed_receipt")
+        static let receiptStatus = Column("</string>
+						<key>trailing</key>
+						<string>")
+        static let notes = Column("notes")
+        static let isAnonymous = Column("is_anonymous")
+</string>
+					</dict>
+					<key>title</key>
+					<string>Find Result:         static let receiptStatus = Column("receipt_status")</string>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+			</array>
+			<key>title</key>
+			<string>receipt_status</string>
+			<key>type</key>
+			<string>group</string>
+		</dict>
+		<dict>
+			<key>children</key>
+			<array>
+				<dict>
+					<key>children</key>
+					<array>
+						<dict>
+							<key>destination</key>
+							<dict>
+								<key>location-parameters</key>
+								<dict>
+									<key>EndingColumnNumber</key>
+									<string>42</string>
+									<key>EndingLineNumber</key>
+									<string>153</string>
+									<key>StartingColumnNumber</key>
+									<string>42</string>
+									<key>StartingLineNumber</key>
+									<string>153</string>
+									<key>Timestamp</key>
+									<string>774875007.7452019</string>
+								</dict>
+								<key>rebasable-url</key>
+								<dict>
+									<key>base</key>
+									<string>workspace</string>
+									<key>payload</key>
+									<dict>
+										<key>relative-path</key>
+										<string>TestDonorClass2/app source/screens/BatchDonations/BatchDonationView.swift</string>
+									</dict>
+								</dict>
+							</dict>
+							<key>text-context</key>
+							<dict>
+								<key>focused</key>
+								<string></string>
+								<key>leading</key>
+								<string>    }
+    
+    private var columnHeaders: some View {</string>
+								<key>trailing</key>
+								<string>
+        HStack {
+            Text("")
+</string>
+							</dict>
+							<key>title</key>
+							<string>Columns</string>
+							<key>type</key>
+							<string>bookmark</string>
+						</dict>
+						<dict>
+							<key>children</key>
+							<array/>
+							<key>title</key>
+							<string>New Group</string>
+							<key>type</key>
+							<string>group</string>
+						</dict>
+					</array>
+					<key>title</key>
+					<string>Header</string>
+					<key>type</key>
+					<string>group</string>
+				</dict>
+				<dict>
+					<key>children</key>
+					<array>
+						<dict>
+							<key>destination</key>
+							<dict>
+								<key>location-parameters</key>
+								<dict>
+									<key>EndingColumnNumber</key>
+									<string>1</string>
+									<key>EndingLineNumber</key>
+									<string>308</string>
+									<key>StartingColumnNumber</key>
+									<string>1</string>
+									<key>StartingLineNumber</key>
+									<string>308</string>
+									<key>Timestamp</key>
+									<string>774875102.1950819</string>
+								</dict>
+								<key>rebasable-url</key>
+								<dict>
+									<key>base</key>
+									<string>workspace</string>
+									<key>payload</key>
+									<dict>
+										<key>relative-path</key>
+										<string>TestDonorClass2/app source/screens/BatchDonations/BatchDonationView.swift</string>
+									</dict>
+								</dict>
+							</dict>
+							<key>text-context</key>
+							<dict>
+								<key>focused</key>
+								<string></string>
+								<key>leading</key>
+								<string>            viewModel.rows[rowIndex].prayerNote = currentPrayerNote
+            // If the note is empty, turn off the toggle
+ </string>
+								<key>trailing</key>
+								<string>           if currentPrayerNote.isEmpty {
+                viewModel.rows[rowIndex].prayerNoteSW = false
+            }
+</string>
+							</dict>
+							<key>title</key>
+							<string>Rows</string>
+							<key>type</key>
+							<string>bookmark</string>
+						</dict>
+					</array>
+					<key>title</key>
+					<string>Row</string>
+					<key>type</key>
+					<string>group</string>
+				</dict>
+			</array>
+			<key>title</key>
+			<string>BatchDonationColumns</string>
+			<key>type</key>
+			<string>group</string>
+		</dict>
 	</array>
 </dict>
 </plist>

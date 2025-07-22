@@ -177,14 +177,75 @@ extension DonationRepository {
     }
     
     func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws {
-        try await dbPool.write { db in
-            try db.execute(sql: """
-                UPDATE donation
-                SET receipt_status = ?
-                WHERE id = ?
-                """, arguments: [status.rawValue, donationId])
+        if status == .queued {
+            // Check if receipt number already exists
+            let hasReceiptNumber = try await dbPool.read { db in
+                try String.fetchOne(db, sql: """
+                    SELECT receipt_number FROM donation 
+                    WHERE id = ? AND receipt_number IS NOT NULL AND receipt_number != ''
+                    """, arguments: [donationId]) != nil
+            }
+            
+            if !hasReceiptNumber {
+                let receiptNumber = try await generateReceiptNumber()
+                try await dbPool.write { db in
+                    try db.execute(sql: """
+                        UPDATE donation
+                        SET receipt_status = ?, receipt_number = ?
+                        WHERE id = ?
+                        """, arguments: [status.rawValue, receiptNumber, donationId])
+                }
+            } else {
+                // Just update status, keep existing receipt number
+                try await dbPool.write { db in
+                    try db.execute(sql: """
+                        UPDATE donation
+                        SET receipt_status = ?
+                        WHERE id = ?
+                        """, arguments: [status.rawValue, donationId])
+                }
+            }
+        } else {
+            try await dbPool.write { db in
+                try db.execute(sql: """
+                    UPDATE donation
+                    SET receipt_status = ?
+                    WHERE id = ?
+                    """, arguments: [status.rawValue, donationId])
+            }
         }
     }
+    
+//    func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws {
+//        if status == .queued {
+//            let receiptNumber = try await generateReceiptNumber()
+//            try await dbPool.write { db in
+//                try db.execute(sql: """
+//                    UPDATE donation
+//                    SET receipt_status = ?, receipt_number = ?
+//                    WHERE id = ?
+//                    """, arguments: [status.rawValue, receiptNumber, donationId])
+//            }
+//        } else {
+//            try await dbPool.write { db in
+//                try db.execute(sql: """
+//                    UPDATE donation
+//                    SET receipt_status = ?
+//                    WHERE id = ?
+//                    """, arguments: [status.rawValue, donationId])
+//            }
+//        }
+//    }
+    
+//    func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws {
+//        try await dbPool.write { db in
+//            try db.execute(sql: """
+//                UPDATE donation
+//                SET receipt_status = ?
+//                WHERE id = ?
+//                """, arguments: [status.rawValue, donationId])
+//        }
+//    }
     
     func countPendingReceipts() async throws -> Int {
         try await dbPool.read { db in
@@ -204,6 +265,25 @@ extension DonationRepository {
     func getCampaignForDonation(campaignId: Int) async throws -> Campaign? {
         try await dbPool.read { db in
             try Campaign.fetchOne(db, id: campaignId)
+        }
+    }
+    
+    func generateReceiptNumber() async throws -> String {
+        let year = Calendar.current.component(.year, from: Date())
+        let count = try await getReceiptCountForYear(year) + 1
+        return String(format: "R-%d-%06d", year, count)
+    }
+    
+    private func getReceiptCountForYear(_ year: Int) async throws -> Int {
+        try await dbPool.read { db in
+            let startOfYear = Calendar.current.date(from: DateComponents(year: year, month: 1, day: 1))!
+            let startOfNextYear = Calendar.current.date(from: DateComponents(year: year + 1, month: 1, day: 1))!
+            
+            return try Donation
+                .filter(Donation.Columns.receiptStatus == ReceiptStatus.printed.rawValue &&
+                       Donation.Columns.donationDate >= startOfYear &&
+                       Donation.Columns.donationDate < startOfNextYear)
+                .fetchCount(db)
         }
     }
 }

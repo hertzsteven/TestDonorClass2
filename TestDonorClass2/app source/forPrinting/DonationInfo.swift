@@ -24,6 +24,7 @@ struct DonationInfo {
     let donorCity: String?
     let donorState: String?
     let donorZip: String?
+    let receiptNumber: String? 
     
     // Computed property for formatted address
     var formattedAddress: String {
@@ -417,7 +418,13 @@ final class ReceiptPrintingService {
         let pageSize = context.pdfContextBounds.size
         let margin = Layout.pageMargin
         let receiptDetails = NSMutableAttributedString(string: "Receipt Details\n", attributes: PDFFormatting.headerAttributes)
+
+        // Include receipt number if available
+        let receiptNumberText = donation.receiptNumber ?? "N/A"
+
         let details = """
+Receipt Number: \(receiptNumberText)
+
 Donor Name: \(donation.donorName)
 Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
 Date: \(donation.date)

@@ -422,7 +422,8 @@ class ReceiptManagementViewModel: ObservableObject {
                 donorAddress: nil,
                 donorCity: nil,
                 donorState: nil,
-                donorZip: nil
+                donorZip: nil,
+                receiptNumber: nil
             )
             
             // Create receipt printing service
@@ -550,7 +551,8 @@ class ReceiptService {
             donorAddress: donorAddress,
             donorCity: donorCity,
             donorState: donorState,
-            donorZip: donorZip
+            donorZip: donorZip,
+            receiptNumber: donation.receiptNumber ?? ""
         )
         
         // Create a task completion source to handle the async completion
@@ -804,7 +806,8 @@ struct PrintReceiptSheetView: View {
                     donorAddress: donorAddress,
                     donorCity: donorCity,
                     donorState: donorState,
-                    donorZip: donorZip
+                    donorZip: donorZip,
+                    receiptNumber: donation.receiptNumber
                 )
                 
                 // Print the receipt

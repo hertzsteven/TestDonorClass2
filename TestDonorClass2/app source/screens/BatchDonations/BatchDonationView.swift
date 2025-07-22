@@ -138,21 +138,6 @@ struct BatchDonationView: View {
             }
 
             HStack(spacing: 8) {
-                Text("Status:")
-                    .foregroundColor(.secondary)
-                Menu {
-                    ForEach([PaymentStatus.completed, .pending], id: \.self) { status in
-                        Button(status.rawValue.capitalized) {
-                            viewModel.globalPaymentStatus = status
-                        }
-                    }
-                } label: {
-                    Text(viewModel.globalPaymentStatus.rawValue.capitalized)
-                        .foregroundColor(.blue)
-                }
-            }
-
-            HStack(spacing: 8) {
                 Text("Receipt:")
                     .foregroundColor(.secondary)
                 Toggle("", isOn: $viewModel.globalPrintReceipt)
@@ -168,23 +153,29 @@ struct BatchDonationView: View {
     
     private var columnHeaders: some View {
         HStack {
-            Text("ST")
-                .frame(width: 28, alignment: .trailing)
+            Text("")
+                .frame(width: 50)
             Text("ID")
                 .frame(width: 70)
             Text("Name")
                 .frame(width: 100)
-            Text("Name & Address")
+            Text("")
+                .frame(width: 60)
+            Text("Address")
                 .frame(maxWidth: .infinity, alignment: .leading)
+            Text("Request")
+                .frame(width: 70, alignment: .center)
+                .font(.body.bold())
+                .lineLimit(1)
             Text("Receipt")
-                .frame(width: 130)
+                .frame(width: 70, alignment: .center)
+                .font(.body.bold())
+                .lineLimit(1)
             Text("Type")
-                .frame(width: 90)
-            Text("Pay Status")
-                .frame(width: 90)
+                .frame(width: 90, alignment: .center)
             Text("Amount")
-                .frame(width: 50, alignment: .trailing)
-            Text("Action")
+                .frame(width: 90, alignment: .center)
+            Text("")
                 .frame(width: 50)
         }
         .font(.body.bold())
@@ -196,7 +187,6 @@ struct BatchDonationView: View {
                 .fill(Color(.systemGray6).opacity(0.7))
                 .shadow(color: .black.opacity(0.05), radius: 1, y: 1)
         )
-        .padding(.horizontal)
     }
     
     private var donationRowsList: some View {
@@ -326,10 +316,18 @@ struct BatchDonationView: View {
     private func batchRowView(row: Binding<BatchDonationViewModel.RowEntry>) -> some View {
         let r = row.wrappedValue // Access wrapped value for reading non-binding properties
         HStack {
-            // Status Icon
-            Image(systemName: statusIcon(for: r.processStatus))
-                .foregroundColor(statusColor(for: r.processStatus))
-                .frame(width: 50, alignment: .center)
+            // Status Icon - Only show when processing has occurred
+            Group {
+                if r.processStatus != .none {
+                    Image(systemName: statusIcon(for: r.processStatus))
+                        .foregroundColor(statusColor(for: r.processStatus))
+                        .frame(width: 50, alignment: .center)
+                } else {
+                    // Empty space when no processing status
+                    Color.clear
+                        .frame(width: 50, alignment: .center)
+                }
+            }
 
             // Donor ID
             TextField("ID", value: row.donorID, format: .number)
@@ -431,17 +429,6 @@ struct BatchDonationView: View {
             .frame(width: 90)
             .disabled(!r.isValidDonor)
 
-            // Payment Status Override
-            Picker("", selection: row.paymentStatusOverride) {
-                 // Text("Default (\(viewModel.globalPaymentStatus.rawValue.capitalized))").tag(viewModel.globalPaymentStatus)
-                ForEach([PaymentStatus.completed, .pending], id: \.self) { status in
-                    Text(status.rawValue.capitalized).tag(status)
-                }
-            }
-           .pickerStyle(.menu)
-           .frame(width: 90)
-           .disabled(!r.isValidDonor)
-
             // Amount Override
             TextField("Amount", value: row.donationOverride, format: .currency(code: "USD"))
                 .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -488,7 +475,7 @@ struct BatchDonationView: View {
 
     private func statusIcon(for status: BatchDonationViewModel.RowProcessStatus) -> String { 
          switch status {
-         case .none: return "circle"
+         case .none: return "circle" // This won't be used anymore since we check for .none above
          case .success: return "checkmark.circle.fill"
          case .failure: return "xmark.octagon.fill"
          }
@@ -527,6 +514,7 @@ struct BatchDonationView: View {
 }
 
 class MockDonationRepository: DonationSpecificRepositoryProtocol {
+    
     typealias Model = Donation
     
     private var donations: [Donation] = []
@@ -596,6 +584,12 @@ class MockDonationRepository: DonationSpecificRepositoryProtocol {
     func getReceiptRequests(status: ReceiptStatus) async throws -> [Donation] {
         return donations.filter { $0.receiptStatus == status }
     }
+    
+    func generateReceiptNumber() async throws -> String {
+        "receipt number"
+    }
+    
+
 }
 
 class MockCampaignRepository: CampaignSpecificRepositoryProtocol {

@@ -39,7 +39,8 @@ struct PrintReceiptView: View {
                     donorAddress: nil,  // TODO: Get from donor record
                     donorCity: nil,     // TODO: Get from donor record
                     donorState: nil,    // TODO: Get from donor record
-                    donorZip: nil       // TODO: Get from donor record
+                    donorZip: nil,
+                    receiptNumber: nil       // TODO: Get from donor record
                 )
                 let receiptPrintService = ReceiptPrintingService()
                 receiptPrintService.printReceipt(for: donation) {
