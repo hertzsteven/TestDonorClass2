@@ -163,18 +163,23 @@ struct BatchDonationView: View {
                 .frame(width: 60)
             Text("Address")
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 40)
             Text("Request")
-                .frame(width: 70, alignment: .center)
+                .frame(width: 70, alignment: .trailing)
                 .font(.body.bold())
                 .lineLimit(1)
+                .padding(.leading, 15)
             Text("Receipt")
-                .frame(width: 70, alignment: .center)
+                .frame(width: 70, alignment: .trailing)
                 .font(.body.bold())
                 .lineLimit(1)
+                .padding(.leading, 10)
             Text("Type")
-                .frame(width: 90, alignment: .center)
+                .frame(width: 60, alignment: .center)
+                .padding(.leading, 15)
             Text("Amount")
-                .frame(width: 90, alignment: .center)
+                .frame(width: 90, alignment: .leading)
+                .padding(.leading, 10)
             Text("")
                 .frame(width: 50)
         }
@@ -380,7 +385,7 @@ struct BatchDonationView: View {
                 
                 if r.isValidDonor {
                     Text(getDonorAddress(from: r.displayInfo))
-                        .font(.caption)
+                        .font(.body)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -391,6 +396,7 @@ struct BatchDonationView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(minHeight: 40, alignment: .center)
             .help(r.displayInfo)
+            .padding(.leading, 20)
 
             // Prayer Note Toggle
             Toggle("Pray", isOn: row.prayerNoteSW)
@@ -420,13 +426,12 @@ struct BatchDonationView: View {
 
             // Donation Type Override
             Picker("", selection: row.donationTypeOverride) {
-                // Text("Default (\(viewModel.globalDonationType.rawValue))").tag(viewModel.globalDonationType)
                 ForEach(DonationType.allCases, id: \.self) { type in
                     Text(type.rawValue).tag(type)
                 }
             }
             .pickerStyle(.menu)
-            .frame(width: 90)
+            .frame(width: 90, alignment: .center)
             .disabled(!r.isValidDonor)
 
             // Amount Override
@@ -683,7 +688,7 @@ extension BatchDonationView {
     }
 }
 
-#Preview("Batch Donations - Empty State") {
+#Preview("Batch Donations - Empty State", traits: .landscapeLeft) {
     NavigationStack {
         BatchDonationView(
             donorRepo: MockDonorRepository(),

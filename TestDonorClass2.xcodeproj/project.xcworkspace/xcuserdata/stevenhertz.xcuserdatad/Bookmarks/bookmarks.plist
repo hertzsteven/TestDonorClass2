@@ -850,13 +850,13 @@
 								<key>focused</key>
 								<string></string>
 								<key>leading</key>
-								<string>            viewModel.rows[rowIndex].prayerNote = currentPrayerNote
-            // If the note is empty, turn off the toggle
+								<string>    // MARK: - Helper Methods
+    
  </string>
 								<key>trailing</key>
-								<string>           if currentPrayerNote.isEmpty {
-                viewModel.rows[rowIndex].prayerNoteSW = false
-            }
+								<string>   private func prayerNoteSheetDismissed() {
+        // When dismissed, update the note in the model
+        if let rowIndex = viewModel.rows.firstIndex(where: { $0.id == currentPrayerRowID }) {
 </string>
 							</dict>
 							<key>title</key>
