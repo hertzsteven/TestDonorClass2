@@ -708,7 +708,7 @@ extension BatchDonationView {
     .environmentObject(createMockCampaignObject())
 }
 
-#Preview("Batch Donations - With Data") {
+#Preview("Batch Donations - With Data", traits: .landscapeLeft) {
     NavigationStack {
         BatchDonationView(
             donorRepo: MockDonorRepository(),

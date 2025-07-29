@@ -91,7 +91,7 @@ final class ReceiptPrintingService {
         static let receiptDetailsMarginX: CGFloat = 50    // 0.69" from left (50/72)
         static let receiptDetailsMarginY: CGFloat = 245   // 3.40" from top (245/72)
         static let receiptDetailsWidth: CGFloat = 512     // 7.11" wide (512/72)
-        static let receiptDetailsHeight: CGFloat = 80     // 1.11" high (80/72)
+        static let receiptDetailsHeight: CGFloat = 120     // 1.11" high (80/72)
         
         // Thank you section
         static let thankYouMarginX: CGFloat = 50      // 0.69" from left (50/72)
@@ -332,7 +332,7 @@ final class ReceiptPrintingService {
  
                 yOffset = drawReceiptDetails(in: context, donation: donation, yOffset: yOffset)
                 yOffset = drawThankYouSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
-                _ = drawFooter(in: context, orgInfo: orgInfo, yOffset: yOffset)
+//                _ = drawFooter(in: context, orgInfo: orgInfo, yOffset: yOffset)
             })
             return pdfFilePath
         } catch {
@@ -424,10 +424,10 @@ final class ReceiptPrintingService {
 
         let details = """
 Receipt Number: \(receiptNumberText)
+Date: \(donation.date)
 
 Donor Name: \(donation.donorName)
 Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
-Date: \(donation.date)
 """
         receiptDetails.append(NSAttributedString(string: details, attributes: PDFFormatting.bodyLeftAttributes))
         
@@ -449,11 +449,15 @@ Date: \(donation.date)
         let message = """
 Your generous donation helps us to continue our mission.
 
-If you have any questions regarding this receipt, please contact us:
-Email: \(orgInfo.email ?? "contact@organization.org")
-Phone: \(orgInfo.phone ?? "Phone not available")
-Website: \(orgInfo.website ?? "")
 """
+//        let message = """
+//Your generous donation helps us to continue our mission.
+//
+//If you have any questions regarding this receipt, please contact us:
+//Email: \(orgInfo.email ?? "contact@organization.org")
+//Phone: \(orgInfo.phone ?? "Phone not available")
+//Website: \(orgInfo.website ?? "")
+//"""
         thankYouText.append(NSAttributedString(string: message, attributes: PDFFormatting.bodyJustifiedAttributes))
         
         let thankYouRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 120)
