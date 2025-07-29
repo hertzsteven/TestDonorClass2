@@ -34,6 +34,7 @@ struct PrintReceiptView: View {
                 // CREATE: DonationInfo with address (for now using placeholder since we don't have donor access here)
                 let donation = DonationInfo(
                     donorName: receipt.donorName,
+                    donorTitle: nil,  // TODO: Get from donor record
                     donationAmount: receipt.total,
                     date: dateString,
                     donorAddress: nil,  // TODO: Get from donor record

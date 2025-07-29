@@ -400,12 +400,14 @@ class ReceiptManagementViewModel: ObservableObject {
             }
             
             var donorName = "Anonymous"
+            var donorTitle: String? = nil
             if let donorId = donation.donorId, !donation.isAnonymous {
                 if let donor = try? await donationRepository.getDonorForDonation(donorId: donorId) {
                     donorName = "\(donor.firstName ?? "") \(donor.lastName ?? "")"
                     if donorName.trimmingCharacters(in: .whitespaces).isEmpty {
                         donorName = donor.company ?? "Unknown"
                     }
+                    donorTitle = donor.salutation
                 }
             }
             
@@ -417,6 +419,7 @@ class ReceiptManagementViewModel: ObservableObject {
             // Create donation info using the proper format
             let donationInfo = DonationInfo(
                 donorName: donorName,
+                donorTitle: donorTitle,
                 donationAmount: donation.amount,
                 date: dateString,
                 donorAddress: nil,
@@ -519,6 +522,7 @@ class ReceiptService {
         // Get donor details
         print("Printing receipt for donation ID: \(donation.id ?? 0)")
         var donorName = "Anonymous"
+        var donorTitle: String? = nil
         var donorAddress: String? = nil
         var donorCity: String? = nil
         var donorState: String? = nil
@@ -530,7 +534,8 @@ class ReceiptService {
                 if donorName.trimmingCharacters(in: .whitespaces).isEmpty {
                     donorName = donor.company ?? "Unknown"
                 }
-                // GET: Address information
+                // GET: Address and title information
+                donorTitle = donor.salutation
                 donorAddress = donor.address
                 donorCity = donor.city
                 donorState = donor.state
@@ -546,6 +551,7 @@ class ReceiptService {
         // Create donation info
         let donationInfo = DonationInfo(
             donorName: donorName,
+            donorTitle: donorTitle,
             donationAmount: donation.amount,
             date: dateString,
             donorAddress: donorAddress,
@@ -774,6 +780,7 @@ struct PrintReceiptSheetView: View {
                 }
                 
                 var donorName = "Anonymous"
+                var donorTitle: String? = nil
                 var donorAddress: String? = nil
                 var donorCity: String? = nil
                 var donorState: String? = nil
@@ -785,7 +792,8 @@ struct PrintReceiptSheetView: View {
                         if donorName.trimmingCharacters(in: .whitespaces).isEmpty {
                             donorName = donor.company ?? "Unknown"
                         }
-                        // GET: Address information
+                        // GET: Address and title information
+                        donorTitle = donor.salutation
                         donorAddress = donor.address
                         donorCity = donor.city
                         donorState = donor.state
@@ -801,6 +809,7 @@ struct PrintReceiptSheetView: View {
                 // Create donation info using the standard format
                 let donationInfo = DonationInfo(
                     donorName: donorName,
+                    donorTitle: donorTitle,
                     donationAmount: donation.amount,
                     date: dateString,
                     donorAddress: donorAddress,

@@ -18,6 +18,7 @@ import UIKit
 /// A simple model to hold donation details.
 struct DonationInfo {
     let donorName: String
+    let donorTitle: String?
     let donationAmount: Double
     let date: String
     let donorAddress: String?
@@ -25,6 +26,14 @@ struct DonationInfo {
     let donorState: String?
     let donorZip: String?
     let receiptNumber: String? 
+    
+    // Computed property for formatted donor name with title
+    var formattedDonorName: String {
+        if let title = donorTitle, !title.isEmpty {
+            return "\(title) \(donorName)"
+        }
+        return donorName
+    }
     
     // Computed property for formatted address
     var formattedAddress: String {
@@ -365,7 +374,7 @@ final class ReceiptPrintingService {
                           width: Layout.recipientWidth,
                           height: Layout.recipientHeight)
 
-        var donorLines: [String] = [donation.donorName]
+        var donorLines: [String] = [donation.formattedDonorName]
         if let addr = donation.donorAddress, !addr.isEmpty {
             donorLines.append(addr)
         }
@@ -426,7 +435,7 @@ final class ReceiptPrintingService {
 Receipt Number: \(receiptNumberText)
 Date: \(donation.date)
 
-Donor Name: \(donation.donorName)
+Donor Name: \(donation.formattedDonorName)
 Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
 """
         receiptDetails.append(NSAttributedString(string: details, attributes: PDFFormatting.bodyLeftAttributes))
