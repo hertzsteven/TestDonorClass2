@@ -30,7 +30,9 @@ struct DonationInfo {
     // Computed property for formatted donor name with title
     var formattedDonorName: String {
         if let title = donorTitle, !title.isEmpty {
-            return "\(title) \(donorName)"
+            // Add period if title doesn't already have one
+            let formattedTitle = title.hasSuffix(".") ? title : "\(title)."
+            return "\(formattedTitle) \(donorName)"
         }
         return donorName
     }

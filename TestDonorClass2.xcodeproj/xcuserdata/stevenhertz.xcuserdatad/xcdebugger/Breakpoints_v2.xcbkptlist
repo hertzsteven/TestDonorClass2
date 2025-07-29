@@ -598,8 +598,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "425"
             endingLineNumber = "425"
-            landmarkName = "ReceiptPrintingService"
-            landmarkType = "3">
+            landmarkName = "drawTitle(in:yOffset:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -662,8 +662,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "418"
             endingLineNumber = "418"
-            landmarkName = "drawTitle(in:yOffset:)"
-            landmarkType = "7">
+            landmarkName = "ReceiptPrintingService"
+            landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
