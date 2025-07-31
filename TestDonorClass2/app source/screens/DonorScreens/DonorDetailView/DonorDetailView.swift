@@ -170,17 +170,7 @@ struct DonorDetailView: View {
         }
         .sheet(isPresented: $showingDonationDetail) {
             if let donation = selectedDonation {
-                NavigationView {
-                    DonationDetailView(donation: donation)
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarLeading) {
-                                Button("Close") {
-                                    showingDonationDetail = false
-                                    selectedDonation = nil
-                                }
-                            }
-                        }
-                }
+                DonationDetailView(donation: donation)
             }
         }
         .onChange(of: donor, initial: true) { oldValue, newValue in

@@ -9,82 +9,143 @@ struct DonationDetailView: View {
     @State private var donor: Donor?
     @State private var isLoadingDonor = false
     @State private var errorMessage: String?
+    
+    // Date formatters to match the screenshot
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d/yyyy, h:mm a"
+        return formatter
+    }
 
     var body: some View {
-        Form {
-            Section(header: Text("Amount and Status")) {
-                LabeledContent("Amount", value: "$\(String(format: "%.2f", donation.amount))")
-                LabeledContent("Payment Type", value: donation.donationType.rawValue)
-                LabeledContent("Status", value: donation.paymentStatus.rawValue)
-            }
-            
-            Section(header: Text("Date Information")) {
-                LabeledContent("Donation Date", value: donation.donationDate, format: .dateTime)
-                LabeledContent("Created", value: donation.createdAt, format: .dateTime)
-                LabeledContent("Last Updated", value: donation.updatedAt, format: .dateTime)
-            }
-            
-            Section(header: Text("Receipt Information")) {
-                if let transactionNumber = donation.transactionNumber {
-                    LabeledContent("Transaction #", value: transactionNumber)
-                }
-                if let receiptNumber = donation.receiptNumber {
-                    LabeledContent("Receipt #", value: receiptNumber)
-                }
-                LabeledContent("Email Receipt", value: donation.requestEmailReceipt ? "Yes" : "No")
-                LabeledContent("Printed Receipt", value: donation.requestPrintedReceipt ? "Yes" : "No")
-            }
-            
-            if let paymentInfo = donation.paymentProcessorInfo {
-                Section(header: Text("Payment Processing")) {
-                    Text(paymentInfo)
-                }
-            }
-            
-            if let notes = donation.notes {
-                Section(header: Text("Notes")) {
-                    Text(notes)
-                }
-            }
-            
-            
-            Section(header: Text("Additional Information")) {
-                LabeledContent("Anonymous", value: donation.isAnonymous ? "Yes" : "No")
-                if let donorId = donation.donorId {
-                    LabeledContent("Donor ID", value: "\(donorId)")
-                }
-                if let campaignId = donation.campaignId {
-                    LabeledContent("Campaign ID", value: "\(campaignId)")
-                }
-            }
-        }
-        .navigationTitle("Donation Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar(.hidden, for: .tabBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
+        NavigationView {
+            Form {
+                Section(header: Text("AMOUNT AND STATUS")) {
                     HStack {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
+                        Text("Amount")
+                        Spacer()
+                        Text("$\(String(format: "%.2f", donation.amount))")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Payment Type")
+                        Spacer()
+                        Text(donation.donationType.rawValue.uppercased())
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Status")
+                        Spacer()
+                        Text(donation.paymentStatus.rawValue.uppercased())
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Section(header: Text("DATE INFORMATION")) {
+                    HStack {
+                        Text("Donation Date")
+                        Spacer()
+                        Text(dateFormatter.string(from: donation.donationDate))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Created")
+                        Spacer()
+                        Text(dateFormatter.string(from: donation.createdAt))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Last Updated")
+                        Spacer()
+                        Text(dateFormatter.string(from: donation.updatedAt))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Section(header: Text("RECEIPT INFORMATION")) {
+                    HStack {
+                        Text("Email Receipt")
+                        Spacer()
+                        Text(donation.requestEmailReceipt ? "Yes" : "No")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Printed Receipt")
+                        Spacer()
+                        Text(donation.requestPrintedReceipt ? "Yes" : "No")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let transactionNumber = donation.transactionNumber {
+                        HStack {
+                            Text("Transaction #")
+                            Spacer()
+                            Text(transactionNumber)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    if let receiptNumber = donation.receiptNumber {
+                        HStack {
+                            Text("Receipt #")
+                            Spacer()
+                            Text(receiptNumber)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                
+                Section(header: Text("ADDITIONAL INFORMATION")) {
+                    HStack {
+                        Text("Anonymous")
+                        Spacer()
+                        Text(donation.isAnonymous ? "Yes" : "No")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let campaignId = donation.campaignId {
+                        HStack {
+                            Text("Campaign")
+                            Spacer()
+                            Text("#\(campaignId)")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    HStack {
+                        Text("Donation Type")
+                        Spacer()
+                        Text(donation.donationType.rawValue.uppercased())
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                if let paymentInfo = donation.paymentProcessorInfo {
+                    Section(header: Text("PAYMENT PROCESSING")) {
+                        Text(paymentInfo)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                if let notes = donation.notes {
+                    Section(header: Text("NOTES")) {
+                        Text(notes)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
-        }
-//        .toolbar {
-//            ToolbarItem(placement: .navigationBarTrailing) {
-//                Button("Edit") {
-//                    loadDonorAndShowEdit()
-//                }
-//            }
-//        }
-        .sheet(isPresented: $showingEditSheet) {
-            if let donor = donor {
-                NavigationView {
-                    DonationEditView(donor: donor)
+            .navigationTitle("Donation Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Close") {
+                        dismiss()
+                    }
                 }
             }
         }
@@ -138,7 +199,7 @@ struct DonationDetailView: View {
 struct DonationDetailView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            DonationDetailView(donation: Donation(amount: 100.0, donationType: .creditCard))
+            DonationDetailView(donation: Donation(amount: 186.0, donationType: .other))
         }
     }
 }
