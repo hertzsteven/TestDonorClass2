@@ -1,4 +1,4 @@
-    //
+//
     //  DonorDetailView.swift
     //  TestDonorClass2
     //
@@ -23,6 +23,13 @@ struct DonorDetailView: View {
         /// A new donor used for the "Add Donor" flow (since we need a binding).
         @State private var blankDonor = Donor()
     
+    // Add state for testing sheet
+    @State private var showingTestSheet = false
+    @State private var showingTextView = false
+    @State private var showingStringView = false
+    @State private var showingDonationDetail = false
+    @State private var selectedDonation: Donation?
+
 //        // Add init to handle @State property
 //        init(donor: Donor) {
 //            _donor = State(initialValue: donor)
@@ -30,7 +37,22 @@ struct DonorDetailView: View {
 //
     
     var body: some View {
-         Form {
+        Form {
+            // Test section with buttons INSIDE the form using sheets instead of navigation
+            Section(header: Text("Test Navigation")) {
+                Button("Test Sheet") {
+                    showingTestSheet = true
+                }
+                
+                Button("Go to Text View (Sheet)") {
+                    showingTextView = true
+                }
+                
+                Button("Go to String Handler (Sheet)") {
+                    showingStringView = true
+                }
+            }
+            
             Section(header: Text("Personal Information")) {
                 if let salutation = donor.salutation {
                     LabeledContent("Salutation", value: salutation)
@@ -81,6 +103,14 @@ struct DonorDetailView: View {
             
                 // Modified Donations section with async loading
             Section(header: Text("Donations")) {
+                // Add a test button to verify sheet works
+                Button("Test Donation Sheet") {
+                    // Create a test donation
+                    selectedDonation = Donation(amount: 50.0, donationType: .creditCard)
+                    showingDonationDetail = true
+                }
+                .foregroundColor(.blue)
+                
                 DonationsListView(
                     isLoadingDonations: isLoadingDonations,
                     donationsError:     donationsError,
@@ -89,63 +119,98 @@ struct DonorDetailView: View {
                         Task {
                             await loadDonations()
                         }
+                    },
+                    onDonationSelected: { donation in
+                        print("🔥 Donation selected: \(donation)")
+                        selectedDonation = donation
+                        showingDonationDetail = true
                     }
-
                 )
             }
-                          
         }
         .navigationTitle("Donor Details")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Edit") {
-                    showingEditSheet = true
-                }
+        .navigationDestination(for: String.self) { stringValue in
+            VStack {
+                Text("String Handler View")
+                    .font(.title)
+                Text("Received string: \(stringValue)")
+                    .padding()
             }
+            .navigationTitle("String Handler")
         }
         .sheet(isPresented: $showingEditSheet) {
 //            NavigationView {
             DonorEditView(mode: .edit(donor), donor: $donor)
 //            }
         }
-//            // Add sheet dismissal handler to refresh donor data
-//            .onChange(of: showingEditSheet) { oldValue, newValue in
-//                if !newValue {  // Sheet was dismissed
-//                    Task {
-//                        if let updatedDonor = try? await donorObject.getDonor(donor.id ?? 0) {
-//                            await MainActor.run {
-//                                self.donor = updatedDonor
-//                            }
-//                            await loadDonations()
-//                        }
-//                    }
-//                }
-//            }
-            // Remove the existing .task modifier
-            // Add onChange modifier to watch donor changes
-            // Add listener for updated donor
-
-            // TODO: 1/24 Looks like we need this onReceive for donations total but why I do not understand how it works
-/* mh fri
-            .onReceive(donorObject.$lastUpdatedDonor) { updatedDonor in
-                if let updatedDonor = updatedDonor, updatedDonor.id == donor.id {
-                    Task {
-                        await loadDonations()
+        .sheet(isPresented: $showingTestSheet) {
+            NavigationView {
+                VStack {
+                    Text("Test Sheet Works!")
+                        .font(.title)
+                        .padding()
+                    
+                    Button("Dismiss") {
+                        showingTestSheet = false
                     }
+                    .padding()
+                }
+                .navigationTitle("Test Sheet")
+            }
+        }
+        .sheet(isPresented: $showingTextView) {
+            NavigationView {
+                VStack {
+                    Text("This is a simple text view destination")
+                        .font(.title)
+                        .padding()
+                    
+                    Button("Dismiss") {
+                        showingTextView = false
+                    }
+                    .padding()
+                }
+                .navigationTitle("Text View")
+            }
+        }
+        .sheet(isPresented: $showingStringView) {
+            NavigationView {
+                VStack {
+                    Text("String Handler View")
+                        .font(.title)
+                    Text("Received string: test-string")
+                        .padding()
+                    
+                    Button("Dismiss") {
+                        showingStringView = false
+                    }
+                    .padding()
+                }
+                .navigationTitle("String Handler")
+            }
+        }
+        .sheet(isPresented: $showingDonationDetail) {
+            if let donation = selectedDonation {
+                NavigationView {
+                    DonationDetailView(donation: donation)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button("Close") {
+                                    showingDonationDetail = false
+                                    selectedDonation = nil
+                                }
+                            }
+                        }
                 }
             }
-*/
+        }
         .onChange(of: donor, initial: true) { oldValue, newValue in
             print("**** Donor changed in On Change: \(newValue) \n \(oldValue)")
              Task {
                  await loadDonations()
              }
          }
-//            .onAppear {
-//                Task {
-//                    await loadDonations()
-//                }
-//            }
+
     }
     
         // Modified loadDonations to be async

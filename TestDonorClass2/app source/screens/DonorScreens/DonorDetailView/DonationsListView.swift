@@ -5,44 +5,40 @@ struct DonationsListView: View {
     let donationsError: String?
     let donorDonations: [Donation]
     let onReload: () -> Void
+    let onDonationSelected: ((Donation) -> Void)?
     
     var body: some View {
-
-            
-            if isLoadingDonations {
-                HStack {
-                    Spacer()
-                    ProgressView()
-                        .padding()
-                    Spacer()
+        if isLoadingDonations {
+            HStack {
+                Spacer()
+                ProgressView()
+                    .padding()
+                Spacer()
+            }
+        } else if let error = donationsError {
+            HStack {
+                Text(error)
+                    .foregroundColor(.red)
+                Spacer()
+                Button(action: onReload) {
+                    Image(systemName: "arrow.clockwise")
                 }
-            } else if let error = donationsError {
-                HStack {
-                    Text(error)
-                        .foregroundColor(.red)
-                    Spacer()
-                    Button(action: onReload) {
-                        Image(systemName: "arrow.clockwise")
-                    }
+            }
+        } else if donorDonations.isEmpty {
+            Text("No donations found")
+                .foregroundColor(.secondary)
+        } else {
+            ForEach(donorDonations) { donation in
+                Button(action: {
+                    print("🔥 Button tapped for donation: \(donation.amount)")
+                    onDonationSelected?(donation)
+                }) {
+                    DonationListItemView(donation: donation)
                 }
-            } else if donorDonations.isEmpty {
-                Text("No donations found")
-                    .foregroundColor(.secondary)
-            } else {
-                    //        NavigationStack {
-                ForEach(donorDonations) { donation in
-//                    NavigationLink(value: donation) {
-//                        DonationListItemView(donation: donation)
-//                    }
-                    NavigationLink(destination: DonationDetailView(donation: donation).toolbar(.hidden, for: .tabBar) ,label: {DonationListItemView(donation: donation)})
-                        //                DonationListItemView(donation: donation)
-                }
-//                .navigationDestination(for: Donation.self) { donation in
-//                        DonationDetailsView(donation: donation)
-//                    }
+                .buttonStyle(.plain)
             }
         }
-//    }
+    }
 }
 
 struct DonationDetailsView: View {
