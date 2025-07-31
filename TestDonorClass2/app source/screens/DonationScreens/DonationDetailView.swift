@@ -2,7 +2,8 @@ import SwiftUI
 
 struct DonationDetailView: View {
     // Properties
-    let donation: Donation
+    let originalDonation: Donation
+    @State private var donation: Donation
     @Environment(\.dismiss) private var dismiss
     @State private var showingEditSheet = false
     @EnvironmentObject var donorObject: DonorObjectClass
@@ -21,6 +22,11 @@ struct DonationDetailView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d/yyyy"
         return formatter
+    }
+    
+    init(donation: Donation) {
+        self.originalDonation = donation
+        self._donation = State(initialValue: donation)
     }
     
     var body: some View {
@@ -153,6 +159,18 @@ struct DonationDetailView: View {
                         dismiss()
                     }
                 }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Edit") {
+                        showingEditSheet = true
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingEditSheet) {
+            DonationDateEditView(donation: donation) { updatedDonation in
+                self.donation = updatedDonation        // keep UI in sync
+                showingEditSheet = false
             }
         }
         .alert("Error", isPresented: .init(

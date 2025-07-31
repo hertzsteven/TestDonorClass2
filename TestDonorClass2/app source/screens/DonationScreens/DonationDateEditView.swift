@@ -11,11 +11,17 @@ struct DonationDateEditView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showingAlert = false
+    @State private var amount: String
+    @State private var donationType: DonationType
+    @State private var paymentStatus: PaymentStatus
     
     init(donation: Donation, onSave: @escaping (Donation) -> Void) {
-        self.donation = donation
-        self.onSave = onSave
-        self._donationDate = State(initialValue: donation.donationDate)
+        self.donation      = donation
+        self.onSave        = onSave
+        _donationDate      = State(initialValue: donation.donationDate)
+        _amount            = State(initialValue: String(format: "%.2f", donation.amount))
+        _donationType      = State(initialValue: donation.donationType)
+        _paymentStatus     = State(initialValue: donation.paymentStatus)
     }
     
     var body: some View {
@@ -25,33 +31,33 @@ struct DonationDateEditView: View {
                     DatePicker(
                         "Date",
                         selection: $donationDate,
-                        displayedComponents: [.date, .hourAndMinute]
+                        displayedComponents: [.date]        // time wheels removed
                     )
                     .datePickerStyle(WheelDatePickerStyle())
                 }
-                
-                Section(header: Text("CURRENT DETAILS")) {
-                    HStack {
-                        Text("Amount")
-                        Spacer()
-                        Text("$\(String(format: "%.2f", donation.amount))")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    HStack {
-                        Text("Payment Type")
-                        Spacer()
-                        Text(donation.donationType.rawValue.uppercased())
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    HStack {
-                        Text("Status")
-                        Spacer()
-                        Text(donation.paymentStatus.rawValue.uppercased())
-                            .foregroundColor(.secondary)
-                    }
-                }
+
+//                Section(header: Text("AMOUNT")) {           // NEW
+//                    TextField("Amount", text: $amount)
+//                        .keyboardType(.decimalPad)
+//                }
+//
+//                Section(header: Text("PAYMENT TYPE")) {     // NEW
+//                    Picker("Payment Type", selection: $donationType) {
+//                        ForEach(DonationType.allCases, id: \.self) { type in
+//                            Text(type.rawValue.uppercased()).tag(type)
+//                        }
+//                    }
+//                    .pickerStyle(.wheel)
+//                }
+
+//                Section(header: Text("STATUS")) {           // NEW
+//                    Picker("Status", selection: $paymentStatus) {
+//                        ForEach(PaymentStatus.allCases, id: \.self) { status in
+//                            Text(status.rawValue.uppercased()).tag(status)
+//                        }
+//                    }
+//                    .pickerStyle(.wheel)
+//                }
             }
             .navigationTitle("Edit Donation Date")
             .navigationBarTitleDisplayMode(.inline)
@@ -82,21 +88,24 @@ struct DonationDateEditView: View {
     }
     
     private func saveDonation() async {
-        await MainActor.run {
-            isLoading = true
-        }
+        await MainActor.run { isLoading = true }
         
-        // Create updated donation with new date
+        // Build updated donation
         var updatedDonation = donation
-        updatedDonation.donationDate = donationDate
-        updatedDonation.updatedAt = Date()
-        
+        updatedDonation.donationDate  = donationDate
+        updatedDonation.updatedAt     = Date()
+
+        if let newAmount = Double(amount) {
+            updatedDonation.amount = newAmount
+        }
+        updatedDonation.donationType  = donationType
+        updatedDonation.paymentStatus = paymentStatus
+
         do {
             try await donationObject.updateDonation(updatedDonation)
-            
             await MainActor.run {
                 isLoading = false
-                onSave(updatedDonation)
+                onSave(updatedDonation)             // already in place
                 dismiss()
             }
         } catch {
