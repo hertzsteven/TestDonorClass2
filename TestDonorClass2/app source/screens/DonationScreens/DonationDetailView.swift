@@ -16,7 +16,13 @@ struct DonationDetailView: View {
         formatter.dateFormat = "M/d/yyyy, h:mm a"
         return formatter
     }
-
+    // Date formatters to match the screenshot
+    private var dateOnlyFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d/yyyy"
+        return formatter
+    }
+    
     var body: some View {
         NavigationView {
             Form {
@@ -47,21 +53,21 @@ struct DonationDetailView: View {
                     HStack {
                         Text("Donation Date")
                         Spacer()
-                        Text(dateFormatter.string(from: donation.donationDate))
+                        Text(dateOnlyFormatter.string(from: donation.donationDate))
                             .foregroundColor(.secondary)
                     }
                     
                     HStack {
                         Text("Created")
                         Spacer()
-                        Text(dateFormatter.string(from: donation.createdAt))
+                        Text(dateOnlyFormatter.string(from: donation.createdAt))
                             .foregroundColor(.secondary)
                     }
                     
                     HStack {
                         Text("Last Updated")
                         Spacer()
-                        Text(dateFormatter.string(from: donation.updatedAt))
+                        Text(dateOnlyFormatter.string(from: donation.updatedAt))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -101,12 +107,12 @@ struct DonationDetailView: View {
                 }
                 
                 Section(header: Text("ADDITIONAL INFORMATION")) {
-                    HStack {
-                        Text("Anonymous")
-                        Spacer()
-                        Text(donation.isAnonymous ? "Yes" : "No")
-                            .foregroundColor(.secondary)
-                    }
+//                    HStack {
+//                        Text("Anonymous")
+//                        Spacer()
+//                        Text(donation.isAnonymous ? "Yes" : "No")
+//                            .foregroundColor(.secondary)
+//                    }
                     
                     if let campaignId = donation.campaignId {
                         HStack {
