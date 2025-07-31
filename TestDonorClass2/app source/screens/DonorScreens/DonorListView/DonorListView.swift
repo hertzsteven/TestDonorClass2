@@ -277,13 +277,13 @@ extension DonorListView {
                             //                                DonorRowView(donor: donor, maintenanceMode: viewModel.maintenanceMode)
                             //                            }
                             
-                            NavigationLink(value: donor) {
+//                            NavigationLink(value: donor) {
                                 DonorRowView(
                                     donor: donor,
                                     isSelected: donor.id == selectedDonorID,
                                     maintenanceMode: viewModel.maintenanceMode
                                 )
-                            }
+//                            }
                         }
                         .onDelete(perform: viewModel.maintenanceMode ? handleDelete : nil)
                     }
