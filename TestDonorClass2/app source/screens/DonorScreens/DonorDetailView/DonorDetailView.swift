@@ -38,20 +38,6 @@ struct DonorDetailView: View {
     
     var body: some View {
         Form {
-            // Test section with buttons INSIDE the form using sheets instead of navigation
-            Section(header: Text("Test Navigation")) {
-                Button("Test Sheet") {
-                    showingTestSheet = true
-                }
-                
-                Button("Go to Text View (Sheet)") {
-                    showingTextView = true
-                }
-                
-                Button("Go to String Handler (Sheet)") {
-                    showingStringView = true
-                }
-            }
             
             Section(header: Text("Personal Information")) {
                 if let salutation = donor.salutation {
@@ -103,13 +89,6 @@ struct DonorDetailView: View {
             
                 // Modified Donations section with async loading
             Section(header: Text("Donations")) {
-                // Add a test button to verify sheet works
-                Button("Test Donation Sheet") {
-                    // Create a test donation
-                    selectedDonation = Donation(amount: 50.0, donationType: .creditCard)
-                    showingDonationDetail = true
-                }
-                .foregroundColor(.blue)
                 
                 DonationsListView(
                     isLoadingDonations: isLoadingDonations,

@@ -14,13 +14,16 @@ struct DonationListItemView: View {
                     .padding(4)
                     .background(donation.paymentStatus == .completed ? Color.green.opacity(0.2) : Color.orange.opacity(0.2))
                     .cornerRadius(4)
+                Image(systemName: "info.circle")
+                    .foregroundColor(.blue)
+                    .font(.system(size: 24))
             }
             if let campaign = donation.campaignId {
-                Text("Campaign: \(campaign)")
+                Text("Campaign: #\(campaign)")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            Text("Type: \(donation.donationType.rawValue)")
+            Text("Donation Type: \(donation.donationType.rawValue)")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
