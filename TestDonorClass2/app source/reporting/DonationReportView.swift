@@ -74,6 +74,64 @@ struct DonationReportView: View {
                             }
                             .pickerStyle(.segmented)
                             .padding(.vertical, 8)
+                            .disabled(viewModel.useCustomDateRange) // Disable when custom range is active
+
+                            // Custom Date Range
+                            VStack(alignment: .leading, spacing: 8) {
+                                Toggle("Custom Date Range", isOn: $viewModel.useCustomDateRange)
+                                    .onChange(of: viewModel.useCustomDateRange) { isEnabled in
+                                        if !isEnabled {
+                                            // Clear custom dates when disabling
+                                            viewModel.fromDate = nil
+                                            viewModel.toDate = nil
+                                        }
+                                    }
+                                
+                                if viewModel.useCustomDateRange {
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text("From Date:")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            DatePicker("", selection: Binding(
+                                                get: { viewModel.fromDate ?? Date() },
+                                                set: { viewModel.fromDate = $0 }
+                                            ), displayedComponents: .date)
+                                            .datePickerStyle(.compact)
+                                        }
+                                        
+                                        VStack(alignment: .leading) {
+                                            Text("To Date:")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            DatePicker("", selection: Binding(
+                                                get: { viewModel.toDate ?? Date() },
+                                                set: { viewModel.toDate = $0 }
+                                            ), displayedComponents: .date)
+                                            .datePickerStyle(.compact)
+                                        }
+                                    }
+                                    
+                                    // Clear dates button
+                                    HStack {
+                                        Button("Clear Dates") {
+                                            viewModel.fromDate = nil
+                                            viewModel.toDate = nil
+                                        }
+                                        .font(.caption)
+                                        .foregroundColor(.blue)
+                                        
+                                        Spacer()
+                                        
+                                        // Show date range summary
+                                        if let from = viewModel.fromDate, let to = viewModel.toDate {
+                                            Text("\(from.formatted(date: .abbreviated, time: .omitted)) - \(to.formatted(date: .abbreviated, time: .omitted))")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+                            }
 
                             // Campaign
                             Picker("Campaign", selection: $viewModel.selectedCampaignId) {

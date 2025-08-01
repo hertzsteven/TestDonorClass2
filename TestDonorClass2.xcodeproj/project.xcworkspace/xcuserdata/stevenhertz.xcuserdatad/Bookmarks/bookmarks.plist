@@ -209,16 +209,16 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>                        .disabled(viewModel.filteredReportItems.isEmpty)
+						<string>                                .font(.largeTitle)
 </string>
 						<key>leading</key>
-						<string>                            Label("Save", systemImage: "arrow.down.doc")
-                        }
+						<string>                        VStack {
+                            Image(systemName: "exclamationmark.triangle")
 </string>
 						<key>trailing</key>
-						<string>                    }
-                }
-            }
+						<string>                                .foregroundColor(.red)
+                            Text("Error Loading Report")
+                                .font(.headline)
 </string>
 					</dict>
 					<key>title</key>
@@ -967,13 +967,13 @@
 						<key>focused</key>
 						<string></string>
 						<key>leading</key>
-						<string>                    cleanupTemporaryFile()
-                }
+						<string>
+                        // Existing Share button
     </string>
 						<key>trailing</key>
-						<string>        }
-            .sheet(item: $donationToShow) { donation in
-                DonationDetailView(donation: donation)
+						<string>                    Button(action: { Task { await prepareShare() } }) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
 </string>
 					</dict>
 					<key>type</key>

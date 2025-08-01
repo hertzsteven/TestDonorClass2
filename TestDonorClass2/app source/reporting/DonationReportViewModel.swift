@@ -39,6 +39,18 @@ class DonationReportViewModel: ObservableObject {
     @Published var showOnlyPrayerNotes: Bool = false {
         didSet { scheduleFilter() }
     }
+    
+    // Add custom date range properties
+    @Published var fromDate: Date? = nil {
+        didSet { scheduleFilter() }
+    }
+    @Published var toDate: Date? = nil {
+        didSet { scheduleFilter() }
+    }
+    @Published var useCustomDateRange: Bool = false {
+        didSet { scheduleFilter() }
+    }
+    
     @Published var exportText: String?
 
     // MARK: – Picker / UI Data
@@ -143,21 +155,34 @@ class DonationReportViewModel: ObservableObject {
         var results = allFetchedDonations
 
         // 1. Time-frame filter
-        switch selectedTimeFrame {
-        case .last7Days:
-            if let start = cal.date(byAdding: .day, value: -7, to: now) {
-                results = results.filter { $0.donationDate >= start && $0.donationDate <= now }
+        if useCustomDateRange {
+            // Use custom date range if enabled
+            if let from = fromDate {
+                results = results.filter { $0.donationDate >= from }
             }
-        case .last30Days:
-            if let start = cal.date(byAdding: .day, value: -30, to: now) {
-                results = results.filter { $0.donationDate >= start && $0.donationDate <= now }
+            if let to = toDate {
+                // Add time to end of day for 'to' date
+                let endOfToDate = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: to) ?? to
+                results = results.filter { $0.donationDate <= endOfToDate }
             }
-        case .last90Days:
-            if let start = cal.date(byAdding: .day, value: -90, to: now) {
-                results = results.filter { $0.donationDate >= start && $0.donationDate <= now }
+        } else {
+            // Use preset time frames
+            switch selectedTimeFrame {
+            case .last7Days:
+                if let start = cal.date(byAdding: .day, value: -7, to: now) {
+                    results = results.filter { $0.donationDate >= start && $0.donationDate <= now }
+                }
+            case .last30Days:
+                if let start = cal.date(byAdding: .day, value: -30, to: now) {
+                    results = results.filter { $0.donationDate >= start && $0.donationDate <= now }
+                }
+            case .last90Days:
+                if let start = cal.date(byAdding: .day, value: -90, to: now) {
+                    results = results.filter { $0.donationDate >= start && $0.donationDate <= now }
+                }
+            case .allTime:
+                break
             }
-        case .allTime:
-            break
         }
 
         // 2. Campaign
@@ -178,6 +203,13 @@ class DonationReportViewModel: ObservableObject {
         // 5. Prayer-notes only
         if showOnlyPrayerNotes {
             results = results.filter { $0.notes != nil }
+        }
+        
+        // Add custom date range filter
+        if useCustomDateRange {
+            if let fromDate = fromDate, let toDate = toDate {
+                results = results.filter { $0.donationDate >= fromDate && $0.donationDate <= toDate }
+            }
         }
 
         // STEP-1: build items synchronously (no email yet)
