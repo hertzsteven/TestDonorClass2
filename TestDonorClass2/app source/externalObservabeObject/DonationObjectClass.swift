@@ -1,4 +1,4 @@
-    //
+//
     //  DonationObjectClass.swift
     //  TestDonorClass2
     //
@@ -123,5 +123,10 @@
         func getTotalDonationsAmount(forDonorId donorId: Int) async throws -> Double {
             let totalAmount = try await repository.getTotalDonationsAmount(forDonorId: donorId)
             return totalAmount
+        }
+        
+        // Add method to get a single donation
+        func getDonation(_ id: Int) async throws -> Donation? {
+            return try await repository.getOne(id)
         }
     }

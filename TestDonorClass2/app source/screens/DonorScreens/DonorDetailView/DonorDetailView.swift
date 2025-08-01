@@ -29,6 +29,7 @@ struct DonorDetailView: View {
     @State private var showingStringView = false
     @State private var showingDonationDetail = false
     @State private var selectedDonation: Donation?
+    @State private var lastShownDonationId: Int? // Track which donation was shown
 
 //        // Add init to handle @State property
 //        init(donor: Donor) {
@@ -102,6 +103,7 @@ struct DonorDetailView: View {
                     onDonationSelected: { donation in
                         print("🔥 Donation selected: \(donation)")
                         selectedDonation = donation
+                        lastShownDonationId = donation.id
                         showingDonationDetail = true
                     }
                 )
@@ -171,6 +173,17 @@ struct DonorDetailView: View {
         .sheet(isPresented: $showingDonationDetail) {
             if let donation = selectedDonation {
                 DonationDetailView(donation: donation)
+                    .environmentObject(donorObject)
+            }
+        }
+        .onChange(of: showingDonationDetail) { isPresented in
+            // When the donation detail sheet is dismissed, refresh that specific donation
+            if !isPresented, let donationId = lastShownDonationId {
+                print("🔄 Donation detail sheet dismissed, updating donation \(donationId)...")
+                Task {
+                    await updateSingleDonation(donationId)
+                }
+                lastShownDonationId = nil
             }
         }
         .onChange(of: donor, initial: true) { oldValue, newValue in
@@ -208,6 +221,27 @@ struct DonorDetailView: View {
                 }
             }
         }
+
+    // Add method to update a single donation
+    private func updateSingleDonation(_ donationId: Int) async {
+        do {
+            // Get the fresh donation from database
+            guard let updatedDonation = try await donationObject.getDonation(donationId) else {
+                print("❌ Could not find donation with ID: \(donationId)")
+                return
+            }
+            
+            await MainActor.run {
+                // Find and update the donation in our local array
+                if let index = donorDonations.firstIndex(where: { $0.id == donationId }) {
+                    donorDonations[index] = updatedDonation
+                    print("✅ Updated single donation: \(updatedDonation.amount)")
+                }
+            }
+        } catch {
+            print("💥 Error updating single donation: \(error)")
+        }
+    }
 
         // Modified to use async/await properly
     private func loadDonationsold() async {
