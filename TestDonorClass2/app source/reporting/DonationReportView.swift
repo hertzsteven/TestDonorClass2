@@ -443,9 +443,14 @@ struct DonationReportRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text(formatCurrency(item.amount))
-                    .font(.headline)
-                    .foregroundColor(.green) // Or another appropriate color
+                HStack {
+                    Text(formatCurrency(item.amount))
+                        .font(.headline)
+                        .foregroundColor(.green) // Or another appropriate color
+                    Image(systemName: "info.circle")
+                        .foregroundColor(.blue)
+                        .font(.system(size: 24))
+                }
                 Text(item.donationDate, formatter: DonationReportViewModel.dateFormatter)
                     .font(.caption)
                     .foregroundColor(.secondary)
