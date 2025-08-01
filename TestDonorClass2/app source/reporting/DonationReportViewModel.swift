@@ -254,6 +254,60 @@ class DonationReportViewModel: ObservableObject {
         return try await donationRepository.getOne(id)
     }
 
+    // MARK: – Single Donation Update
+    func updateSingleDonation(_ donationId: Int) async {
+        do {
+            // Get the fresh donation from database
+            guard let updatedDonation = try await donationRepository.getOne(donationId) else {
+                print("❌ Could not find donation with ID: \(donationId)")
+                return
+            }
+            
+            await MainActor.run {
+                // Update the cached donation in allFetchedDonations
+                if let index = allFetchedDonations.firstIndex(where: { $0.id == donationId }) {
+                    allFetchedDonations[index] = updatedDonation
+                }
+                
+                // Update the display item in filteredReportItems
+                if let displayIndex = filteredReportItems.firstIndex(where: { $0.id == donationId }) {
+                    let oldItem = filteredReportItems[displayIndex]
+                    
+                    // Create updated report item
+                    let donorName = updatedDonation.donorId.flatMap { donorCache[$0] }
+                        ?? (updatedDonation.isAnonymous ? "Anonymous" : "Unknown Donor")
+                    let campaignName = updatedDonation.campaignId.flatMap { campaignCache[$0] }
+                        ?? "General Support"
+                    
+                    let updatedItem = DonationReportItem(
+                        id: donationId,
+                        donorId: updatedDonation.donorId,
+                        donorName: donorName,
+                        campaignName: campaignName,
+                        amount: updatedDonation.amount,
+                        donationDate: updatedDonation.donationDate,
+                        hasPrayerNote: updatedDonation.notes != nil,
+                        prayerNote: updatedDonation.notes,
+                        email: oldItem.email // Keep the existing email to avoid extra DB call
+                    )
+                    
+                    filteredReportItems[displayIndex] = updatedItem
+                    
+                    // Recalculate totals
+                    filteredCount = filteredReportItems.count
+                    totalFilteredAmount = filteredReportItems.reduce(0) { $0 + $1.amount }
+                    averageFilteredAmount = filteredCount > 0 
+                        ? totalFilteredAmount / Double(filteredCount) 
+                        : 0
+                    
+                    print("✅ Updated single donation: \(updatedDonation.amount)")
+                }
+            }
+        } catch {
+            print("💥 Error updating single donation: \(error)")
+        }
+    }
+
     // MARK: – CSV Export
     func generateExportText() async throws -> String {
         let header = [

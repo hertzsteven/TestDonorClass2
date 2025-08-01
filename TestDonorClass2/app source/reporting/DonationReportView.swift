@@ -28,6 +28,8 @@ struct DonationReportView: View {
     
     @State private var showingDonationDetail = false
     @State private var selectedDonation: Donation?
+    @State private var donationToShow: Donation?
+    @State private var lastShownDonationId: Int? // Track which donation was shown
     @State private var isLoadingDonation = false
 
     // Custom Initializer
@@ -299,11 +301,32 @@ struct DonationReportView: View {
                     cleanupTemporaryFile()
                 }
             }
-            .sheet(isPresented: $showingDonationDetail) {
-                if let donation = selectedDonation {
-                    DonationDetailView(donation: donation)
+            .sheet(item: $donationToShow) { donation in
+                DonationDetailView(donation: donation)
+                    .environmentObject(donorObject)
+                    .onAppear {
+                        lastShownDonationId = donation.id
+                    }
+            }
+            .onChange(of: donationToShow) { donation in
+                // When the sheet is dismissed (donationToShow becomes nil), update just that donation
+                if donation == nil, let donationId = lastShownDonationId {
+                    print("🔄 Donation detail sheet dismissed, updating donation \(donationId)...")
+                    Task {
+                        await viewModel.updateSingleDonation(donationId)
+                    }
+                    lastShownDonationId = nil
                 }
             }
+        //            .sheet(isPresented: $showingDonationDetail) {
+//                if let donation = selectedDonation {
+//                    DonationDetailView(donation: donation)
+//                } else {
+//                    // Fallback loading view
+//                    ProgressView("Loading donation...")
+//                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+//                }
+//            }
 //        }
         .navigationViewStyle(.stack)
     }
@@ -357,24 +380,30 @@ struct DonationReportView: View {
     
     private func loadDonationAndShowDetail(donationId: Int) async {
         print("🔍 Loading donation with ID: \(donationId)")
+        
         await MainActor.run {
             isLoadingDonation = true
         }
         
         do {
+            print("📡 About to call viewModel.getDonation(\(donationId))")
             if let donation = try await viewModel.getDonation(donationId) {
                 print("✅ Successfully loaded donation: \(donation.amount)")
+                
                 await MainActor.run {
-                    selectedDonation = donation
-                    showingDonationDetail = true
+                    print("💾 Setting donationToShow to: \(donation.amount)")
+                    donationToShow = donation // Use the new working pattern!
                     isLoadingDonation = false
                 }
             } else {
                 print("❌ No donation found with ID: \(donationId)")
+                await MainActor.run {
+                    isLoadingDonation = false
+                }
             }
         } catch {
             await MainActor.run {
-                print("Error loading donation: \(error)")
+                print("💥 Error loading donation: \(error)")
                 isLoadingDonation = false
             }
         }

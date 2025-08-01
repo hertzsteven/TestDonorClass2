@@ -187,13 +187,13 @@
 							<key>EndingColumnNumber</key>
 							<string>0</string>
 							<key>EndingLineNumber</key>
-							<string>253</string>
+							<string>254</string>
 							<key>StartingColumnNumber</key>
 							<string>0</string>
 							<key>StartingLineNumber</key>
-							<string>252</string>
+							<string>253</string>
 							<key>Timestamp</key>
-							<string>773845126.2897511</string>
+							<string>775742534.877277</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -209,16 +209,16 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>                    }
+						<string>                        .disabled(viewModel.filteredReportItems.isEmpty)
 </string>
 						<key>leading</key>
-						<string>                        }
-                        .disabled(viewModel.filteredReportItems.isEmpty)
+						<string>                            Label("Save", systemImage: "arrow.down.doc")
+                        }
 </string>
 						<key>trailing</key>
-						<string>                }
+						<string>                    }
+                }
             }
-
 </string>
 					</dict>
 					<key>title</key>
@@ -929,6 +929,59 @@
 			</array>
 			<key>title</key>
 			<string>BatchDonationColumns</string>
+			<key>type</key>
+			<string>group</string>
+		</dict>
+		<dict>
+			<key>children</key>
+			<array>
+				<dict>
+					<key>destination</key>
+					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>4</string>
+							<key>EndingLineNumber</key>
+							<string>302</string>
+							<key>StartingColumnNumber</key>
+							<string>4</string>
+							<key>StartingLineNumber</key>
+							<string>302</string>
+							<key>Timestamp</key>
+							<string>775742797.00474</string>
+						</dict>
+						<key>rebasable-url</key>
+						<dict>
+							<key>base</key>
+							<string>workspace</string>
+							<key>payload</key>
+							<dict>
+								<key>relative-path</key>
+								<string>TestDonorClass2/app source/reporting/DonationReportView.swift</string>
+							</dict>
+						</dict>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string></string>
+						<key>leading</key>
+						<string>                    cleanupTemporaryFile()
+                }
+    </string>
+						<key>trailing</key>
+						<string>        }
+            .sheet(item: $donationToShow) { donation in
+                DonationDetailView(donation: donation)
+</string>
+					</dict>
+					<key>type</key>
+					<string>bookmark</string>
+				</dict>
+			</array>
+			<key>title</key>
+			<string>Edit donation </string>
 			<key>type</key>
 			<string>group</string>
 		</dict>
