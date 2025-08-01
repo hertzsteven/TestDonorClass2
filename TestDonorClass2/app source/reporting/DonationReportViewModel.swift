@@ -250,6 +250,10 @@ class DonationReportViewModel: ObservableObject {
         }
     }
 
+    func getDonation(_ id: Int) async throws -> Donation? {
+        return try await donationRepository.getOne(id)
+    }
+
     // MARK: – CSV Export
     func generateExportText() async throws -> String {
         let header = [

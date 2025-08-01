@@ -209,16 +209,16 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>            .sheet(isPresented: $showingDonorSearchView) {
+						<string>                    }
 </string>
 						<key>leading</key>
-						<string>                    }
-            }
+						<string>                        }
+                        .disabled(viewModel.filteredReportItems.isEmpty)
 </string>
 						<key>trailing</key>
-						<string>                DonorSearchSelectionView { selectedDonor in
-                    viewModel.donorSelected(selectedDonor)
-                }
+						<string>                }
+            }
+
 </string>
 					</dict>
 					<key>title</key>

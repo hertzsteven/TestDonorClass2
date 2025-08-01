@@ -26,6 +26,10 @@ struct DonationReportView: View {
     @State private var isShareSheetPresented = false
     @State private var temporaryFileURL: URL?
     
+    @State private var showingDonationDetail = false
+    @State private var selectedDonation: Donation?
+    @State private var isLoadingDonation = false
+
     // Custom Initializer
     init() {
         // Create the repository instances HERE.
@@ -210,7 +214,15 @@ struct DonationReportView: View {
                     } else {
                         List {
                             ForEach(viewModel.filteredReportItems) { item in
-                                DonationReportRow(item: item)
+                                Button(action: {
+                                    print("🔥 Donation report row tapped: \(item.amount)")
+                                    Task {
+                                        await loadDonationAndShowDetail(donationId: item.id)
+                                    }
+                                }) {
+                                    DonationReportRow(item: item)
+                                }
+                                .buttonStyle(.plain) // Keeps the row looking normal, not like a button
                             }
                         }
                         .listStyle(.plain)
@@ -287,6 +299,11 @@ struct DonationReportView: View {
                     cleanupTemporaryFile()
                 }
             }
+            .sheet(isPresented: $showingDonationDetail) {
+                if let donation = selectedDonation {
+                    DonationDetailView(donation: donation)
+                }
+            }
 //        }
         .navigationViewStyle(.stack)
     }
@@ -337,6 +354,31 @@ struct DonationReportView: View {
          UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
          #endif
      }
+    
+    private func loadDonationAndShowDetail(donationId: Int) async {
+        print("🔍 Loading donation with ID: \(donationId)")
+        await MainActor.run {
+            isLoadingDonation = true
+        }
+        
+        do {
+            if let donation = try await viewModel.getDonation(donationId) {
+                print("✅ Successfully loaded donation: \(donation.amount)")
+                await MainActor.run {
+                    selectedDonation = donation
+                    showingDonationDetail = true
+                    isLoadingDonation = false
+                }
+            } else {
+                print("❌ No donation found with ID: \(donationId)")
+            }
+        } catch {
+            await MainActor.run {
+                print("Error loading donation: \(error)")
+                isLoadingDonation = false
+            }
+        }
+    }
 }
 
 struct CSVFile: FileDocument {
