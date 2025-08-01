@@ -236,26 +236,50 @@ class DonationReportViewModel: ObservableObject {
 
         // STEP-2: asynchronously look up donor emails
         var itemsWithEmail: [DonationReportItem] = []
-        for item in items {
-            if let did = item.donorId,
-               let donor = try? await donorRepository.getOne(did) {
-                // rebuild with email
-                itemsWithEmail.append(
-                    DonationReportItem(
-                        id: item.id,
-                        donorId: item.donorId,
-                        donorName: item.donorName,
-                        campaignName: item.campaignName,
-                        amount: item.amount,
-                        donationDate: item.donationDate,
-                        hasPrayerNote: item.hasPrayerNote,
-                        prayerNote: item.prayerNote,
-                        email: donor.email
-                    )
-                )
-            } else {
-                itemsWithEmail.append(item)
+        
+        do {
+            for item in items {
+                // Check if task was cancelled before making database call
+                try Task.checkCancellation()
+                
+                if let did = item.donorId {
+                    do {
+                        let donor = try await donorRepository.getOne(did)
+                        // rebuild with email
+                        itemsWithEmail.append(
+                            DonationReportItem(
+                                id: item.id,
+                                donorId: item.donorId,
+                                donorName: item.donorName,
+                                campaignName: item.campaignName,
+                                amount: item.amount,
+                                donationDate: item.donationDate,
+                                hasPrayerNote: item.hasPrayerNote,
+                                prayerNote: item.prayerNote,
+                                email: donor?.email
+                            )
+                        )
+                    } catch is CancellationError {
+                        // Task was cancelled - stop processing and return early
+                        return
+                    } catch {
+                        // Other errors (like database issues) should still be logged
+                        print("Error fetching donor \(did): \(error)")
+                        // Add item without email
+                        itemsWithEmail.append(item)
+                    }
+                } else {
+                    itemsWithEmail.append(item)
+                }
             }
+        } catch is CancellationError {
+            // Task was cancelled during the loop - return early without updating UI
+            return
+        } catch {
+            // Handle any other unexpected errors from Task.checkCancellation()
+            print("Unexpected error during donor email fetching: \(error)")
+            // Continue with items without emails
+            itemsWithEmail = items
         }
 
         await MainActor.run {
