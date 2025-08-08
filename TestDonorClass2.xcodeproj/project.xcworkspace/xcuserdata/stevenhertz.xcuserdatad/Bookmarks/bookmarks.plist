@@ -785,16 +785,16 @@
 							<key>text-context</key>
 							<dict>
 								<key>focused</key>
-								<string>        .padding(.horizontal)
+								<string>                    .foregroundColor(.secondary)
 </string>
 								<key>leading</key>
-								<string>            Spacer()
-        }
+								<string>            HStack(spacing: 8) {
+                Text("Date:")
 </string>
 								<key>trailing</key>
-								<string>        .padding(.vertical, 8)
-        .background(Color(.systemGray6))
-    }
+								<string>                DatePicker(
+                    "",
+                    selection: $viewModel.globalDonationDate,
 </string>
 							</dict>
 							<key>title</key>
@@ -849,16 +849,16 @@
 							<key>text-context</key>
 							<dict>
 								<key>focused</key>
-								<string>        }
+								<string>            if let donor = selectedDonorForPrayer {
 </string>
 								<key>leading</key>
-								<string>                )
-            }
+								<string>    private var prayerNoteSheet: some View {
+        Group {
 </string>
 								<key>trailing</key>
-								<string>    }
-    
-    // MARK: - Helper Methods
+								<string>                PrayerNoteSheet(
+                    donor: donor,
+                    prayerNote: $currentPrayerNote
 </string>
 							</dict>
 							<key>title</key>

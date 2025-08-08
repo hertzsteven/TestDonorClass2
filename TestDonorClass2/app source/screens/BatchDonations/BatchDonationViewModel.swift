@@ -22,6 +22,7 @@ class BatchDonationViewModel: ObservableObject {
     @Published var globalDonationType: DonationType = .check
     @Published var globalPaymentStatus: PaymentStatus = .completed
     @Published var globalPrintReceipt: Bool = false
+    @Published var globalDonationDate: Date = Date()
 
     @Published var rows: [RowEntry] = []
     @Published var focusedRowID: UUID? = nil // Keep track of which row should get focus
@@ -230,7 +231,7 @@ class BatchDonationViewModel: ObservableObject {
                 requestPrintedReceipt: printReceipt,
                 notes: prayerNote,
                 isAnonymous: false,
-                donationDate: Date()
+                donationDate: globalDonationDate
             )
 
             do {

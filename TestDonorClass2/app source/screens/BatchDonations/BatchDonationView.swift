@@ -151,6 +151,17 @@ struct BatchDonationView: View {
                 Toggle("", isOn: $viewModel.globalPrintReceipt)
                     .labelsHidden()
             }
+            
+            HStack(spacing: 8) {
+                Text("Date:")
+                    .foregroundColor(.secondary)
+                DatePicker(
+                    "",
+                    selection: $viewModel.globalDonationDate,
+                    displayedComponents: .date
+                )
+                .labelsHidden()
+            }
 
             Spacer()
         }
