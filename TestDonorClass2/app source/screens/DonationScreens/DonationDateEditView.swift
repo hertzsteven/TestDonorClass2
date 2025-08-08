@@ -36,28 +36,28 @@ struct DonationDateEditView: View {
                     .datePickerStyle(WheelDatePickerStyle())
                 }
 
-//                Section(header: Text("AMOUNT")) {           // NEW
-//                    TextField("Amount", text: $amount)
-//                        .keyboardType(.decimalPad)
-//                }
-//
-//                Section(header: Text("PAYMENT TYPE")) {     // NEW
-//                    Picker("Payment Type", selection: $donationType) {
-//                        ForEach(DonationType.allCases, id: \.self) { type in
-//                            Text(type.rawValue.uppercased()).tag(type)
-//                        }
-//                    }
-//                    .pickerStyle(.wheel)
-//                }
+                Section(header: Text("AMOUNT")) {           // NEW
+                    TextField("Amount", text: $amount)
+                        .keyboardType(.decimalPad)
+                }
 
-//                Section(header: Text("STATUS")) {           // NEW
-//                    Picker("Status", selection: $paymentStatus) {
-//                        ForEach(PaymentStatus.allCases, id: \.self) { status in
-//                            Text(status.rawValue.uppercased()).tag(status)
-//                        }
-//                    }
-//                    .pickerStyle(.wheel)
-//                }
+                Section(header: Text("PAYMENT TYPE")) {     // NEW
+                    Picker("Payment Type", selection: $donationType) {
+                        ForEach(DonationType.allCases, id: \.self) { type in
+                            Text(type.rawValue.uppercased()).tag(type)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                }
+
+                Section(header: Text("STATUS")) {           // NEW
+                    Picker("Status", selection: $paymentStatus) {
+                        ForEach(PaymentStatus.allCases, id: \.self) { status in
+                            Text(status.rawValue.uppercased()).tag(status)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                }
             }
             .navigationTitle("Edit Donation Date")
             .navigationBarTitleDisplayMode(.inline)

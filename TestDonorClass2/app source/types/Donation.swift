@@ -24,7 +24,7 @@ enum DonationType: String, Codable, CaseIterable {
     case other = "OTHER"
 }
 
-enum PaymentStatus: String, Codable {
+enum PaymentStatus: String, Codable, CaseIterable {
     case pending = "PENDING"
     case completed = "COMPLETED"
     case failed = "FAILED"
