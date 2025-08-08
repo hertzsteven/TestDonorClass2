@@ -3,6 +3,7 @@ import SwiftUI
 struct DonationDateEditView: View {
     let donation: Donation
     let onSave: (Donation) -> Void
+    let donorName: String
     
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var donationObject: DonationObjectClass
@@ -15,8 +16,10 @@ struct DonationDateEditView: View {
     @State private var donationType: DonationType
     @State private var paymentStatus: PaymentStatus
     
-    init(donation: Donation, onSave: @escaping (Donation) -> Void) {
+    // UPDATE: Initializer to accept donorName
+    init(donation: Donation, donorName: String, onSave: @escaping (Donation) -> Void) {
         self.donation      = donation
+        self.donorName     = donorName
         self.onSave        = onSave
         _donationDate      = State(initialValue: donation.donationDate)
         _amount            = State(initialValue: String(format: "%.2f", donation.amount))
@@ -27,6 +30,28 @@ struct DonationDateEditView: View {
     var body: some View {
         NavigationView {
             Form {
+                // NEW: Section to display donor or company name
+//                Section(header: Text("DONOR INFORMATION")) {
+//                    HStack {
+//                        VStack {
+//                            Spacer()
+//                            HStack(alignment: .firstTextBaseline) {
+//                                Text("Donor")
+//                                Spacer()
+//                                Text(donorName)
+//                                    .foregroundColor(.secondary)
+//                            }
+//                            Spacer()
+//                        }
+//                    }
+//                    .frame(height: 36)
+//                }
+                Section(header: Text("DONOR")) {
+                    Text(donorName.uppercased())
+                        .font(.headline)
+                }
+                .frame(height: 36)
+
                 Section(header: Text("DONATION DATE")) {
                     DatePicker(
                         "Date",
@@ -59,7 +84,7 @@ struct DonationDateEditView: View {
                     .pickerStyle(.wheel)
                 }
             }
-            .navigationTitle("Edit Donation Date")
+            .navigationTitle("Edit Donation") // UPDATE: More generic title
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -122,7 +147,8 @@ struct DonationDateEditView: View {
 struct DonationDateEditView_Previews: PreviewProvider {
     static var previews: some View {
         DonationDateEditView(
-            donation: Donation(amount: 186.0, donationType: .other)
+            donation: Donation(amount: 186.0, donationType: .other),
+            donorName: "JOHN APPLESEED"
         ) { _ in }
     }
 }

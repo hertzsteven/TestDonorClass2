@@ -10,6 +10,7 @@ struct DonationDetailView: View {
     @State private var donor: Donor?
     @State private var isLoadingDonor = false
     @State private var errorMessage: String?
+    @State private var donorName: String = "Loading..." // NEW: State to hold donor/company name
     
     // Date formatters to match the screenshot
     private var dateFormatter: DateFormatter {
@@ -32,6 +33,23 @@ struct DonationDetailView: View {
     var body: some View {
         NavigationView {
             Form {
+                // NEW: Section to display donor or company name
+                Section(header: Text("DONOR INFORMATION")) {
+                    HStack {
+                        VStack {
+                            Spacer()
+                            HStack(alignment: .firstTextBaseline) {
+                                Text("Donor")
+                                Spacer()
+                                Text(donorName)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .frame(height: 36)
+                }
+                
                 Section(header: Text("AMOUNT AND STATUS")) {
                     HStack {
                         Text("Amount")
@@ -166,9 +184,13 @@ struct DonationDetailView: View {
                     }
                 }
             }
+            .task {
+                await loadDonorName() // NEW: Load donor/company name when view appears
+            }
         }
         .sheet(isPresented: $showingEditSheet) {
-            DonationDateEditView(donation: donation) { updatedDonation in
+            // UPDATE: Pass the fetched donorName to the edit view
+            DonationDateEditView(donation: donation, donorName: donorName) { updatedDonation in
                 self.donation = updatedDonation        // keep UI in sync
                 showingEditSheet = false
             }
@@ -182,6 +204,33 @@ struct DonationDetailView: View {
             if let errorMessage = errorMessage {
                 Text(errorMessage)
             }
+        }
+    }
+    
+    // NEW: Function to load donor or company name
+    private func loadDonorName() async {
+        // Check if this is an anonymous donation
+        guard let donorId = donation.donorId, donorId > 0 else {
+            donorName = "Anonymous Donor"
+            return
+        }
+        
+        do {
+            // Create a donor repository to fetch the donor
+            let donorRepository = try DonorRepository()
+            if let donor = try await donorRepository.getOne(donorId) {
+                // Show company name if available, otherwise show donor's full name
+                if let company = donor.company, !company.isEmpty {
+                    donorName = company
+                } else {
+                    donorName = donor.fullName
+                }
+            } else {
+                donorName = "Unknown Donor"
+            }
+        } catch {
+            donorName = "Error Loading Donor"
+            print("Error loading donor: \(error)")
         }
     }
     
