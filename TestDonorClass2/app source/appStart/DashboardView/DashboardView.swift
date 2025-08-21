@@ -219,7 +219,7 @@ struct DashboardView: View {
     }
     
     private func startBackgroundAnimation() {
-        withAnimation(.linear(duration: 10.0).repeatForever(autoreverses: false)) {
+        withAnimation(.linear(duration: 10.0).repeatForever(autoreverses: true)) {
             gradientOffset = 1.0
         }
     }
