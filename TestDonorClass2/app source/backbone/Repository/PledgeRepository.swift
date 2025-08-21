@@ -10,10 +10,15 @@ import GRDB
 
 class PledgeRepository: PledgeSpecificRepositoryProtocol {
     typealias Model = Pledge
-    private let dbPool: DatabasePool
+//    private let dbPool: DatabasePool
+    private var dbPool: DatabasePool {
+        get throws {
+            try DatabaseManager.shared.getDbPool()
+        }
+    }
 
     init(dbPool: DatabasePool) {
-        self.dbPool = dbPool
+//        self.dbPool = dbPool
     }
 
     convenience init() throws {

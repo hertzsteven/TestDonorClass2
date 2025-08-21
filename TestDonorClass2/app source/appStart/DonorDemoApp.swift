@@ -17,7 +17,7 @@ struct DonorDemoApp: App {
     init() {
         setupDatabase()
         // --- ADDED: Set the default database ---
-        ApplicationData.shared.setDbName("donations_uti.sqlite")
+//        ApplicationData.shared.setDbName("donations_uti.sqlite")
 
     }
 

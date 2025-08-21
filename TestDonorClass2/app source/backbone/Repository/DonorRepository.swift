@@ -10,7 +10,14 @@ import Foundation
 
 class DonorRepository: DonorSpecificRepositoryProtocol {
     typealias Model = Donor
-    private let dbPool: DatabasePool
+
+    private var dbPool: DatabasePool {
+        get throws {
+            try DatabaseManager.shared.getDbPool()
+        }
+    }
+
+//    private let dbPool: DatabasePool
 
     //        init(dbPool: DatabasePool = DatabaseManager.shared.getDbPool()) {
     //                self.dbPool = dbPool
@@ -19,7 +26,7 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
     // 1. Designated Initializer (no default value, doesn't throw)
     // This is the main initializer. It requires a valid pool.
     init(dbPool: DatabasePool) {
-        self.dbPool = dbPool
+//        self.dbPool = dbPool
     }
     
     // 2. Convenience Initializer (throws)

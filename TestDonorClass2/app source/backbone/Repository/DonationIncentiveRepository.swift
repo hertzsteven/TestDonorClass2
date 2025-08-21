@@ -8,7 +8,12 @@ import Foundation
 
 class DonationIncentiveRepository: DonationIncentiveSpecificRepositoryProtocol {
     typealias Model = DonationIncentive
-    private let dbPool: DatabasePool
+    private var dbPool: DatabasePool {
+        get throws {
+            try DatabaseManager.shared.getDbPool()
+        }
+    }
+
     
     //        init(dbPool: DatabasePool = DatabaseManager.shared.getDbPool()) {
     //                self.dbPool = dbPool
@@ -17,7 +22,7 @@ class DonationIncentiveRepository: DonationIncentiveSpecificRepositoryProtocol {
     // 1. Designated Initializer (no default value, doesn't throw)
     // This is the main initializer. It requires a valid pool.
     init(dbPool: DatabasePool) {
-        self.dbPool = dbPool
+//        self.dbPool = dbPool
     }
     
     // 2. Convenience Initializer (throws)

@@ -10,11 +10,15 @@ import Foundation
 
 class CampaignRepository: CampaignSpecificRepositoryProtocol {
     typealias Model = Campaign
-    private let dbPool: DatabasePool
-
-    // KEEP: Designated initializer
+    
+    private var dbPool: DatabasePool {
+        get throws {
+            try DatabaseManager.shared.getDbPool()
+        }
+    }
+    
     init(dbPool: DatabasePool) {
-        self.dbPool = dbPool
+//        self.dbPool = dbPool
     }
     
     /// Convenience initializer that intentionally crashes if database initialization fails

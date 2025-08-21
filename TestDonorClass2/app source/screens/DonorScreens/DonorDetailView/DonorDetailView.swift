@@ -110,6 +110,13 @@ struct DonorDetailView: View {
             }
         }
         .navigationTitle("Donor Details")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Edit") {
+                    showingEditSheet = true
+                }
+            }
+        }
         .navigationDestination(for: String.self) { stringValue in
             VStack {
                 Text("String Handler View")

@@ -288,15 +288,15 @@
 						<key>location-parameters</key>
 						<dict>
 							<key>EndingColumnNumber</key>
-							<string>49</string>
+							<string>12</string>
 							<key>EndingLineNumber</key>
 							<string>337</string>
 							<key>StartingColumnNumber</key>
-							<string>35</string>
+							<string>12</string>
 							<key>StartingLineNumber</key>
 							<string>337</string>
 							<key>Timestamp</key>
-							<string>774812917.534103</string>
+							<string>777478690.824724</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -312,15 +312,15 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>receipt_status</string>
+						<string></string>
 						<key>leading</key>
-						<string>            if !receiptStatusExists {
-                try db.alter(table: "donation") { t in
-                    t.add(column: "</string>
+						<string>        migrator.registerMigration("v3_addReceiptStatus") { db in
+            print("Running migration: v3_addReceiptStatus") // Add logging
+            </string>
 						<key>trailing</key>
-						<string>", .text).notNull().defaults(to: "NOT_REQUESTED")
-                }
-            } else {
+						<string>
+            let receiptStatusExists = try db.columns(in: "donation").contains { column in
+                column.name == "receipt_status"
 </string>
 					</dict>
 					<key>title</key>
@@ -358,15 +358,15 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>receipt_status</string>
+						<string>tive_amount", </string>
 						<key>leading</key>
-						<string>            
-            
-            // Create donations table (without </string>
+						<string>                try db.create(index: "idx_incentive_name", on: "donation_incentive", columns: ["name"])
+                try db.create(index: "idx_incentive_status", on: "donation_incentive", columns: ["status"])
+                try db.create(index: "idx_incen</string>
 						<key>trailing</key>
-						<string> initially, we'll add it later)
-            if try !db.tableExists("donation") {
-                try db.create(table: "donation") { t in
+						<string>on: "donation_incentive", columns: ["dollar_amount"])
+                
+            } else {
 </string>
 					</dict>
 					<key>title</key>
@@ -380,15 +380,15 @@
 						<key>location-parameters</key>
 						<dict>
 							<key>EndingColumnNumber</key>
-							<string>115</string>
+							<string>62</string>
 							<key>EndingLineNumber</key>
 							<string>281</string>
 							<key>StartingColumnNumber</key>
-							<string>101</string>
+							<string>62</string>
 							<key>StartingLineNumber</key>
 							<string>281</string>
 							<key>Timestamp</key>
-							<string>774812917.53416</string>
+							<string>777478690.82473</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -404,15 +404,15 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>receipt_status</string>
+						<string></string>
 						<key>leading</key>
-						<string>                    t.column("donation_type", .text).notNull()
-                    t.column("payment_status", .text).notNull().defaults(to: "PENDING") // Added default
-                                                                                        // t.column("</string>
+						<string>                try db.create(table: "donation") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("uuid", .text).notNull().unique()</string>
 						<key>trailing</key>
-						<string>", .text) // &lt;-- Leave out for now
-                    t.column("transaction_number", .text)
-                    t.column("receipt_number", .text)
+						<string>
+                    t.column("donor_id", .integer).references("donor", onDelete: .restrict) // Changed from setNull
+                    t.column("campaign_id", .integer).references("campaign", onDelete: .restrict) // Changed from setNull
 </string>
 					</dict>
 					<key>title</key>
@@ -426,15 +426,15 @@
 						<key>location-parameters</key>
 						<dict>
 							<key>EndingColumnNumber</key>
-							<string>37</string>
+							<string>13</string>
 							<key>EndingLineNumber</key>
 							<string>340</string>
 							<key>StartingColumnNumber</key>
-							<string>23</string>
+							<string>13</string>
 							<key>StartingLineNumber</key>
 							<string>340</string>
 							<key>Timestamp</key>
-							<string>774812917.534171</string>
+							<string>777478690.824736</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -450,15 +450,15 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>receipt_status</string>
+						<string></string>
 						<key>leading</key>
-						<string>                }
-            } else {
-                print("</string>
+						<string>            let receiptStatusExists = try db.columns(in: "donation").contains { column in
+                column.name == "receipt_status"
+            }</string>
 						<key>trailing</key>
-						<string> column already exists, skipping addition.")
-            }
-            // Optionally update existing rows if needed, though likely not necessary if just adding
+						<string>
+            
+            if !receiptStatusExists {
 </string>
 					</dict>
 					<key>title</key>
@@ -472,15 +472,15 @@
 						<key>location-parameters</key>
 						<dict>
 							<key>EndingColumnNumber</key>
-							<string>137</string>
+							<string>54</string>
 							<key>EndingLineNumber</key>
 							<string>343</string>
 							<key>StartingColumnNumber</key>
-							<string>123</string>
+							<string>54</string>
 							<key>StartingLineNumber</key>
 							<string>343</string>
 							<key>Timestamp</key>
-							<string>774812917.534182</string>
+							<string>777478690.824703</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -496,15 +496,15 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>receipt_status</string>
+						<string></string>
 						<key>leading</key>
-						<string>            }
-            // Optionally update existing rows if needed, though likely not necessary if just adding
-            // try db.execute(sql: "UPDATE donation SET receipt_status = 'REQUESTED' WHERE request_printed_receipt = 1 AND </string>
+						<string>            
+            if !receiptStatusExists {
+                try db.alter(table: "donation") { t in</string>
 						<key>trailing</key>
-						<string> = 'NOT_REQUESTED'")
-        }
-        
+						<string>
+                    t.add(column: "receipt_status", .text).notNull().defaults(to: "NOT_REQUESTED")
+                }
 </string>
 					</dict>
 					<key>title</key>
@@ -588,16 +588,16 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>    
+						<string>//                WHERE id = ?
 </string>
 						<key>leading</key>
-						<string>//        }
-//    }
+						<string>//                UPDATE donation
+//                SET receipt_status = ?
 </string>
 						<key>trailing</key>
-						<string>    func countPendingReceipts() async throws -&gt; Int {
-        try await dbPool.read { db in
-            try Donation
+						<string>//                """, arguments: [status.rawValue, donationId])
+//        }
+//    }
 </string>
 					</dict>
 					<key>title</key>
@@ -611,15 +611,15 @@
 						<key>location-parameters</key>
 						<dict>
 							<key>EndingColumnNumber</key>
-							<string>46</string>
+							<string>8</string>
 							<key>EndingLineNumber</key>
 							<string>332</string>
 							<key>StartingColumnNumber</key>
-							<string>32</string>
+							<string>8</string>
 							<key>StartingLineNumber</key>
 							<string>332</string>
 							<key>Timestamp</key>
-							<string>774812917.534194</string>
+							<string>777478690.824679</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -635,15 +635,15 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>receipt_status</string>
+						<string></string>
 						<key>leading</key>
-						<string>            
-            let receiptStatusExists = try db.columns(in: "donation").contains { column in
-                column.name == "</string>
+						<string>            """)
+        }
+        </string>
 						<key>trailing</key>
-						<string>"
-            }
-            
+						<string>
+        // --- Migration 3: Add Receipt Status Column ---
+        // This replicates what updateDonationTableForReceipts did
 </string>
 					</dict>
 					<key>title</key>
@@ -657,15 +657,15 @@
 						<key>location-parameters</key>
 						<dict>
 							<key>EndingColumnNumber</key>
-							<string>70</string>
+							<string>54</string>
 							<key>EndingLineNumber</key>
 							<string>343</string>
 							<key>StartingColumnNumber</key>
-							<string>56</string>
+							<string>54</string>
 							<key>StartingLineNumber</key>
 							<string>343</string>
 							<key>Timestamp</key>
-							<string>774812917.534205</string>
+							<string>777478690.824717</string>
 						</dict>
 						<key>rebasable-url</key>
 						<dict>
@@ -681,15 +681,15 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>receipt_status</string>
+						<string></string>
 						<key>leading</key>
-						<string>            }
-            // Optionally update existing rows if needed, though likely not necessary if just adding
-            // try db.execute(sql: "UPDATE donation SET </string>
+						<string>            
+            if !receiptStatusExists {
+                try db.alter(table: "donation") { t in</string>
 						<key>trailing</key>
-						<string> = 'REQUESTED' WHERE request_printed_receipt = 1 AND receipt_status = 'NOT_REQUESTED'")
-        }
-        
+						<string>
+                    t.add(column: "receipt_status", .text).notNull().defaults(to: "NOT_REQUESTED")
+                }
 </string>
 					</dict>
 					<key>title</key>

@@ -96,7 +96,14 @@ final class DatabaseManager {
     }
     
     func getDbPool() throws -> DatabasePool {
+        // If the pool is nil (e.g., after being manually closed), reconnect.
+        if dbPool == nil {
+            print("Database connection is not active. Reconnecting...")
+            try connectToDB()
+        }
+        
         guard let pool = dbPool else {
+            // If it's still nil after trying to connect, something is wrong.
             throw DatabaseError.notConnected
         }
         return pool
