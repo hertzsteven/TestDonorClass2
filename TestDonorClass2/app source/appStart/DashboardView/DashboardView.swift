@@ -120,7 +120,7 @@ struct DashboardView: View {
             .navigationDestination(for: Category.self) { category in
                 switch category.name {
                 case "Donor Hub":
-                    DonorListView(donorObject: donorObject, maintenanceMode: false)
+                    DonorListView(donorObject: donorObject, maintenanceMode: true)
                     //                        .task {
                     //                            await donorObject.loadDonors()
                     //                        }

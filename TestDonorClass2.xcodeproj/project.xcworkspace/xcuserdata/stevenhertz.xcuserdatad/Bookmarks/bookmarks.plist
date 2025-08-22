@@ -42,16 +42,16 @@
 			<key>text-context</key>
 			<dict>
 				<key>focused</key>
-				<string>            .cornerRadius(12)
+				<string>    var newDonorList: some View {
 </string>
 				<key>leading</key>
-				<string>            .padding(.vertical, 12)
-            .background(Color(.systemGray6))
+				<string>    }
+    
 </string>
 				<key>trailing</key>
-				<string>        }
-    }
-    
+				<string>        
+        NavigationSplitView(columnVisibility:.constant(.doubleColumn)) {
+//        NavigationSplitView {
 </string>
 			</dict>
 			<key>type</key>
@@ -984,6 +984,53 @@
 			<string>Edit donation </string>
 			<key>type</key>
 			<string>group</string>
+		</dict>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>565</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>564</string>
+					<key>Timestamp</key>
+					<string>777515372.911736</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>TestDonorClass2/app source/screens/DonorScreens/DonorListView/DonorListView.swift</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>//                        Text(Image(systemName: "plus"))
+</string>
+				<key>leading</key>
+				<string>                    
+//                    Button { showingAddDonor = true } label: {
+</string>
+				<key>trailing</key>
+				<string>//                    }
+                    .transition(.scale.combined(with: .opacity))
+                } else {
+</string>
+			</dict>
+			<key>title</key>
+			<string>thePlus</string>
+			<key>type</key>
+			<string>bookmark</string>
 		</dict>
 	</array>
 </dict>

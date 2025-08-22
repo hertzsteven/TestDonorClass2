@@ -73,10 +73,6 @@ struct DonorListView: View {
             BarcodeScannerView(scannedCode: $scannedCode)
         }
         
-        .sheet(isPresented: $isShowingScanner) {
-            BarcodeScannerView(scannedCode: $scannedCode)
-        }
-        
         .onChange(of: scannedCode) { newValue in
             if !newValue.isEmpty {
                 //                isShowingResultSheet = true
@@ -550,9 +546,24 @@ extension DonorListView {
             }
             ToolbarItemGroup {
                 if viewModel.maintenanceMode {
-                    Button { showingAddDonor = true } label: {
-                        Text(Image(systemName: "plus"))
+                    Button
+                        { showingAddDonor = true }
+                    label: {
+                        HStack {
+                            Image(systemName: "plus")
+                            Text("Add New Donor")
+
+                        }
                     }
+
+                         
+//                    Button { showingAddDonor = true } label: {
+//                        Text(Image(systemName: "plus"))
+//                    }
+                    
+//                    Button { showingAddDonor = true } label: {
+//                        Text(Image(systemName: "plus"))
+//                    }
                     .transition(.scale.combined(with: .opacity))
                 } else {
                     Button(action: { showingDefaults = true }) {
@@ -571,23 +582,23 @@ extension DonorListView {
                 }
                 
                 // MODIFY: Make divider more visible
-                Rectangle()
-                    .frame(width: 1, height: 24)
-                    .foregroundColor(Color.gray.opacity(0.3))
+//                Rectangle()
+//                    .frame(width: 1, height: 24)
+//                    .foregroundColor(Color.gray.opacity(0.3))
                 
-                Button {
-                    viewModel.maintenanceMode.toggle()
-                }  label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: viewModel.maintenanceMode ? "info.circle.fill" : "info.circle")
-                            .foregroundColor(.blue)
-                            .imageScale(.large)
-                        
-                        Image(systemName: !viewModel.maintenanceMode ? "dollarsign.circle.fill" : "dollarsign.circle")
-                            .foregroundColor(.blue)
-                            .imageScale(.large)
-                    }
-                }
+//                Button {
+//                    viewModel.maintenanceMode.toggle()
+//                }  label: {
+//                    HStack(spacing: 8) {
+//                        Image(systemName: viewModel.maintenanceMode ? "info.circle.fill" : "info.circle")
+//                            .foregroundColor(.blue)
+//                            .imageScale(.large)
+//                        
+//                        Image(systemName: !viewModel.maintenanceMode ? "dollarsign.circle.fill" : "dollarsign.circle")
+//                            .foregroundColor(.blue)
+//                            .imageScale(.large)
+//                    }
+//                }
                 
                 //                Button {
                 //                    viewModel.maintenanceMode.toggle()
@@ -641,6 +652,7 @@ extension DonorListView {
             Button(action: { showingAddDonor = true }) {
                 Label("Add Donor", systemImage: "plus")
             }
+            .labelStyle(.titleAndIcon)
             
             if !viewModel.maintenanceMode {
                 Button(action: { showingDefaults = true }) {
@@ -714,5 +726,76 @@ struct EmptyStateView: View {
             }
         }
         .padding()
+    }
+}
+
+// MARK: - Previews
+#Preview("Donor List - Donation Mode") {
+    PreviewContainer(donationMode: false) { donorObject, donationObject, keyboardObserver in
+        NavigationView {
+            DonorListView(donorObject: donorObject, maintenanceMode: false)
+                .environmentObject(donorObject)
+                .environmentObject(donationObject)
+                .environmentObject(keyboardObserver)
+        }
+    }
+}
+
+#Preview("Donor List - Maintenance Mode") {
+    PreviewContainer(donationMode: true) { donorObject, donationObject, keyboardObserver in
+        NavigationView {
+            DonorListView(donorObject: donorObject, maintenanceMode: true)
+                .environmentObject(donorObject)
+                .environmentObject(donationObject)
+                .environmentObject(keyboardObserver)
+        }
+    }
+}
+
+#Preview("Donor List - Empty State") {
+    PreviewContainer(donationMode: false, loadDonors: false) { donorObject, donationObject, keyboardObserver in
+        NavigationView {
+            DonorListView(donorObject: donorObject, maintenanceMode: false)
+                .environmentObject(donorObject)
+                .environmentObject(donationObject)
+                .environmentObject(keyboardObserver)
+        }
+    }
+}
+
+// MARK: - Preview Container
+struct PreviewContainer<Content: View>: View {
+    let donationMode: Bool
+    let loadDonors: Bool
+    let content: (DonorObjectClass, DonationObjectClass, KeyboardObserver) -> Content
+    
+    init(
+        donationMode: Bool,
+        loadDonors: Bool = true,
+        @ViewBuilder content: @escaping (DonorObjectClass, DonationObjectClass, KeyboardObserver) -> Content
+    ) {
+        self.donationMode = donationMode
+        self.loadDonors = loadDonors
+        self.content = content
+    }
+    
+    var body: some View {
+        // Create our mock objects
+        let donorObject = DonorObjectClass(repository: MockDonorRepository())
+        let keyboardObserver = KeyboardObserver()
+        
+        // For DonationObjectClass, we need to handle the throwing initializer
+        // In preview context, we'll force unwrap since we know it should work
+        let donationObject = try! DonationObjectClass()
+        
+        // Set up donor data if needed
+        if loadDonors {
+            let mockDonors = MockDonorGenerator.generateMockDonors()
+            donorObject.donors = Array(mockDonors.prefix(5)) // Use first 5 donors for preview
+        } else {
+            donorObject.donors = []
+        }
+        
+        return content(donorObject, donationObject, keyboardObserver)
     }
 }
