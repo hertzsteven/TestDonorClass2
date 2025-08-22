@@ -60,10 +60,10 @@ struct DonorInstructionsView: View {
                     .padding(.bottom, 16)
                 GroupBox {
                     VStack {
-                    Label("Donor Management Guide", systemImage: "person.text.rectangle")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.bottom, 8)
+//                    Label("Donor Management Guide", systemImage: "person.text.rectangle")
+//                        .font(.headline)
+//                        .frame(maxWidth: .infinity, alignment: .center)
+//                        .padding(.bottom, 8)
                     
                     // Mode Selection
 //                    VStack(alignment: .leading, spacing: 8) {
@@ -83,9 +83,9 @@ struct DonorInstructionsView: View {
 //                        )
 //                    }
                     
-                    Divider()
-                        .padding(.vertical, 8)
-                    
+//                    Divider()
+//                        .padding(.vertical, 8)
+//                    
                     // Search Instructions
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Find a Donor")
@@ -196,6 +196,7 @@ struct DonorInstructionsView: View {
 //                }
 //                .padding()
 //            }
+                Spacer()
         .backgroundStyle(.thinMaterial)
         .padding()
             }
