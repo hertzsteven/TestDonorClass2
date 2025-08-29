@@ -187,7 +187,7 @@ extension DonorListView {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.gray)
-                    TextField(searchMode == .name ? "by name or company" : "by donor id",
+                    TextField(searchMode == .name ? "by name or company" : "by donor id123",
                               text: $viewModel.searchText)
                     .focused($isSearchFieldFocused)
                     .onSubmit {
