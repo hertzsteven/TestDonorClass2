@@ -785,16 +785,16 @@
 							<key>text-context</key>
 							<dict>
 								<key>focused</key>
-								<string>                    .foregroundColor(.secondary)
+								<string>            
 </string>
 								<key>leading</key>
-								<string>            HStack(spacing: 8) {
-                Text("Date:")
+								<string>                    .labelsHidden()
+            }
 </string>
 								<key>trailing</key>
-								<string>                DatePicker(
-                    "",
-                    selection: $viewModel.globalDonationDate,
+								<string>            HStack(spacing: 8) {
+                Text("Date:")
+                    .foregroundColor(.secondary)
 </string>
 							</dict>
 							<key>title</key>
@@ -849,16 +849,16 @@
 							<key>text-context</key>
 							<dict>
 								<key>focused</key>
-								<string>            if let donor = selectedDonorForPrayer {
+								<string>    
 </string>
 								<key>leading</key>
-								<string>    private var prayerNoteSheet: some View {
-        Group {
+								<string>    
+    // MARK: - Helper Methods
 </string>
 								<key>trailing</key>
-								<string>                PrayerNoteSheet(
-                    donor: donor,
-                    prayerNote: $currentPrayerNote
+								<string>    private func prayerNoteSheetDismissed() {
+        if let rowIndex = viewModel.rows.firstIndex(where: { $0.id == currentPrayerRowID }) {
+            viewModel.rows[rowIndex].prayerNote = currentPrayerNote
 </string>
 							</dict>
 							<key>title</key>
@@ -905,16 +905,16 @@
 							<key>text-context</key>
 							<dict>
 								<key>focused</key>
-								<string>    private var globalSettingsBar: some View {
+								<string>    
 </string>
 								<key>leading</key>
-								<string>    // MARK: - View Components
-    
+								<string>        }
+    }
 </string>
 								<key>trailing</key>
-								<string>        HStack(spacing: 20) {
-            Text("Global Settings:")
-                .font(.headline)
+								<string>    // MARK: - View Components
+    
+    private var globalSettingsBar: some View {
 </string>
 							</dict>
 							<key>type</key>
