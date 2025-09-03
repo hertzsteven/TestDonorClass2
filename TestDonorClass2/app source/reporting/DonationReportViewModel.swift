@@ -48,7 +48,14 @@ class DonationReportViewModel: ObservableObject {
         didSet { scheduleFilter() }
     }
     @Published var useCustomDateRange: Bool = false {
-        didSet { scheduleFilter() }
+        didSet {
+            if useCustomDateRange {
+                let today = Date()
+                if fromDate == nil { fromDate = today }
+                if toDate == nil { toDate = today }
+            }
+            scheduleFilter()
+        }
     }
     
     @Published var exportText: String?
@@ -156,13 +163,12 @@ class DonationReportViewModel: ObservableObject {
 
         // 1. Time-frame filter
         if useCustomDateRange {
-            // Use custom date range if enabled
             if let from = fromDate {
-                results = results.filter { $0.donationDate >= from }
+                let startOfFromDate = cal.startOfDay(for: from)
+                results = results.filter { $0.donationDate >= startOfFromDate }
             }
             if let to = toDate {
-                // Add time to end of day for 'to' date
-                let endOfToDate = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: to) ?? to
+                let endOfToDate = cal.date(bySettingHour: 23, minute: 59, second: 59, of: to) ?? to
                 results = results.filter { $0.donationDate <= endOfToDate }
             }
         } else {
@@ -205,12 +211,11 @@ class DonationReportViewModel: ObservableObject {
             results = results.filter { $0.notes != nil }
         }
         
-        // Add custom date range filter
-        if useCustomDateRange {
-            if let fromDate = fromDate, let toDate = toDate {
-                results = results.filter { $0.donationDate >= fromDate && $0.donationDate <= toDate }
-            }
-        }
+        // if useCustomDateRange {
+        //     if let fromDate = fromDate, let toDate = toDate {
+        //         results = results.filter { $0.donationDate >= fromDate && $0.donationDate <= toDate }
+        //     }
+        // }
 
         // STEP-1: build items synchronously (no email yet)
         let items = results.compactMap { d -> DonationReportItem? in
