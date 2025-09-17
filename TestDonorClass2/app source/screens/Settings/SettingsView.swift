@@ -53,9 +53,13 @@ struct SettingsView: View {
                 }
                 
                 Section("Database") {
+                    Button("Delete All Donations After 2000 Before September 25th", role: .destructive) {
+                        deleteRecentDonations()
+                    }
                     Button("Verify Database") {
                         verifyDatabase()
                     }
+
                     NavigationLink(destination: BackupDatabaseView()) {
                         Text("Backup & Restore")
                             .foregroundColor(.blue)
@@ -109,6 +113,19 @@ struct SettingsView: View {
             try DatabaseManager.shared.testDatabaseConnection()
         } catch {
             // Show error message
+        }
+    }
+    
+    private func deleteRecentDonations() {
+        do {
+            let dbPool = try DatabaseManager.shared.getDbPool()
+            try dbPool.write { db in
+                try db.execute(sql: "DELETE FROM donation WHERE donation_date > '2000-01-01 00:00:00' AND donation_date < '2025-09-10 00:00:00' ")
+            }
+            // Optionally show success message or refresh UI
+        } catch {
+            // Handle error - you might want to show an alert here
+            print("Failed to delete donations: \(error)")
         }
     }
 }
