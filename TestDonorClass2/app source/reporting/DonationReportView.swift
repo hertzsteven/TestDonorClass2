@@ -133,6 +133,56 @@ struct DonationReportView: View {
                                 }
                             }
 
+                            // Updated Date Range
+                            VStack(alignment: .leading, spacing: 8) {
+                                Toggle("Updated Date Range", isOn: $viewModel.useCustomUpdatedDateRange)
+
+                                if viewModel.useCustomUpdatedDateRange {
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text("From Date:")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            DatePicker("", selection: Binding(
+                                                get: { viewModel.updatedFromDate ?? Date() },
+                                                set: { viewModel.updatedFromDate = $0 }
+                                            ), displayedComponents: .date)
+                                            .datePickerStyle(.compact)
+                                        }
+
+                                        VStack(alignment: .leading) {
+                                            Text("To Date:")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            DatePicker("", selection: Binding(
+                                                get: { viewModel.updatedToDate ?? Date() },
+                                                set: { viewModel.updatedToDate = $0 }
+                                            ), displayedComponents: .date)
+                                            .datePickerStyle(.compact)
+                                        }
+                                    }
+
+                                    // Clear dates button
+                                    HStack {
+                                        Button("Clear Dates") {
+                                            viewModel.updatedFromDate = nil
+                                            viewModel.updatedToDate = nil
+                                        }
+                                        .font(.caption)
+                                        .foregroundColor(.blue)
+
+                                        Spacer()
+
+                                        // Show date range summary
+                                        if let from = viewModel.updatedFromDate, let to = viewModel.updatedToDate {
+                                            Text("\(from.formatted(date: .abbreviated, time: .omitted)) - \(to.formatted(date: .abbreviated, time: .omitted))")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+                            }
+
                             // Campaign
                             Picker("Campaign", selection: $viewModel.selectedCampaignId) {
                                 Text("All Campaigns").tag(Int?.none)
@@ -377,15 +427,15 @@ struct DonationReportView: View {
                 }
             }
         //            .sheet(isPresented: $showingDonationDetail) {
-//                if let donation = selectedDonation {
-//                    DonationDetailView(donation: donation)
-//                } else {
-//                    // Fallback loading view
-//                    ProgressView("Loading donation...")
-//                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                }
-//            }
-//        }
+        //                if let donation = selectedDonation {
+        //                    DonationDetailView(donation: donation)
+        //                } else {
+        //                    // Fallback loading view
+        //                    ProgressView("Loading donation...")
+        //                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        //                }
+        //            }
+        //        }
         .navigationViewStyle(.stack)
     }
     

@@ -58,6 +58,24 @@ class DonationReportViewModel: ObservableObject {
         }
     }
     
+    // Add updated date range properties
+    @Published var updatedFromDate: Date? = nil {
+        didSet { scheduleFilter() }
+    }
+    @Published var updatedToDate: Date? = nil {
+        didSet { scheduleFilter() }
+    }
+    @Published var useCustomUpdatedDateRange: Bool = false {
+        didSet {
+            if useCustomUpdatedDateRange {
+                let today = Date()
+                if updatedFromDate == nil { updatedFromDate = today }
+                if updatedToDate == nil { updatedToDate = today }
+            }
+            scheduleFilter()
+        }
+    }
+
     @Published var exportText: String?
 
     // MARK: – Picker / UI Data
@@ -188,6 +206,18 @@ class DonationReportViewModel: ObservableObject {
                 }
             case .allTime:
                 break
+            }
+        }
+
+        // 1b. Updated At Time-frame filter
+        if useCustomUpdatedDateRange {
+            if let from = updatedFromDate {
+                let startOfFromDate = cal.startOfDay(for: from)
+                results = results.filter { $0.updatedAt >= startOfFromDate }
+            }
+            if let to = updatedToDate {
+                let endOfToDate = cal.date(bySettingHour: 23, minute: 59, second: 59, of: to) ?? to
+                results = results.filter { $0.updatedAt <= endOfToDate }
             }
         }
 
