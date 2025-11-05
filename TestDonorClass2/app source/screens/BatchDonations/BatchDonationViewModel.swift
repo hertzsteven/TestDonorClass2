@@ -28,6 +28,7 @@ class BatchDonationViewModel: ObservableObject {
         var prayerNote: String? = nil
         var donationTypeOverride: DonationType = .check
         var paymentStatusOverride: PaymentStatus = .completed
+        var donationDate: Date = Date()
         var isValidDonor: Bool = false
         var processStatus: RowProcessStatus = .none
         var hasDonationOverride: Bool { donationOverride > 0.0 }
@@ -52,20 +53,22 @@ class BatchDonationViewModel: ObservableObject {
     }
 
     func addRow() {
-        let newRow = RowEntry(
+        var newRow = RowEntry(
             donationTypeOverride: self.globalDonationType,
             paymentStatusOverride: self.globalPaymentStatus
         )
+        newRow.donationDate = self.globalDonationDate
         rows.append(newRow)
         print("Added new row. Total rows: \(rows.count)")
     }
 
     func clearBatch() {
         print("Cleared batch. Replacing with a single initial row.")
-        let newRow = RowEntry(
+        var newRow = RowEntry(
             donationTypeOverride: self.globalDonationType,
             paymentStatusOverride: self.globalPaymentStatus
         )
+        newRow.donationDate = self.globalDonationDate
         self.rows = [newRow]
         self.focusedRowID = self.rows.first?.id
     }
@@ -99,6 +102,7 @@ class BatchDonationViewModel: ObservableObject {
                 rows[rowIndex].donationTypeOverride = self.globalDonationType
                 rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
                 rows[rowIndex].printReceipt = self.globalPrintReceipt
+                rows[rowIndex].donationDate = self.globalDonationDate
 
                 if rowIndex == rows.count - 1 {
                     addRow()
@@ -139,6 +143,7 @@ class BatchDonationViewModel: ObservableObject {
         rows[rowIndex].donationTypeOverride = self.globalDonationType
         rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
         rows[rowIndex].printReceipt = self.globalPrintReceipt
+        rows[rowIndex].donationDate = self.globalDonationDate
 
         if rowIndex == rows.count - 1 {
             addRow()
@@ -185,7 +190,7 @@ class BatchDonationViewModel: ObservableObject {
                 paymentStatus: row.paymentStatusOverride,
                 requestPrintedReceipt: row.printReceipt,
                 notes: row.prayerNoteSW ? row.prayerNote : nil,
-                donationDate: globalDonationDate
+                donationDate: row.donationDate
             )
 
             do {

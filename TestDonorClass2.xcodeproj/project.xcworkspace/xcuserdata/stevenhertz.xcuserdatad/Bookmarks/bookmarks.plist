@@ -849,16 +849,16 @@
 							<key>text-context</key>
 							<dict>
 								<key>focused</key>
-								<string>    
+								<string>    // MARK: - Helper Methods
 </string>
 								<key>leading</key>
-								<string>    
-    // MARK: - Helper Methods
+								<string>    }
+    
 </string>
 								<key>trailing</key>
-								<string>    private func prayerNoteSheetDismissed() {
+								<string>    
+    private func prayerNoteSheetDismissed() {
         if let rowIndex = viewModel.rows.firstIndex(where: { $0.id == currentPrayerRowID }) {
-            viewModel.rows[rowIndex].prayerNote = currentPrayerNote
 </string>
 							</dict>
 							<key>title</key>

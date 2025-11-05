@@ -179,10 +179,11 @@ struct BatchDonationView: View {
             Text("ID").frame(width: 70)
             Text("Name").frame(width: 100)
             Text("").frame(width: 60)
-            Text("Address").frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 40)
+            Text("Address").frame(maxWidth: .infinity, alignment: .leading)
             Text("Request").frame(width: 70, alignment: .trailing).font(.body.bold()).lineLimit(1).padding(.leading, 15)
             Text("Receipt").frame(width: 70, alignment: .trailing).font(.body.bold()).lineLimit(1).padding(.leading, 10)
             Text("Type").frame(width: 60, alignment: .center).padding(.leading, 15)
+            Text("Date").frame(width: 110, alignment: .center)
             Text("Amount").frame(width: 90, alignment: .leading).padding(.leading, 10)
             Text("").frame(width: 50)
         }
@@ -432,6 +433,11 @@ struct BatchDonationView: View {
             .pickerStyle(.menu)
             .frame(width: 90, alignment: .center)
             .disabled(!r.isValidDonor)
+
+            DatePicker("", selection: row.donationDate, displayedComponents: .date)
+                .labelsHidden()
+                .frame(width: 100, alignment: .center)
+                .disabled(!r.isValidDonor)
 
             TextField("Amount", value: row.donationOverride, format: .currency(code: "USD"))
                 .textFieldStyle(RoundedBorderTextFieldStyle())
