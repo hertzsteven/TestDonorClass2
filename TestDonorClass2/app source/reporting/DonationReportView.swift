@@ -78,7 +78,7 @@ struct DonationReportView: View {
 
                             // Custom Date Range
                             VStack(alignment: .leading, spacing: 8) {
-                                Toggle("Custom Date Range", isOn: $viewModel.useCustomDateRange)
+                                Toggle("Donation Date Range", isOn: $viewModel.useCustomDateRange)
                                     .onChange(of: viewModel.useCustomDateRange) { isEnabled in
                                         if !isEnabled {
                                             // Clear custom dates when disabling
