@@ -562,6 +562,9 @@ struct DonationReportRow: View {
                 Text(item.donationDate, formatter: DonationReportViewModel.dateFormatter)
                     .font(.caption)
                     .foregroundColor(.secondary)
+                Text("Updated: \(item.updatedAt, formatter: DonationReportViewModel.dateFormatter)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 // Add prayer note indicator
 //                if item.hasPrayerNote {
 //                    Image(systemName: "person.fill.questionmark")

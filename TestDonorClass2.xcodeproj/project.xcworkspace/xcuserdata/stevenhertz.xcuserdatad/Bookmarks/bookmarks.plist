@@ -209,16 +209,16 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>                                .font(.largeTitle)
+						<string>                                Text("Total Donations:")
 </string>
 						<key>leading</key>
-						<string>                        VStack {
-                            Image(systemName: "exclamationmark.triangle")
+						<string>                        Grid(alignment: .leading, horizontalSpacing: 20) {
+                            GridRow {
 </string>
 						<key>trailing</key>
-						<string>                                .foregroundColor(.red)
-                            Text("Error Loading Report")
-                                .font(.headline)
+						<string>                                    .foregroundColor(.secondary)
+                                Text(formatCurrency(viewModel.totalFilteredAmount))
+                                    .bold()
 </string>
 					</dict>
 					<key>title</key>
@@ -967,13 +967,13 @@
 						<key>focused</key>
 						<string></string>
 						<key>leading</key>
-						<string>
-                        // Existing Share button
+						<string>                        // Error state
+                        VStack {
     </string>
 						<key>trailing</key>
-						<string>                    Button(action: { Task { await prepareShare() } }) {
-                            Label("Share", systemImage: "square.and.arrow.up")
-                        }
+						<string>                        Image(systemName: "exclamationmark.triangle")
+                                .font(.largeTitle)
+                                .foregroundColor(.red)
 </string>
 					</dict>
 					<key>type</key>

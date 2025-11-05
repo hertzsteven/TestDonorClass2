@@ -15,6 +15,7 @@ struct DonationReportItem: Identifiable {
     let campaignName: String
     let amount: Double
     let donationDate: Date
+    let updatedAt: Date
     let hasPrayerNote: Bool
     let prayerNote: String?
     let email: String? // Optional email field

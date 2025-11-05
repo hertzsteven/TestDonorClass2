@@ -263,6 +263,7 @@ class DonationReportViewModel: ObservableObject {
                 campaignName: campaignName,
                 amount: d.amount,
                 donationDate: d.donationDate,
+                updatedAt: d.updatedAt,
                 hasPrayerNote: d.notes != nil,
                 prayerNote: d.notes,
                 email: nil
@@ -289,6 +290,7 @@ class DonationReportViewModel: ObservableObject {
                                 campaignName: item.campaignName,
                                 amount: item.amount,
                                 donationDate: item.donationDate,
+                                updatedAt: item.updatedAt,
                                 hasPrayerNote: item.hasPrayerNote,
                                 prayerNote: item.prayerNote,
                                 email: donor?.email
@@ -377,6 +379,7 @@ class DonationReportViewModel: ObservableObject {
                         campaignName: campaignName,
                         amount: updatedDonation.amount,
                         donationDate: updatedDonation.donationDate,
+                        updatedAt: updatedDonation.updatedAt,
                         hasPrayerNote: updatedDonation.notes != nil,
                         prayerNote: updatedDonation.notes,
                         email: oldItem.email // Keep the existing email to avoid extra DB call
