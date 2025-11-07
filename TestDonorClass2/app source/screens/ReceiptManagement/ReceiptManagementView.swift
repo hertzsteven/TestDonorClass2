@@ -497,10 +497,15 @@ class ReceiptManagementViewModel: ObservableObject {
             
             // Print the receipt on the main thread since it involves UI
             await MainActor.run {
-                printingService.printReceipt(for: donationInfo) {
+                printingService.printReceipt(for: donationInfo) { success in
                     // This completion handler will run after printing completes or is cancelled
                     Task {
-                        await self.markAsPrinted(receipt: receipt)
+                        if success {
+                            await self.markAsPrinted(receipt: receipt)
+                        } else {
+                            // User cancelled - mark as requested again
+                            await self.markAsRequested(receipt: receipt)
+                        }
                     }
                 }
             }
@@ -535,6 +540,10 @@ class ReceiptService {
     
     func markAsQueued(donationId: Int) async throws {
         try await donationRepository.updateReceiptStatus(donationId: donationId, status: .queued)
+    }
+    
+    func markAsRequested(donationId: Int) async throws {
+        try await donationRepository.updateReceiptStatus(donationId: donationId, status: .requested)
     }
     
     func countPendingReceipts() async throws -> Int {
@@ -630,11 +639,17 @@ class ReceiptService {
         // Print the receipt on the main thread
         await MainActor.run {
             let printingService = ReceiptPrintingService()
-            printingService.printReceipt(for: donationInfo) {
+            printingService.printReceipt(for: donationInfo) { success in
                 // Update status after printing is complete
                 Task {
-                    try? await self.markAsPrinted(donationId: donation.id ?? 0)
-                    taskCompletionSource.fulfill(())
+                    if success {
+                        try? await self.markAsPrinted(donationId: donation.id ?? 0)
+                        taskCompletionSource.fulfill(())
+                    } else {
+                        // User cancelled - mark as requested again
+                        try? await self.donationRepository.updateReceiptStatus(donationId: donation.id ?? 0, status: .requested)
+                        taskCompletionSource.reject(NSError(domain: "ReceiptPrinting", code: 2, userInfo: [NSLocalizedDescriptionKey: "User cancelled printing"]))
+                    }
                 }
             }
         }
@@ -887,10 +902,16 @@ struct PrintReceiptSheetView: View {
                 
                 // Use MainActor since printing involves UI
                 await MainActor.run {
-                    printingService.printReceipt(for: donationInfo) {
+                    printingService.printReceipt(for: donationInfo) { success in
                         // This completion handler will run after printing completes or is cancelled
                         Task {
-                            await handlePrintingSuccess(receipt: receipt, totalReceipts: totalReceipts)
+                            if success {
+                                await handlePrintingSuccess(receipt: receipt, totalReceipts: totalReceipts)
+                            } else {
+                                // User cancelled - mark as requested again and handle as failure
+                                try? await receiptService.markAsRequested(donationId: receipt.donationId)
+                                await handlePrintingFailure(receipt: receipt, totalReceipts: totalReceipts)
+                            }
                         }
                     }
                 }

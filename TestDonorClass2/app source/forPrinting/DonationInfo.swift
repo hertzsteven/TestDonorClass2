@@ -178,10 +178,11 @@ final class ReceiptPrintingService {
     }
 
     /// Public method to print a receipt based on the donation information.
-    func printReceipt(for donation: DonationInfo, completion: @escaping () -> Void) {
+    func printReceipt(for donation: DonationInfo, completion: @escaping (Bool) -> Void) {
         print("Starting to print receipt in ReceiptPrintingService for \(donation.donorName)")
         guard let pdfURL = createReceiptPDF(for: donation) else {
             print("Error: Failed to generate receipt PDF.")
+            completion(false)
             return
         }
         
@@ -193,8 +194,8 @@ final class ReceiptPrintingService {
             print("About to present print controller")
             ReceiptPrintingService.activePrintController?.present(animated: true) { (controller, completed, error) in
                 print("Print controller dismissed, completed: \(completed), error: \(String(describing: error))")
-                // This will run after user either prints or cancels
-                completion()
+                // Pass the actual completion status to the caller
+                completion(completed)
                 // Clear the static reference after completion
                 DispatchQueue.main.async {
                     ReceiptPrintingService.activePrintController = nil

@@ -44,9 +44,12 @@ struct PrintReceiptView: View {
                     receiptNumber: nil       // TODO: Get from donor record
                 )
                 let receiptPrintService = ReceiptPrintingService()
-                receiptPrintService.printReceipt(for: donation) {
-                    self.presentationMode.wrappedValue.dismiss()
-                    onCompletion()
+                receiptPrintService.printReceipt(for: donation) { success in
+                    if success {
+                        self.presentationMode.wrappedValue.dismiss()
+                        onCompletion()
+                    }
+                    // If cancelled, do nothing - stay on current screen
                 }
             }
             .padding()
