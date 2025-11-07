@@ -171,7 +171,7 @@ struct ReceiptManagementView: View {
                     }
                     .buttonStyle(.bordered)
                     
-                    if !viewModel.filteredReceipts.isEmpty {
+                    if !viewModel.filteredReceipts.isEmpty && selectedStatus != .printed {
                         Button(action: {
                             totalReceiptsForPrint = viewModel.filteredReceipts.count
                             showingPrintingSheet = true
