@@ -16,12 +16,26 @@ struct ReceiptManagementView: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var totalReceiptsForPrint = 0
+    @State private var selectedReceipts: Set<UUID> = []
     
     init() {
         let donationRepo = try! DonationRepository()
         _viewModel = StateObject(wrappedValue: ReceiptManagementViewModel(
             donationRepository: donationRepo
         ))
+    }
+    
+    private func getReceiptsToPrint() -> [ReceiptItem] {
+        if viewModel.selectedReceipt != nil {
+            // Single receipt from swipe action
+            return [viewModel.selectedReceipt!]
+        } else if !selectedReceipts.isEmpty {
+            // Selected receipts from multi-select
+            return viewModel.filteredReceipts.filter { selectedReceipts.contains($0.id) }
+        } else {
+            // Print All (with limit)
+            return Array(viewModel.filteredReceipts.prefix(viewModel.maxReceiptsPerPrint))
+        }
     }
 
     var body: some View {
@@ -88,36 +102,47 @@ struct ReceiptManagementView: View {
                 List {
                     Section(header: Text("Receipts")) {
                         ForEach(viewModel.filteredReceipts) { receiptItem in
-                            ReceiptRowView(receipt: receiptItem)
-                                .swipeActions {
-                                    if receiptItem.status == .requested || receiptItem.status == .failed {
-                                        Button("Print") {
-                                            viewModel.selectedReceipt = receiptItem
-                                            showingPrintingSheet = true
-                                        }
-                                        .tint(.blue)
-                                    }
-                                    
-                                    if receiptItem.status != .printed {
-                                        Button("Mark Printed") {
-                                            Task {
-                                                await viewModel.markAsPrinted(receipt: receiptItem)
-                                            }
-                                        }
-                                        .tint(.green)
-                                    }
-                                    
-                                    if receiptItem.status == .printed {
-                                        Button("Mark Requested") {
-                                            Task {
-                                                await viewModel.markAsRequested(receipt: receiptItem)
-                                                selectedStatus = .requested
-                                            }
-                                            
-                                        }
-                                        .tint(.orange)
-                                    }
+                            ReceiptRowView(
+                                receipt: receiptItem,
+                                isSelected: selectedReceipts.contains(receiptItem.id)
+                            )
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if selectedReceipts.contains(receiptItem.id) {
+                                    selectedReceipts.remove(receiptItem.id)
+                                } else {
+                                    selectedReceipts.insert(receiptItem.id)
                                 }
+                            }
+                            .swipeActions {
+                                if receiptItem.status == .requested || receiptItem.status == .failed {
+                                    Button("Print") {
+                                        viewModel.selectedReceipt = receiptItem
+                                        showingPrintingSheet = true
+                                    }
+                                    .tint(.blue)
+                                }
+                                
+                                if receiptItem.status != .printed {
+                                    Button("Mark Printed") {
+                                        Task {
+                                            await viewModel.markAsPrinted(receipt: receiptItem)
+                                        }
+                                    }
+                                    .tint(.green)
+                                }
+                                
+                                if receiptItem.status == .printed {
+                                    Button("Mark Requested") {
+                                        Task {
+                                            await viewModel.markAsRequested(receipt: receiptItem)
+                                            selectedStatus = .requested
+                                        }
+                                        
+                                    }
+                                    .tint(.orange)
+                                }
+                            }
                         }
                     }
                 }
@@ -125,6 +150,16 @@ struct ReceiptManagementView: View {
                 
                 // Action Buttons
                 HStack {
+                    // Deselect All button (appears when there are selections)
+                    if !selectedReceipts.isEmpty {
+                        Button(action: {
+                            selectedReceipts.removeAll()
+                        }) {
+                            Label("Deselect All", systemImage: "xmark.circle")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    
                     Spacer()
                     
                     Button(action: {
@@ -141,8 +176,13 @@ struct ReceiptManagementView: View {
                             totalReceiptsForPrint = viewModel.filteredReceipts.count
                             showingPrintingSheet = true
                         }) {
-                            Label("Print All", systemImage: "printer")
-                                .padding(.horizontal, 10)
+                            if selectedReceipts.isEmpty {
+                                Label("Print All", systemImage: "printer")
+                                    .padding(.horizontal, 10)
+                            } else {
+                                Label("Print Selected (\(selectedReceipts.count))", systemImage: "printer")
+                                    .padding(.horizontal, 10)
+                            }
                         }
                         .buttonStyle(.borderedProminent)
                     }
@@ -159,22 +199,22 @@ struct ReceiptManagementView: View {
             )
         }
         .sheet(isPresented: $showingPrintingSheet) {
-            let receiptsToPrint = viewModel.selectedReceipt != nil ?
-                [viewModel.selectedReceipt!] : Array(viewModel.filteredReceipts.prefix(viewModel.maxReceiptsPerPrint))
-            
             PrintReceiptSheetView(
-                receipts: receiptsToPrint,
+                receipts: getReceiptsToPrint(),
                 onCompletion: { success, total, failed in
+                    // Clear selections after printing
+                    selectedReceipts.removeAll()
+                    
                     showingAlert = true
                     if failed == 0 {
-                        if viewModel.selectedReceipt == nil && totalReceiptsForPrint > viewModel.maxReceiptsPerPrint {
+                        if viewModel.selectedReceipt == nil && selectedReceipts.isEmpty && totalReceiptsForPrint > viewModel.maxReceiptsPerPrint {
                             let remaining = totalReceiptsForPrint - viewModel.maxReceiptsPerPrint
                             alertMessage = "Successfully printed \(success) receipt(s). \(remaining) more receipt(s) remaining."
                         } else {
                             alertMessage = "Successfully printed \(success) receipt(s)"
                         }
                     } else {
-                        if viewModel.selectedReceipt == nil && totalReceiptsForPrint > viewModel.maxReceiptsPerPrint {
+                        if viewModel.selectedReceipt == nil && selectedReceipts.isEmpty && totalReceiptsForPrint > viewModel.maxReceiptsPerPrint {
                             let remaining = totalReceiptsForPrint - viewModel.maxReceiptsPerPrint
                             alertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s). \(remaining) more receipt(s) remaining."
                         } else {
@@ -198,17 +238,24 @@ struct ReceiptManagementView: View {
 
 struct ReceiptRowView: View {
     let receipt: ReceiptItem
+    let isSelected: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(receipt.donorName)
-                    .font(.headline)
-                Spacer()
-                Text(formattedAmount)
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
-            }
+        HStack(spacing: 12) {
+            // Checkbox
+            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                .font(.title2)
+                .foregroundColor(isSelected ? .blue : .gray)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(receipt.donorName)
+                        .font(.headline)
+                    Spacer()
+                    Text(formattedAmount)
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                }
             
             HStack {
                 Text(receipt.date, style: .date)
@@ -224,11 +271,12 @@ struct ReceiptRowView: View {
                     .foregroundColor(.secondary)
             }
             
-            Text("Donation ID: \(receipt.donationId)")
-                .font(.caption2)
-                .foregroundColor(.secondary)
+                Text("Donation ID: \(receipt.donationId)")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.vertical, 4)
         }
-        .padding(.vertical, 4)
     }
     
     private var formattedAmount: String {
