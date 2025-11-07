@@ -81,9 +81,9 @@ final class ReceiptPrintingService {
         // Updated recipient positioning for standard window envelope compatibility
         static let recipientWidth: CGFloat = 252      // 3.5" wide
         static let recipientHeight: CGFloat = 81      // 1.125" high
-        static let recipientMarginX: CGFloat = 124    // 2" from left edge
+        static let recipientMarginX: CGFloat = 50    // 2" from left edge
 //        static let recipientMarginX: CGFloat = 144    // 2" from left edge
-        static let recipientMarginY: CGFloat = 168    // 2" from top edge
+        static let recipientMarginY: CGFloat = 440    // 2" from top edge
 //        static let recipientMarginY: CGFloat = 144    // 2" from top edge
 
         // Header section with organization info
@@ -100,13 +100,13 @@ final class ReceiptPrintingService {
         
         // Receipt details section
         static let receiptDetailsMarginX: CGFloat = 50    // 0.69" from left (50/72)
-        static let receiptDetailsMarginY: CGFloat = 245   // 3.40" from top (245/72)
+        static let receiptDetailsMarginY: CGFloat = 320   // 3.40" from top (245/72)
         static let receiptDetailsWidth: CGFloat = 512     // 7.11" wide (512/72)
         static let receiptDetailsHeight: CGFloat = 120     // 1.11" high (80/72)
         
         // Thank you section
         static let thankYouMarginX: CGFloat = 50      // 0.69" from left (50/72)
-        static let thankYouMarginY: CGFloat = 345     // 4.79" from top (345/72)
+        static let thankYouMarginY: CGFloat = 380     // 4.79" from top (345/72)
         static let thankYouWidth: CGFloat = 512       // 7.11" wide (512/72)
         static let thankYouHeight: CGFloat = 120      // 1.67" high (120/72)
         
@@ -334,15 +334,18 @@ final class ReceiptPrintingService {
                 
 //                yOffset = drawHeaderSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
                 yOffset = drawReturnAddress(in: context, orgInfo: orgInfo)
+                
+                               yOffset = drawReceiptDetails(in: context, donation: donation, yOffset: yOffset)
+                               yOffset = drawThankYouSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
                 yOffset = drawRecipientAddress(in: context, donation: donation)
                 // …then title, details, etc.
                 
                 
 //                yOffset = drawReturnAddress(in: context, orgInfo: orgInfo)
 //                yOffset = drawRecipientAddress(in: context, donation: donation, yOffset: yOffset)
- 
-                yOffset = drawReceiptDetails(in: context, donation: donation, yOffset: yOffset)
-                yOffset = drawThankYouSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
+// 
+//                yOffset = drawReceiptDetails(in: context, donation: donation, yOffset: yOffset)
+//                yOffset = drawThankYouSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
 //                _ = drawFooter(in: context, orgInfo: orgInfo, yOffset: yOffset)
             })
             return pdfFilePath
@@ -428,7 +431,7 @@ final class ReceiptPrintingService {
     private func drawReceiptDetails(in context: UIGraphicsPDFRendererContext, donation: DonationInfo, yOffset: CGFloat) -> CGFloat {
         let pageSize = context.pdfContextBounds.size
         let margin = Layout.pageMargin
-        let receiptDetails = NSMutableAttributedString(string: "Receipt Details\n", attributes: PDFFormatting.headerAttributes)
+        let receiptDetails = NSMutableAttributedString(string: "\n", attributes: PDFFormatting.headerAttributes)
 
         // Include receipt number if available
         let receiptNumberText = donation.receiptNumber ?? "N/A"
@@ -436,10 +439,15 @@ final class ReceiptPrintingService {
         let details = """
 Receipt Number: \(receiptNumberText)
 Date: \(donation.date)
-
-Donor Name: \(donation.formattedDonorName)
 Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
 """
+//        let details = """
+//Receipt Number: \(receiptNumberText)
+//Date: \(donation.date)
+//
+//Donor Name: \(donation.formattedDonorName)
+//Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
+//"""
         receiptDetails.append(NSAttributedString(string: details, attributes: PDFFormatting.bodyLeftAttributes))
         
         let receiptRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 80)
