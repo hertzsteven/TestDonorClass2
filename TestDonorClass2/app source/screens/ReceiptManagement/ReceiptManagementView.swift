@@ -15,6 +15,7 @@ struct ReceiptManagementView: View {
     @State private var searchText = ""
     @State private var showingAlert = false
     @State private var alertMessage = ""
+    @State private var totalReceiptsForPrint = 0
     
     init() {
         let donationRepo = try! DonationRepository()
@@ -137,6 +138,7 @@ struct ReceiptManagementView: View {
                     
                     if !viewModel.filteredReceipts.isEmpty {
                         Button(action: {
+                            totalReceiptsForPrint = viewModel.filteredReceipts.count
                             showingPrintingSheet = true
                         }) {
                             Label("Print All", systemImage: "printer")
@@ -157,15 +159,27 @@ struct ReceiptManagementView: View {
             )
         }
         .sheet(isPresented: $showingPrintingSheet) {
+            let receiptsToPrint = viewModel.selectedReceipt != nil ?
+                [viewModel.selectedReceipt!] : Array(viewModel.filteredReceipts.prefix(viewModel.maxReceiptsPerPrint))
+            
             PrintReceiptSheetView(
-                receipts: viewModel.selectedReceipt != nil ?
-                    [viewModel.selectedReceipt!] : viewModel.filteredReceipts,
+                receipts: receiptsToPrint,
                 onCompletion: { success, total, failed in
                     showingAlert = true
                     if failed == 0 {
-                        alertMessage = "Successfully printed \(success) receipt(s)"
+                        if viewModel.selectedReceipt == nil && totalReceiptsForPrint > viewModel.maxReceiptsPerPrint {
+                            let remaining = totalReceiptsForPrint - viewModel.maxReceiptsPerPrint
+                            alertMessage = "Successfully printed \(success) receipt(s). \(remaining) more receipt(s) remaining."
+                        } else {
+                            alertMessage = "Successfully printed \(success) receipt(s)"
+                        }
                     } else {
-                        alertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s)."
+                        if viewModel.selectedReceipt == nil && totalReceiptsForPrint > viewModel.maxReceiptsPerPrint {
+                            let remaining = totalReceiptsForPrint - viewModel.maxReceiptsPerPrint
+                            alertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s). \(remaining) more receipt(s) remaining."
+                        } else {
+                            alertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s)."
+                        }
                     }
                     
                     Task {
@@ -260,6 +274,7 @@ class ReceiptManagementViewModel: ObservableObject {
     @Published var filteredReceipts: [ReceiptItem] = []
     @Published var isLoading = false
     @Published var selectedReceipt: ReceiptItem? = nil
+    @Published var maxReceiptsPerPrint: Int = 5
     
     private let donationRepository: DonationRepository
     
