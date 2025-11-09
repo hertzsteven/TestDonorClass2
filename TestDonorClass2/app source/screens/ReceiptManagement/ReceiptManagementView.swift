@@ -43,6 +43,40 @@ struct ReceiptManagementView: View {
             return Array(viewModel.filteredReceipts.prefix(effectiveMaxReceipts))
         }
     }
+    
+    private func createTestDonationInfo() -> DonationInfo {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        let dateString = dateFormatter.string(from: Date())
+        
+        return DonationInfo(
+            donorName: "John Doe",
+            donorTitle: "Mr.",
+            donationAmount: 100.00,
+            date: dateString,
+            donorAddress: "123 Main Street",
+            donorCity: "New York",
+            donorState: "NY",
+            donorZip: "10001",
+            receiptNumber: "TEST-001"
+        )
+    }
+    
+    private func printTestReceipt() {
+        let testDonation = createTestDonationInfo()
+        let printingService = ReceiptPrintingService()
+        
+        printingService.printReceipt(for: testDonation) { success in
+            DispatchQueue.main.async {
+                if success {
+                    alertMessage = "Test receipt printed successfully"
+                } else {
+                    alertMessage = "Test receipt printing cancelled or failed"
+                }
+                showingAlert = true
+            }
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -196,6 +230,14 @@ struct ReceiptManagementView: View {
                     }
                     
                     Spacer()
+                    
+                    Button(action: {
+                        printTestReceipt()
+                    }) {
+                        Label("Test Print", systemImage: "checkmark.circle")
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.orange)
                     
                     Button(action: {
                         Task {

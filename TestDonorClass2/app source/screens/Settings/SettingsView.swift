@@ -81,6 +81,16 @@ struct SettingsView: View {
                             .labelsHidden()
                             .fixedSize()
                     }
+                    
+                    Button(action: {
+                        printTestReceipt()
+                    }) {
+                        HStack {
+                            Label("Print Test Receipt", systemImage: "checkmark.circle")
+                            Spacer()
+                        }
+                    }
+                    .foregroundColor(.orange)
                 }
                 
                 Section("About") {
@@ -143,6 +153,34 @@ struct SettingsView: View {
         } catch {
             // Handle error - you might want to show an alert here
             print("Failed to delete donations: \(error)")
+        }
+    }
+    
+    private func createTestDonationInfo() -> DonationInfo {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        let dateString = dateFormatter.string(from: Date())
+        
+        return DonationInfo(
+            donorName: "John Doe",
+            donorTitle: "Mr.",
+            donationAmount: 100.00,
+            date: dateString,
+            donorAddress: "123 Main Street",
+            donorCity: "New York",
+            donorState: "NY",
+            donorZip: "10001",
+            receiptNumber: "TEST-001"
+        )
+    }
+    
+    private func printTestReceipt() {
+        let testDonation = createTestDonationInfo()
+        let printingService = ReceiptPrintingService()
+        
+        printingService.printReceipt(for: testDonation) { success in
+            // Test print doesn't need alert in Settings - just prints
+            print("Test receipt print \(success ? "succeeded" : "failed or cancelled")")
         }
     }
 }
