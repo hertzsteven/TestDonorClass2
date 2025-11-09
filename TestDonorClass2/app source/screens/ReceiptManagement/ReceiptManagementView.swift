@@ -58,6 +58,25 @@ struct ReceiptManagementView: View {
                 }
             }
             
+            // Maximum Receipts Per Print Setting
+            if selectedStatus == .requested {
+                HStack {
+                    Spacer()
+                    Text("Max receipts per print:")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Text("\(viewModel.maxReceiptsPerPrint)")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .frame(minWidth: 30)
+                    Stepper("", value: $viewModel.maxReceiptsPerPrint, in: 1...100)
+                        .labelsHidden()
+                        .fixedSize()
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+            }
+            
             // Search
             HStack {
                 Image(systemName: "magnifyingglass")
@@ -930,5 +949,12 @@ struct PrintReceiptSheetView: View {
                 await handlePrintingFailure(receipt: receipt, totalReceipts: totalReceipts)
             }
         }
+    }
+}
+
+// MARK: - Previews
+#Preview("Receipt Management - Requested") {
+    NavigationView {
+        ReceiptManagementView()
     }
 }
