@@ -49,6 +49,10 @@ struct ReceiptManagementView: View {
             .pickerStyle(.segmented)
             .padding()
             .onChange(of: selectedStatus) { _ in
+                // Clear selections when switching away from requested tab
+                if selectedStatus != .requested {
+                    selectedReceipts.removeAll()
+                }
                 Task {
                     await viewModel.loadReceipts(status: selectedStatus)
                 }
@@ -104,10 +108,13 @@ struct ReceiptManagementView: View {
                         ForEach(viewModel.filteredReceipts) { receiptItem in
                             ReceiptRowView(
                                 receipt: receiptItem,
-                                isSelected: selectedReceipts.contains(receiptItem.id)
+                                isSelected: selectedReceipts.contains(receiptItem.id),
+                                showCheckbox: selectedStatus == .requested
                             )
                             .contentShape(Rectangle())
                             .onTapGesture {
+                                // Only allow selection on requested tab
+                                guard selectedStatus == .requested else { return }
                                 if selectedReceipts.contains(receiptItem.id) {
                                     selectedReceipts.remove(receiptItem.id)
                                 } else {
@@ -150,8 +157,8 @@ struct ReceiptManagementView: View {
                 
                 // Action Buttons
                 HStack {
-                    // Deselect All button (appears when there are selections)
-                    if !selectedReceipts.isEmpty {
+                    // Deselect All button (only appears on requested tab when there are selections)
+                    if selectedStatus == .requested && !selectedReceipts.isEmpty {
                         Button(action: {
                             selectedReceipts.removeAll()
                         }) {
@@ -171,7 +178,7 @@ struct ReceiptManagementView: View {
                     }
                     .buttonStyle(.bordered)
                     
-                    if !viewModel.filteredReceipts.isEmpty && selectedStatus != .printed {
+                    if !viewModel.filteredReceipts.isEmpty && selectedStatus == .requested {
                         Button(action: {
                             totalReceiptsForPrint = viewModel.filteredReceipts.count
                             showingPrintingSheet = true
@@ -239,13 +246,16 @@ struct ReceiptManagementView: View {
 struct ReceiptRowView: View {
     let receipt: ReceiptItem
     let isSelected: Bool
+    let showCheckbox: Bool
     
     var body: some View {
         HStack(spacing: 12) {
-            // Checkbox
-            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                .font(.title2)
-                .foregroundColor(isSelected ? .blue : .gray)
+            // Checkbox - only show when showCheckbox is true
+            if showCheckbox {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title2)
+                    .foregroundColor(isSelected ? .blue : .gray)
+            }
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
