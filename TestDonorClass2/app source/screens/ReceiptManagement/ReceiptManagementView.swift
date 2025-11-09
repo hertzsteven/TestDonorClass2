@@ -231,13 +231,15 @@ struct ReceiptManagementView: View {
                     
                     Spacer()
                     
-                    Button(action: {
-                        printTestReceipt()
-                    }) {
-                        Label("Test Print", systemImage: "checkmark.circle")
+                    if selectedStatus == .requested {
+                        Button(action: {
+                            printTestReceipt()
+                        }) {
+                            Label("Test Print", systemImage: "checkmark.circle")
+                        }
+                        .buttonStyle(.bordered)
+                        .foregroundColor(.orange)
                     }
-                    .buttonStyle(.bordered)
-                    .foregroundColor(.orange)
                     
                     Button(action: {
                         Task {
