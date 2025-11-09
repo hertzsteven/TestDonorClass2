@@ -17,6 +17,12 @@ struct ReceiptManagementView: View {
     @State private var alertMessage = ""
     @State private var totalReceiptsForPrint = 0
     @State private var selectedReceipts: Set<UUID> = []
+    @State private var overrideMaxReceipts: Int? = nil
+    
+    // Computed property for effective max receipts (override or Settings value)
+    private var effectiveMaxReceipts: Int {
+        overrideMaxReceipts ?? viewModel.maxReceiptsPerPrint
+    }
     
     init() {
         let donationRepo = try! DonationRepository()
@@ -34,7 +40,7 @@ struct ReceiptManagementView: View {
             return viewModel.filteredReceipts.filter { selectedReceipts.contains($0.id) }
         } else {
             // Print All (with limit)
-            return Array(viewModel.filteredReceipts.prefix(viewModel.maxReceiptsPerPrint))
+            return Array(viewModel.filteredReceipts.prefix(effectiveMaxReceipts))
         }
     }
 
@@ -58,18 +64,21 @@ struct ReceiptManagementView: View {
                 }
             }
             
-            // Maximum Receipts Per Print Setting
+            // Maximum Receipts Per Print Override Setting
             if selectedStatus == .requested {
                 HStack {
                     Spacer()
                     Text("Max receipts per print:")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                    Text("\(viewModel.maxReceiptsPerPrint)")
+                    Text("\(effectiveMaxReceipts)")
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .frame(minWidth: 30)
-                    Stepper("", value: $viewModel.maxReceiptsPerPrint, in: 1...100)
+                    Stepper("", value: Binding(
+                        get: { effectiveMaxReceipts },
+                        set: { overrideMaxReceipts = $0 }
+                    ), in: 1...100)
                         .labelsHidden()
                         .fixedSize()
                 }
@@ -233,15 +242,15 @@ struct ReceiptManagementView: View {
                     
                     showingAlert = true
                     if failed == 0 {
-                        if viewModel.selectedReceipt == nil && selectedReceipts.isEmpty && totalReceiptsForPrint > viewModel.maxReceiptsPerPrint {
-                            let remaining = totalReceiptsForPrint - viewModel.maxReceiptsPerPrint
+                        if viewModel.selectedReceipt == nil && selectedReceipts.isEmpty && totalReceiptsForPrint > effectiveMaxReceipts {
+                            let remaining = totalReceiptsForPrint - effectiveMaxReceipts
                             alertMessage = "Successfully printed \(success) receipt(s). \(remaining) more receipt(s) remaining."
                         } else {
                             alertMessage = "Successfully printed \(success) receipt(s)"
                         }
                     } else {
-                        if viewModel.selectedReceipt == nil && selectedReceipts.isEmpty && totalReceiptsForPrint > viewModel.maxReceiptsPerPrint {
-                            let remaining = totalReceiptsForPrint - viewModel.maxReceiptsPerPrint
+                        if viewModel.selectedReceipt == nil && selectedReceipts.isEmpty && totalReceiptsForPrint > effectiveMaxReceipts {
+                            let remaining = totalReceiptsForPrint - effectiveMaxReceipts
                             alertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s). \(remaining) more receipt(s) remaining."
                         } else {
                             alertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s)."
@@ -255,6 +264,8 @@ struct ReceiptManagementView: View {
             )
         }
         .onAppear {
+            // Reset override to Settings value when returning to the screen
+            overrideMaxReceipts = nil
             Task {
                 await viewModel.loadReceipts(status: selectedStatus)
             }
@@ -351,15 +362,31 @@ class ReceiptManagementViewModel: ObservableObject {
     @Published var filteredReceipts: [ReceiptItem] = []
     @Published var isLoading = false
     @Published var selectedReceipt: ReceiptItem? = nil
-    @Published var maxReceiptsPerPrint: Int = 5
+    
+    var maxReceiptsPerPrint: Int {
+        let value = UserDefaults.standard.integer(forKey: "maxReceiptsPerPrint")
+        return value == 0 ? 5 : value
+    }
     
     private let donationRepository: DonationRepository
     
     init(donationRepository: DonationRepository) { // Dependency must be injected
         self.donationRepository = donationRepository
         print("ReceiptManagementViewModel Initialized with repository.")
-        // You might trigger initial data load here or from the View's .task
-        // Task { await loadReceipts(status: .requested) }
+        
+        // Observe UserDefaults changes for maxReceiptsPerPrint
+        NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            // Trigger view update when UserDefaults changes
+            self?.objectWillChange.send()
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     func loadReceipts(status: ReceiptStatus) async {

@@ -14,6 +14,8 @@ struct SettingsView: View {
     @State private var showingSaveAlert = false
     @State private var hasUnsavedChanges = false
     
+    @AppStorage("maxReceiptsPerPrint") private var maxReceiptsPerPrint: Int = 5
+    
     init(organizationManager: OrganizationSettingsManager) {
         self.organizationManager = organizationManager
         _tempSettings = State(initialValue: TempOrgSettings(from: organizationManager.organizationInfo))
@@ -63,6 +65,21 @@ struct SettingsView: View {
                     NavigationLink(destination: BackupDatabaseView()) {
                         Text("Backup & Restore")
                             .foregroundColor(.blue)
+                    }
+                }
+                
+                Section("Receipt Printing") {
+                    HStack {
+                        Text("Max receipts per print:")
+                            .font(.subheadline)
+                        Spacer()
+                        Text("\(maxReceiptsPerPrint)")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .frame(minWidth: 30)
+                        Stepper("", value: $maxReceiptsPerPrint, in: 1...100)
+                            .labelsHidden()
+                            .fixedSize()
                     }
                 }
                 
