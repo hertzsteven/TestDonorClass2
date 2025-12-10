@@ -191,6 +191,13 @@ final class ReceiptPrintingService {
             ReceiptPrintingService.activePrintController = UIPrintInteractionController.shared
             ReceiptPrintingService.activePrintController?.printingItem = pdfURL
             
+            // Configure print job settings
+            let printInfo = UIPrintInfo.printInfo()
+            printInfo.outputType = .general  // Good for documents with text
+            printInfo.jobName = "Donation Receipt - \(donation.formattedDonorName)"
+            printInfo.orientation = .portrait
+            ReceiptPrintingService.activePrintController?.printInfo = printInfo
+            
             print("About to present print controller")
             ReceiptPrintingService.activePrintController?.present(animated: true) { (controller, completed, error) in
                 print("Print controller dismissed, completed: \(completed), error: \(String(describing: error))")
@@ -225,6 +232,13 @@ final class ReceiptPrintingService {
             // Store in static property to ensure it stays alive across the app
             ReceiptPrintingService.activePrintController = UIPrintInteractionController.shared
             ReceiptPrintingService.activePrintController?.printingItem = pdfURL
+            
+            // Configure print job settings
+            let printInfo = UIPrintInfo.printInfo()
+            printInfo.outputType = .general  // Good for documents with text
+            printInfo.jobName = "Donation Receipts (\(donations.count) receipts)"
+            printInfo.orientation = .portrait
+            ReceiptPrintingService.activePrintController?.printInfo = printInfo
             
             print("About to present print controller for \(donations.count) receipts")
             ReceiptPrintingService.activePrintController?.present(animated: true) { (controller, completed, error) in
