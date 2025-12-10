@@ -6,59 +6,6 @@
 	<array>
 		<dict>
 			<key>children</key>
-			<array/>
-			<key>title</key>
-			<string>Search Donor</string>
-			<key>type</key>
-			<string>group</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>226</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>225</string>
-					<key>Timestamp</key>
-					<string>774761451.235606</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>TestDonorClass2/app source/screens/DonorScreens/DonorListView/DonorListView.swift</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>    var newDonorList: some View {
-</string>
-				<key>leading</key>
-				<string>    }
-    
-</string>
-				<key>trailing</key>
-				<string>        
-        NavigationSplitView(columnVisibility:.constant(.doubleColumn)) {
-//        NavigationSplitView {
-</string>
-			</dict>
-			<key>type</key>
-			<string>bookmark</string>
-		</dict>
-		<dict>
-			<key>children</key>
 			<array>
 				<dict>
 					<key>destination</key>
@@ -105,6 +52,19 @@
 				<dict>
 					<key>destination</key>
 					<dict>
+						<key>location-parameters</key>
+						<dict>
+							<key>EndingColumnNumber</key>
+							<string>3</string>
+							<key>EndingLineNumber</key>
+							<string>336</string>
+							<key>StartingColumnNumber</key>
+							<string>3</string>
+							<key>StartingLineNumber</key>
+							<string>336</string>
+							<key>Timestamp</key>
+							<string>786232852.8680331</string>
+						</dict>
 						<key>rebasable-url</key>
 						<dict>
 							<key>base</key>
@@ -115,11 +75,23 @@
 								<string>TestDonorClass2/app source/forPrinting/DonationInfo.swift</string>
 							</dict>
 						</dict>
-						<key>type</key>
-						<string>DVTDocumentLocation</string>
+					</dict>
+					<key>text-context</key>
+					<dict>
+						<key>focused</key>
+						<string></string>
+						<key>leading</key>
+						<string>                
+//                yOffset = drawHeaderSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
+   </string>
+						<key>trailing</key>
+						<string>             yOffset = drawReturnAddress(in: context, orgInfo: orgInfo)
+                
+                               yOffset = drawReceiptDetails(in: context, donation: donation, yOffset: yOffset)
+</string>
 					</dict>
 					<key>title</key>
-					<string>createReceiptPDF</string>
+					<string>return address</string>
 					<key>type</key>
 					<string>bookmark</string>
 				</dict>
@@ -588,16 +560,16 @@
 					<key>text-context</key>
 					<dict>
 						<key>focused</key>
-						<string>//                WHERE id = ?
+						<string>//                    """, arguments: [status.rawValue, receiptNumber, donationId])
 </string>
 						<key>leading</key>
-						<string>//                UPDATE donation
-//                SET receipt_status = ?
+						<string>//                    SET receipt_status = ?, receipt_number = ?
+//                    WHERE id = ?
 </string>
 						<key>trailing</key>
-						<string>//                """, arguments: [status.rawValue, donationId])
-//        }
-//    }
+						<string>//            }
+//        } else {
+//            try await dbPool.write { db in
 </string>
 					</dict>
 					<key>title</key>
@@ -984,53 +956,6 @@
 			<string>Edit donation </string>
 			<key>type</key>
 			<string>group</string>
-		</dict>
-		<dict>
-			<key>destination</key>
-			<dict>
-				<key>location-parameters</key>
-				<dict>
-					<key>EndingColumnNumber</key>
-					<string>0</string>
-					<key>EndingLineNumber</key>
-					<string>565</string>
-					<key>StartingColumnNumber</key>
-					<string>0</string>
-					<key>StartingLineNumber</key>
-					<string>564</string>
-					<key>Timestamp</key>
-					<string>777515372.911736</string>
-				</dict>
-				<key>rebasable-url</key>
-				<dict>
-					<key>base</key>
-					<string>workspace</string>
-					<key>payload</key>
-					<dict>
-						<key>relative-path</key>
-						<string>TestDonorClass2/app source/screens/DonorScreens/DonorListView/DonorListView.swift</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>text-context</key>
-			<dict>
-				<key>focused</key>
-				<string>//                        Text(Image(systemName: "plus"))
-</string>
-				<key>leading</key>
-				<string>                    
-//                    Button { showingAddDonor = true } label: {
-</string>
-				<key>trailing</key>
-				<string>//                    }
-                    .transition(.scale.combined(with: .opacity))
-                } else {
-</string>
-			</dict>
-			<key>title</key>
-			<string>thePlus</string>
-			<key>type</key>
-			<string>bookmark</string>
 		</dict>
 	</array>
 </dict>

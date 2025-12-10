@@ -83,7 +83,7 @@ struct ReceiptManagementView: View {
             // Receipt Status Filter
             Picker("Filter", selection: $selectedStatus) {
                 ForEach(ReceiptStatus.allCases, id: \.self) { status in
-                    Text(status.displayName).tag(status)
+                    Text("\(status.displayName) (\(viewModel.statusCounts[status] ?? 0))").tag(status)
                 }
             }
             .pickerStyle(.segmented)
@@ -95,6 +95,7 @@ struct ReceiptManagementView: View {
                 }
                 Task {
                     await viewModel.loadReceipts(status: selectedStatus)
+                    await viewModel.loadAllStatusCounts()
                 }
             }
             
@@ -303,6 +304,7 @@ struct ReceiptManagementView: View {
                     
                     Task {
                         await viewModel.refreshReceipts()
+                        await viewModel.loadAllStatusCounts()
                     }
                 }
             )
@@ -312,6 +314,7 @@ struct ReceiptManagementView: View {
             overrideMaxReceipts = nil
             Task {
                 await viewModel.loadReceipts(status: selectedStatus)
+                await viewModel.loadAllStatusCounts()
             }
         }
     }
@@ -406,6 +409,7 @@ class ReceiptManagementViewModel: ObservableObject {
     @Published var filteredReceipts: [ReceiptItem] = []
     @Published var isLoading = false
     @Published var selectedReceipt: ReceiptItem? = nil
+    @Published var statusCounts: [ReceiptStatus: Int] = [:]
     
     var maxReceiptsPerPrint: Int {
         let value = UserDefaults.standard.integer(forKey: "maxReceiptsPerPrint")
@@ -502,6 +506,23 @@ class ReceiptManagementViewModel: ObservableObject {
     
     func refreshReceipts() async {
         await loadReceipts(status: .requested)
+        await loadAllStatusCounts()
+    }
+    
+    func loadAllStatusCounts() async {
+        var counts: [ReceiptStatus: Int] = [:]
+        for status in ReceiptStatus.allCases {
+            do {
+                let count = try await donationRepository.countReceiptsByStatus(status)
+                counts[status] = count
+            } catch {
+                print("Error loading count for \(status): \(error)")
+                counts[status] = 0
+            }
+        }
+        await MainActor.run {
+            self.statusCounts = counts
+        }
     }
     
     func filterReceipts(_ searchText: String) {

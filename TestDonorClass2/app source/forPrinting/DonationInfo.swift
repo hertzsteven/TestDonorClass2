@@ -81,9 +81,9 @@ final class ReceiptPrintingService {
         // Updated recipient positioning for standard window envelope compatibility
         static let recipientWidth: CGFloat = 252      // 3.5" wide
         static let recipientHeight: CGFloat = 81      // 1.125" high
-        static let recipientMarginX: CGFloat = 50    // 2" from left edge
+        static let recipientMarginX: CGFloat = 60    // 2" from left edge
 //        static let recipientMarginX: CGFloat = 144    // 2" from left edge
-        static let recipientMarginY: CGFloat = 440    // 2" from top edge
+        static let recipientMarginY: CGFloat = 425    // 2" from top edge
 //        static let recipientMarginY: CGFloat = 144    // 2" from top edge
 
         // Header section with organization info
@@ -100,13 +100,13 @@ final class ReceiptPrintingService {
         
         // Receipt details section
         static let receiptDetailsMarginX: CGFloat = 50    // 0.69" from left (50/72)
-        static let receiptDetailsMarginY: CGFloat = 320   // 3.40" from top (245/72)
+        static let receiptDetailsMarginY: CGFloat = 302   // 3.40" from top (245/72)
         static let receiptDetailsWidth: CGFloat = 512     // 7.11" wide (512/72)
         static let receiptDetailsHeight: CGFloat = 120     // 1.11" high (80/72)
         
         // Thank you section
         static let thankYouMarginX: CGFloat = 50      // 0.69" from left (50/72)
-        static let thankYouMarginY: CGFloat = 380     // 4.79" from top (345/72)
+        static let thankYouMarginY: CGFloat = 362     // 4.79" from top (345/72)
         static let thankYouWidth: CGFloat = 512       // 7.11" wide (512/72)
         static let thankYouHeight: CGFloat = 120      // 1.67" high (120/72)
         
@@ -364,11 +364,15 @@ final class ReceiptPrintingService {
             width: Layout.envelopeWidth,
             height: Layout.envelopeHeight
         )
+        let text = ""
+/*
+
         let text = """
 \(orgInfo.name)
 \(orgInfo.addressLine1)
 \(orgInfo.city), \(orgInfo.state) \(orgInfo.zip)
 """
+ */
         text.draw(in: rect, withAttributes: PDFFormatting.returnAddressAttributes)
         return rect.maxY + Layout.paragraphSpacing
     }
