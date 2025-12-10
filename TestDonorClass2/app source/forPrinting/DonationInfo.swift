@@ -203,6 +203,71 @@ final class ReceiptPrintingService {
             }
         }
     }
+    
+    /// Public method to print multiple receipts as a single multi-page PDF.
+    /// Each receipt will be on its own page.
+    func printReceipts(for donations: [DonationInfo], completion: @escaping (Bool) -> Void) {
+        print("Starting to print \(donations.count) receipts in ReceiptPrintingService")
+        
+        guard !donations.isEmpty else {
+            print("Error: No donations to print.")
+            completion(false)
+            return
+        }
+        
+        guard let pdfURL = createMultiReceiptPDF(for: donations) else {
+            print("Error: Failed to generate multi-receipt PDF.")
+            completion(false)
+            return
+        }
+        
+        DispatchQueue.main.async {
+            // Store in static property to ensure it stays alive across the app
+            ReceiptPrintingService.activePrintController = UIPrintInteractionController.shared
+            ReceiptPrintingService.activePrintController?.printingItem = pdfURL
+            
+            print("About to present print controller for \(donations.count) receipts")
+            ReceiptPrintingService.activePrintController?.present(animated: true) { (controller, completed, error) in
+                print("Print controller dismissed, completed: \(completed), error: \(String(describing: error))")
+                // Pass the actual completion status to the caller
+                completion(completed)
+                // Clear the static reference after completion
+                DispatchQueue.main.async {
+                    ReceiptPrintingService.activePrintController = nil
+                }
+            }
+        }
+    }
+    
+    /// Creates a single PDF with multiple pages, one for each donation.
+    private func createMultiReceiptPDF(for donations: [DonationInfo]) -> URL? {
+        let pageSize = CGSize(width: 612, height: 792) // 8.5" x 11"
+        let pdfFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("receipts_batch.pdf")
+        
+        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(origin: .zero, size: pageSize))
+        do {
+            try renderer.writePDF(to: pdfFilePath, withActions: { context in
+                let orgInfo = self.organizationProvider.organizationInfo
+                
+                for donation in donations {
+                    // Start a new page for each receipt
+                    context.beginPage()
+                    
+                    var yOffset: CGFloat = 0
+                    
+                    // Draw the receipt content (same as single receipt)
+                    yOffset = drawReturnAddress(in: context, orgInfo: orgInfo)
+                    yOffset = drawReceiptDetails(in: context, donation: donation, yOffset: yOffset)
+                    yOffset = drawThankYouSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
+                    _ = drawRecipientAddress(in: context, donation: donation)
+                }
+            })
+            return pdfFilePath
+        } catch {
+            print("Failed to create multi-receipt PDF: \(error)")
+            return nil
+        }
+    }
 
     private func createReceiptPDFOld(for donation: DonationInfo) -> URL? {
         let pageSize = CGSize(width: 612, height: 792) // 8.5" x 11"

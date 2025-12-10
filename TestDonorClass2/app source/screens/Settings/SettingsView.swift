@@ -14,7 +14,7 @@ struct SettingsView: View {
     @State private var showingSaveAlert = false
     @State private var hasUnsavedChanges = false
     
-    @AppStorage("maxReceiptsPerPrint") private var maxReceiptsPerPrint: Int = 5
+    @AppStorage("maxReceiptsPerPrint") private var maxReceiptsPerPrint: Int = 10
     
     init(organizationManager: OrganizationSettingsManager) {
         self.organizationManager = organizationManager

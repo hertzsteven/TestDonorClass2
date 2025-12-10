@@ -81,13 +81,13 @@
 						<key>focused</key>
 						<string></string>
 						<key>leading</key>
-						<string>                
-//                yOffset = drawHeaderSection(in: context, orgInfo: orgInfo, yOffset: yOffset)
+						<string>                    .paragraphStyle: leftAlignedParagraphStyle()
+                ]
    </string>
 						<key>trailing</key>
-						<string>             yOffset = drawReturnAddress(in: context, orgInfo: orgInfo)
+						<string>             receiptDetails.append(NSAttributedString(string: details, attributes: detailsAttributes))
                 
-                               yOffset = drawReceiptDetails(in: context, donation: donation, yOffset: yOffset)
+                let receiptRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 80)
 </string>
 					</dict>
 					<key>title</key>
