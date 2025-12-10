@@ -534,7 +534,8 @@ Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
     private func drawThankYouSection(in context: UIGraphicsPDFRendererContext, orgInfo: OrganizationInfo, yOffset: CGFloat) -> CGFloat {
         let pageSize = context.pdfContextBounds.size
         let margin = Layout.pageMargin
-        let thankYouText = NSMutableAttributedString(string: "Thank You!\n", attributes: PDFFormatting.headerAttributes)
+        let thankYouText = NSMutableAttributedString(string: "Thank You!", attributes: PDFFormatting.headerAttributes)
+        thankYouText.append(NSAttributedString(string: "    No goods or services were received in exchange for this donation.\n", attributes: PDFFormatting.bodyLeftAttributes))
         let message = """
 Your generous donation helps us to continue our mission.
 
