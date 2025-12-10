@@ -18,6 +18,9 @@ struct ReceiptManagementView: View {
     @State private var totalReceiptsForPrint = 0
     @State private var selectedReceipts: Set<UUID> = []
     @State private var overrideMaxReceipts: Int? = nil
+    @State private var bulkUpdateThreshold: String = "100"
+    @State private var showingBulkUpdateAlert = false
+    @State private var bulkUpdateCount = 0
     
     // Computed property for effective max receipts (override or Settings value)
     private var effectiveMaxReceipts: Int {
@@ -118,6 +121,41 @@ struct ReceiptManagementView: View {
                         .fixedSize()
                 }
                 .padding(.horizontal)
+                .padding(.bottom, 8)
+            }
+            
+            // Bulk Update Section for Not Requested tab
+            if selectedStatus == .notRequested {
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("Update donations ≥ $")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        TextField("Amount", text: $bulkUpdateThreshold)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 80)
+                        Text("to Requested")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Button(action: {
+                            Task {
+                                if let amount = Double(bulkUpdateThreshold) {
+                                    bulkUpdateCount = await viewModel.bulkUpdateToRequested(minAmount: amount)
+                                    showingBulkUpdateAlert = true
+                                    // Refresh the current tab
+                                    await viewModel.loadReceipts(status: selectedStatus)
+                                }
+                            }
+                        }) {
+                            Label("Update", systemImage: "arrow.right.circle.fill")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(Double(bulkUpdateThreshold) == nil)
+                    }
+                    .padding(.horizontal)
+                }
                 .padding(.bottom, 8)
             }
             
@@ -277,6 +315,20 @@ struct ReceiptManagementView: View {
                 message: Text(alertMessage),
                 dismissButton: .default(Text("OK"))
             )
+        }
+        .alert("Bulk Update Complete", isPresented: $showingBulkUpdateAlert) {
+            Button("OK") {
+                // Switch to Requested tab to see the updated donations
+                if bulkUpdateCount > 0 {
+                    selectedStatus = .requested
+                }
+            }
+        } message: {
+            if bulkUpdateCount > 0 {
+                Text("Updated \(bulkUpdateCount) donation(s) to Requested status. They are now ready for printing.")
+            } else {
+                Text("No donations found matching the criteria.")
+            }
         }
         .sheet(isPresented: $showingPrintingSheet) {
             PrintReceiptSheetView(
@@ -507,6 +559,17 @@ class ReceiptManagementViewModel: ObservableObject {
     func refreshReceipts() async {
         await loadReceipts(status: .requested)
         await loadAllStatusCounts()
+    }
+    
+    func bulkUpdateToRequested(minAmount: Double) async -> Int {
+        do {
+            let count = try await donationRepository.bulkUpdateToRequested(minAmount: minAmount)
+            await loadAllStatusCounts()
+            return count
+        } catch {
+            print("Error in bulk update: \(error)")
+            return 0
+        }
     }
     
     func loadAllStatusCounts() async {

@@ -308,4 +308,39 @@ extension DonationRepository {
                 .fetchCount(db)
         }
     }
+    
+    /// Updates all donations with status .notRequested and amount >= minAmount to .requested
+    /// Also sets requestPrintedReceipt = true so they appear in the Requested queue
+    /// - Parameter minAmount: Minimum donation amount threshold
+    /// - Returns: The count of updated donations
+    func bulkUpdateToRequested(minAmount: Double) async throws -> Int {
+        // Create year 2000 date for filtering (same logic as getReceiptRequests)
+        let calendar = Calendar(identifier: .gregorian)
+        let cutoffDate = calendar.date(from: DateComponents(year: 2000, month: 1, day: 1)) ?? Date.distantPast
+        
+        return try await dbPool.write { db in
+            let updateCount = try Donation
+                .filter(
+                    Donation.Columns.receiptStatus == ReceiptStatus.notRequested.rawValue &&
+                    Donation.Columns.amount >= minAmount &&
+                    Donation.Columns.donationDate > cutoffDate
+                )
+                .fetchCount(db)
+            
+            try db.execute(sql: """
+                UPDATE donation
+                SET receipt_status = ?, request_printed_receipt = 1
+                WHERE receipt_status = ?
+                AND amount >= ?
+                AND donation_date > ?
+                """, arguments: [
+                    ReceiptStatus.requested.rawValue,
+                    ReceiptStatus.notRequested.rawValue,
+                    minAmount,
+                    cutoffDate
+                ])
+            
+            return updateCount
+        }
+    }
 }
