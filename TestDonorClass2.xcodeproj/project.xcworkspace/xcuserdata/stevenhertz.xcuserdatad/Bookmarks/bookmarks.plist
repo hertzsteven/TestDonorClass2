@@ -81,13 +81,13 @@
 						<key>focused</key>
 						<string></string>
 						<key>leading</key>
-						<string>                
-                // Receipt Information
+						<string>                    .font: UIFont.boldSystemFont(ofSize: 18),
+                    .paragraphStyle: centeredParagraphStyle()
    </string>
 						<key>trailing</key>
-						<string>             let receiptDetails = NSMutableAttributedString(string: "Receipt Details\n", attributes: [
-                    .font: UIFont.boldSystemFont(ofSize: fontSize),
-                    .paragraphStyle: leftAlignedParagraphStyle()
+						<string>             ]
+                let titleRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 30)
+                title.draw(in: titleRect, withAttributes: titleAttributes)
 </string>
 					</dict>
 					<key>title</key>
