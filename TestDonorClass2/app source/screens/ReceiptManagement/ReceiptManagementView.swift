@@ -792,7 +792,10 @@ class ReceiptService {
                 }
                 // GET: Address and title information
                 donorTitle = donor.salutation
-                donorAddress = donor.address
+                donorAddress = [donor.address, donor.suite, donor.addl_line]
+                    .compactMap { $0 }
+                    .filter { !$0.isEmpty }
+                    .joined(separator: " ")
                 donorCity = donor.city
                 donorState = donor.state
                 donorZip = donor.zip
@@ -1030,7 +1033,10 @@ struct PrintReceiptSheetView: View {
                     donorName = donor.company ?? "Unknown"
                 }
                 donorTitle = donor.salutation
-                donorAddress = donor.address
+                donorAddress = [donor.address, donor.suite, donor.addl_line]
+                    .compactMap { $0 }
+                    .filter { !$0.isEmpty }
+                    .joined(separator: " ")
                 donorCity = donor.city
                 donorState = donor.state
                 donorZip = donor.zip

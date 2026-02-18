@@ -80,10 +80,10 @@ final class ReceiptPrintingService {
         
         // Updated recipient positioning for standard window envelope compatibility
         static let recipientWidth: CGFloat = 252      // 3.5" wide
-        static let recipientHeight: CGFloat = 81      // 1.125" high
+        static let recipientHeight: CGFloat = 96     // +15pt for extra line room
         static let recipientMarginX: CGFloat = 60    // 2" from left edge
 //        static let recipientMarginX: CGFloat = 144    // 2" from left edge
-        static let recipientMarginY: CGFloat = 425    // 2" from top edge
+        static let recipientMarginY: CGFloat = 440    // +15pt to shift name to where address was
 //        static let recipientMarginY: CGFloat = 144    // 2" from top edge
 
         // Header section with organization info
@@ -125,6 +125,7 @@ final class ReceiptPrintingService {
         static let bodyFont = UIFont.systemFont(ofSize: 12)
         static let recipientFont = UIFont.systemFont(ofSize: 11)
         static let returnAddressFont = UIFont.systemFont(ofSize: 10)
+        static let disclaimerFont = UIFont.systemFont(ofSize: 8, weight: .light)
 
         // MARK: - Paragraph Styles
         static let leftAlign = leftAlignedParagraphStyle()
@@ -164,6 +165,11 @@ final class ReceiptPrintingService {
 
         static let returnAddressAttributes: [NSAttributedString.Key: Any] = [
             .font: returnAddressFont,
+            .paragraphStyle: leftAlign
+        ]
+
+        static let disclaimerAttributes: [NSAttributedString.Key: Any] = [
+            .font: disclaimerFont,
             .paragraphStyle: leftAlign
         ]
     }
@@ -548,21 +554,9 @@ Donation Amount: $\(String(format: "%.2f", donation.donationAmount))
     private func drawThankYouSection(in context: UIGraphicsPDFRendererContext, orgInfo: OrganizationInfo, yOffset: CGFloat) -> CGFloat {
         let pageSize = context.pdfContextBounds.size
         let margin = Layout.pageMargin
-        let thankYouText = NSMutableAttributedString(string: "Thank You!", attributes: PDFFormatting.headerAttributes)
-        thankYouText.append(NSAttributedString(string: "    No goods or services were received in exchange for this donation.\n", attributes: PDFFormatting.bodyLeftAttributes))
-        let message = """
-Your generous donation helps us to continue our mission.
-
-"""
-//        let message = """
-//Your generous donation helps us to continue our mission.
-//
-//If you have any questions regarding this receipt, please contact us:
-//Email: \(orgInfo.email ?? "contact@organization.org")
-//Phone: \(orgInfo.phone ?? "Phone not available")
-//Website: \(orgInfo.website ?? "")
-//"""
-        thankYouText.append(NSAttributedString(string: message, attributes: PDFFormatting.bodyJustifiedAttributes))
+        let thankYouText = NSMutableAttributedString(string: "Thank You! ", attributes: PDFFormatting.headerAttributes)
+        thankYouText.append(NSAttributedString(string: "Your generous donation helps us to continue our mission.\n", attributes: PDFFormatting.bodyJustifiedAttributes))
+        thankYouText.append(NSAttributedString(string: "No goods or services were received in exchange for this donation.", attributes: PDFFormatting.disclaimerAttributes))
         
         let thankYouRect = CGRect(x: margin, y: yOffset, width: pageSize.width - 2 * margin, height: 120)
         
