@@ -147,6 +147,8 @@ struct DashboardView: View {
                     DonationReportView()
                          // Pass necessary environment objects if needed by subviews
                         .environmentObject(donorObject) // If DonorSearchView needs it
+                case "Receipt PoC":
+                    ReceiptMockView()
 //                case "Classes":
 //                    DonorMaintenanceView()
 ////                        .environmentObject(donorObject)
