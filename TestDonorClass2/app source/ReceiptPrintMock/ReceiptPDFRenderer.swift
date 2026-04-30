@@ -29,7 +29,7 @@ struct ReceiptPDFRenderer {
     let templateResourceName: String
     let bundle: Bundle
 
-    init(templateResourceName: String = "Receipt_Prototype",
+    init(templateResourceName: String = "Chaye_Olam_Receipt",
          bundle: Bundle = .main) {
         self.templateResourceName = templateResourceName
         self.bundle = bundle
