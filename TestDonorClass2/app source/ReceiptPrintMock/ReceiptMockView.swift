@@ -1,18 +1,27 @@
 import SwiftUI
 
-/// PoC screen: tap the button → render the next mock receipt → show it
-/// in an embedded PDF preview. No printing here yet (Step 4 will add
-/// AirPrint).
+/// PoC screen: tap *Generate* to render the next mock receipt → shown
+/// in an embedded PDF preview. Tap *Print* to send the currently shown
+/// PDF to AirPrint.
 struct ReceiptMockView: View {
     @State private var viewModel = ReceiptMockViewModel()
 
     var body: some View {
         VStack(spacing: 16) {
-            Button("Generate Next Mock Receipt", systemImage: "doc.text.fill") {
-                viewModel.generateNext()
+            HStack {
+                Button("Generate Next", systemImage: "doc.text.fill") {
+                    viewModel.generateNext()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+
+                Button("Print", systemImage: "printer.fill") {
+                    Task { await viewModel.printCurrentReceipt() }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(!viewModel.canPrint)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
 
             if let mockNumber = viewModel.currentMockNumber,
                let donorName = viewModel.currentDonorName {
@@ -37,7 +46,7 @@ struct ReceiptMockView: View {
                 ContentUnavailableView(
                     "Tap to Generate",
                     systemImage: "doc.text",
-                    description: Text("Press the button above to fill the prototype PDF with mock data and preview the result.")
+                    description: Text("Press *Generate Next* to fill the template PDF with mock data and preview the result.")
                 )
             }
         }
