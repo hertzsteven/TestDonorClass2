@@ -34,7 +34,7 @@ enum ReceiptMockData {
                 May your kindness return to you many times over.
                 """,
             donorName: "Mr. and Mrs. David Cohen",
-            donorAddressBlock: "78 Ocean Parkway, Apt 4B\nBrooklyn, NY 11218",
+            donorAddressBlock: "78 Ocean Parkway, Apt/Ste 4B, c/o Building Manager\nBrooklyn, NY 11218",
             receiptNumber: "Receipt #: A2 19014",
             receiptDate: "April 22, 2026",
             donationAmount: "Donation: $108.00"

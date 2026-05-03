@@ -1,50 +1,43 @@
 import Foundation
 import PDFKit
 
-/// Loads the bundled receipt template PDF and stamps a set of values
+/// Loads the active receipt template PDF and stamps a set of values
 /// into its named AcroForm fields, returning the filled PDF as `Data`.
 ///
-/// This service has a single responsibility: PDF form-fill. It does not
-/// print, does not present UI, and does not know where the values came
-/// from. That separation makes it easy to mock in tests and reuse later
-/// when we replace the bundled prototype with a user-imported template.
+/// This service has a single responsibility: PDF form-fill. It does
+/// not print, does not present UI, and does not know where the values
+/// came from. It also doesn't know whether the template is the bundled
+/// fallback or a per-org imported one — the `ReceiptTemplateResolver`
+/// answers that question.
 struct ReceiptPDFRenderer {
     enum RenderError: Error, LocalizedError {
-        case templateNotFound(name: String)
-        case templateUnreadable(name: String)
+        case templateUnreadable(URL)
         case serializationFailed
 
         var errorDescription: String? {
             switch self {
-            case .templateNotFound(let name):
-                return "PDF template '\(name).pdf' was not found in the app bundle. Make sure the file is added to the target."
-            case .templateUnreadable(let name):
-                return "PDF template '\(name).pdf' could not be opened by PDFKit."
+            case .templateUnreadable(let url):
+                return "PDF template '\(url.lastPathComponent)' could not be opened by PDFKit."
             case .serializationFailed:
                 return "PDFKit failed to serialize the filled PDF back to data."
             }
         }
     }
 
-    let templateResourceName: String
-    let bundle: Bundle
+    let resolver: ReceiptTemplateResolver
 
-    init(templateResourceName: String = "Chaye_Olam_Receipt",
-         bundle: Bundle = .main) {
-        self.templateResourceName = templateResourceName
-        self.bundle = bundle
+    init(resolver: ReceiptTemplateResolver = DefaultReceiptTemplateResolver()) {
+        self.resolver = resolver
     }
 
     /// Returns a freshly filled copy of the template PDF as `Data`.
-    /// Each call produces an independent `Data` blob — the bundled
+    /// Each call produces an independent `Data` blob — the source
     /// template on disk is never modified.
     func render(values: ReceiptFieldValues) throws -> Data {
-        guard let url = bundle.url(forResource: templateResourceName, withExtension: "pdf") else {
-            throw RenderError.templateNotFound(name: templateResourceName)
-        }
+        let url = resolver.templateURL()
 
         guard let document = PDFDocument(url: url) else {
-            throw RenderError.templateUnreadable(name: templateResourceName)
+            throw RenderError.templateUnreadable(url)
         }
 
         for pageIndex in 0..<document.pageCount {

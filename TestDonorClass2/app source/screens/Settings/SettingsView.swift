@@ -92,7 +92,13 @@ struct SettingsView: View {
                     }
                     .foregroundColor(.orange)
                 }
-                
+
+                Section("Receipt Template") {
+                    NavigationLink(destination: ReceiptTemplateView()) {
+                        Label("Receipt PDF Template", systemImage: "doc.text.fill")
+                    }
+                }
+
                 Section("About") {
                     HStack {
                         Text("Version")
