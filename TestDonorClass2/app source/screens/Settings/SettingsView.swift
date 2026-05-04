@@ -20,6 +20,8 @@ struct SettingsView: View {
     @State private var receiptPreviewErrorMessage = ""
     @State private var letterGreetingDraft: String
     @State private var letterBodyDraft: String
+    @State private var showTestPrintAlert = false
+    @State private var testPrintAlertMessage = ""
 
     @AppStorage("maxReceiptsPerPrint") private var maxReceiptsPerPrint: Int = 10
 
@@ -220,6 +222,11 @@ struct SettingsView: View {
             } message: {
                 Text(receiptPreviewErrorMessage)
             }
+            .alert("Test Print", isPresented: $showTestPrintAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(testPrintAlertMessage)
+            }
             .onAppear {
                 receiptOutputModeSelection = organizationManager.receiptOutputMode
                 letterGreetingDraft = organizationManager.receiptLetterGreeting
@@ -287,8 +294,12 @@ struct SettingsView: View {
         let printingService = ReceiptPrintingService()
 
         printingService.printReceipt(for: testDonation, mode: receiptOutputModeSelection) { success in
-            // Test print doesn't need alert in Settings - just prints
-            print("Test receipt print \(success ? "succeeded" : "failed or cancelled")")
+            Task { @MainActor in
+                testPrintAlertMessage = success
+                    ? "Test receipt sent to printer."
+                    : "Test print cancelled."
+                showTestPrintAlert = true
+            }
         }
     }
 }

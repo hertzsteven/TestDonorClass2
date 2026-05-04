@@ -3,9 +3,8 @@ import Foundation
 /// Builds [`ReceiptFieldValues`](ReceiptFieldValues) for template-based receipt modes.
 ///
 /// Letter copy is held as **templates** containing simple `{placeholder}`
-/// markers that are substituted at print time. The defaults below match the
-/// first sample in [`ReceiptMockData`](ReceiptMockData) and can later be
-/// overridden by per-organization Settings without changing call sites.
+/// markers that are substituted at print time. Default greeting and body
+/// ship with the app; both can be overridden per organization in Settings.
 /// Supported placeholders: `{donorName}`, `{amount}`, `{date}`.
 enum ReceiptFieldValuesBuilder {
 

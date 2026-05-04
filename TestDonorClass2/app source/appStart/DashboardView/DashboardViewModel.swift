@@ -65,15 +65,8 @@ class DashboardViewModel {
                      image: Image(systemName: "calendar.badge.clock")) // Changed from "gift"
         ]
 
-        // Proof of Concept section — temporary, removed when feature is integrated.
-        let proofOfConceptCategories: [Category] = [
-            Category(name: "Receipt PoC",
-                     color: .pink,
-                     image: Image(systemName: "ladybug.fill"))
-        ]
-        
         // Combine all categories in order
-        self.categories = donorCategories + managementCategories + reportCategories + proofOfConceptCategories
+        self.categories = donorCategories + managementCategories + reportCategories
         
         // Define sections based on the combined array
         self.sections = [
@@ -91,11 +84,6 @@ class DashboardViewModel {
                 title: "Reports & Analytics",  
                 startIndex: donorCategories.count + managementCategories.count,
                 count: reportCategories.count
-            ),
-            DashboardSection(
-                title: "Proof of Concept",
-                startIndex: donorCategories.count + managementCategories.count + reportCategories.count,
-                count: proofOfConceptCategories.count
             )
         ]
     }

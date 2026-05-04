@@ -21,6 +21,7 @@ struct ReceiptManagementView: View {
     @State private var bulkUpdateThreshold: String = "100"
     @State private var showingBulkUpdateAlert = false
     @State private var bulkUpdateCount = 0
+    @State private var pendingPrintAlertMessage: String?
     
     // Computed property for effective max receipts (override or Settings value)
     private var effectiveMaxReceipts: Int {
@@ -331,30 +332,43 @@ struct ReceiptManagementView: View {
                 Text("No donations found matching the criteria.")
             }
         }
-        .sheet(isPresented: $showingPrintingSheet) {
+        .sheet(
+            isPresented: $showingPrintingSheet,
+            onDismiss: {
+                // Present the alert AFTER the sheet has fully dismissed,
+                // otherwise SwiftUI swallows it (the sheet-dismiss + alert-present
+                // happening in the same update cycle is a known issue).
+                if let message = pendingPrintAlertMessage {
+                    alertMessage = message
+                    showingAlert = true
+                    pendingPrintAlertMessage = nil
+                }
+            }
+        ) {
             PrintReceiptSheetView(
                 receipts: getReceiptsToPrint(),
-                onCompletion: { success, total, failed in
+                onCompletion: { success, _, failed, cancelled in
                     // Clear selections after printing
                     selectedReceipts.removeAll()
-                    
-                    showingAlert = true
-                    if failed == 0 {
+
+                    if cancelled {
+                        pendingPrintAlertMessage = "Print cancelled. No receipts were marked as printed."
+                    } else if failed == 0 {
                         if viewModel.selectedReceipt == nil && selectedReceipts.isEmpty && totalReceiptsForPrint > effectiveMaxReceipts {
                             let remaining = totalReceiptsForPrint - effectiveMaxReceipts
-                            alertMessage = "Successfully printed \(success) receipt(s). \(remaining) more receipt(s) remaining."
+                            pendingPrintAlertMessage = "Successfully printed \(success) receipt(s). \(remaining) more receipt(s) remaining."
                         } else {
-                            alertMessage = "Successfully printed \(success) receipt(s)"
+                            pendingPrintAlertMessage = "Successfully printed \(success) receipt(s)"
                         }
                     } else {
                         if viewModel.selectedReceipt == nil && selectedReceipts.isEmpty && totalReceiptsForPrint > effectiveMaxReceipts {
                             let remaining = totalReceiptsForPrint - effectiveMaxReceipts
-                            alertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s). \(remaining) more receipt(s) remaining."
+                            pendingPrintAlertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s). \(remaining) more receipt(s) remaining."
                         } else {
-                            alertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s)."
+                            pendingPrintAlertMessage = "Printed \(success) receipt(s). Failed to print \(failed) receipt(s)."
                         }
                     }
-                    
+
                     Task {
                         await viewModel.refreshReceipts()
                         await viewModel.loadAllStatusCounts()
@@ -906,8 +920,8 @@ class TaskCompletionSource<T> {
 
 struct PrintReceiptSheetView: View {
     let receipts: [ReceiptItem]
-    let onCompletion: (Int, Int, Int) -> Void
-    
+    let onCompletion: (Int, Int, Int, Bool) -> Void
+
     @Environment(\.dismiss) private var dismiss
     @State private var isPrinting = false
     @State private var statusMessage = ""
@@ -916,7 +930,7 @@ struct PrintReceiptSheetView: View {
     private let donationRepository: DonationRepository
     private let printingService = ReceiptPrintingService()
     
-    init(receipts: [ReceiptItem], onCompletion: @escaping (Int, Int, Int) -> Void) {
+    init(receipts: [ReceiptItem], onCompletion: @escaping (Int, Int, Int, Bool) -> Void) {
         self.receipts = receipts
         self.onCompletion = onCompletion
         self.donationRepository = try! DonationRepository()
@@ -1082,7 +1096,7 @@ struct PrintReceiptSheetView: View {
         await MainActor.run {
             isPrinting = false
             dismiss()
-            onCompletion(receipts.count, receipts.count, 0)
+            onCompletion(receipts.count, receipts.count, 0, false)
         }
     }
     
@@ -1095,7 +1109,7 @@ struct PrintReceiptSheetView: View {
         await MainActor.run {
             isPrinting = false
             dismiss()
-            onCompletion(0, receipts.count, 0)
+            onCompletion(0, receipts.count, 0, true)
         }
     }
     
@@ -1108,7 +1122,7 @@ struct PrintReceiptSheetView: View {
         await MainActor.run {
             isPrinting = false
             dismiss()
-            onCompletion(0, receipts.count, receipts.count)
+            onCompletion(0, receipts.count, receipts.count, false)
         }
     }
 }
