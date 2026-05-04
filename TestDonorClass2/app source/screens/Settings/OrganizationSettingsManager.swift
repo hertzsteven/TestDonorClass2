@@ -63,4 +63,57 @@ class OrganizationSettingsManager {
         let defaultProvider = DefaultOrganizationProvider()
         self.organizationInfo = defaultProvider.organizationInfo
     }
+
+    // MARK: - Receipt output mode (per organization)
+
+    private static let receiptOutputModeKey = "receiptOutputMode"
+    private static let receiptLetterGreetingKey = "receiptLetterGreeting"
+    private static let receiptLetterBodyKey = "receiptLetterBody"
+
+    /// How receipts are rendered for printing. Defaults to the legacy drawn path.
+    var receiptOutputMode: ReceiptOutputMode {
+        get {
+            let raw = userDefaults.string(forKey: prefixedKey(Self.receiptOutputModeKey))
+            return ReceiptOutputMode(rawValue: raw ?? "") ?? .drawnProgrammatic
+        }
+        set {
+            userDefaults.set(newValue.rawValue, forKey: prefixedKey(Self.receiptOutputModeKey))
+        }
+    }
+
+    /// Greeting line template for template-based receipts. Falls back to the
+    /// builder default when unset/empty.
+    var receiptLetterGreeting: String {
+        get {
+            let stored = userDefaults.string(forKey: prefixedKey(Self.receiptLetterGreetingKey))
+            return (stored?.isEmpty == false) ? stored! : ReceiptFieldValuesBuilder.defaultGreetingTemplate
+        }
+        set {
+            userDefaults.set(newValue, forKey: prefixedKey(Self.receiptLetterGreetingKey))
+        }
+    }
+
+    /// Multi-paragraph body template for template-based receipts. Falls back to
+    /// the builder default when unset/empty.
+    var receiptLetterBody: String {
+        get {
+            let stored = userDefaults.string(forKey: prefixedKey(Self.receiptLetterBodyKey))
+            return (stored?.isEmpty == false) ? stored! : ReceiptFieldValuesBuilder.defaultBodyTemplate
+        }
+        set {
+            userDefaults.set(newValue, forKey: prefixedKey(Self.receiptLetterBodyKey))
+        }
+    }
+
+    /// Combined templates passed to the printing pipeline.
+    var receiptLetterTemplates: ReceiptLetterTemplates {
+        ReceiptLetterTemplates(greeting: receiptLetterGreeting, body: receiptLetterBody)
+    }
+
+    /// Removes overrides so defaults are used again.
+    func resetReceiptLetterToDefault() {
+        userDefaults.removeObject(forKey: prefixedKey(Self.receiptLetterGreetingKey))
+        userDefaults.removeObject(forKey: prefixedKey(Self.receiptLetterBodyKey))
+    }
 }
+

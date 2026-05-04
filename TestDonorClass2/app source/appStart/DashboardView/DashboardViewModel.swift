@@ -64,7 +64,7 @@ class DashboardViewModel {
                     color: .orange,
                      image: Image(systemName: "calendar.badge.clock")) // Changed from "gift"
         ]
-        
+
         // Combine all categories in order
         self.categories = donorCategories + managementCategories + reportCategories
         
