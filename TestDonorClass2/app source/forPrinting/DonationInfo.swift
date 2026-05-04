@@ -13,6 +13,7 @@
 //
 
 import Foundation
+import PDFKit
 import UIKit
 
 /// A simple model to hold donation details.
@@ -62,6 +63,10 @@ struct DonationInfo {
         
         return addressLines.joined(separator: "\n")
     }
+}
+
+private enum ReceiptPrintingPDFError: Error {
+    case pdfGenerationFailed
 }
 
 final class ReceiptPrintingService {
@@ -175,23 +180,47 @@ final class ReceiptPrintingService {
     }
     
     private let organizationProvider: OrganizationProvider
+    private let letterTemplatesProvider: () -> ReceiptLetterTemplates
     // Add static reference to maintain print controller across instances
     private static var activePrintController: UIPrintInteractionController?
 
     /// Dependency injection of the organization provider.
-    init(organizationProvider: OrganizationProvider = DefaultOrganizationProvider()) {
+    init(
+        organizationProvider: OrganizationProvider = DefaultOrganizationProvider(),
+        letterTemplatesProvider: @escaping () -> ReceiptLetterTemplates = { OrganizationSettingsManager().receiptLetterTemplates }
+    ) {
         self.organizationProvider = organizationProvider
+        self.letterTemplatesProvider = letterTemplatesProvider
+    }
+
+    /// Builds PDF bytes for preview or sharing without opening the print dialog.
+    func pdfData(for donation: DonationInfo, mode: ReceiptOutputMode) throws -> Data {
+        switch mode {
+        case .drawnProgrammatic:
+            guard let url = createReceiptPDF(for: donation) else {
+                throw ReceiptPrintingPDFError.pdfGenerationFailed
+            }
+            defer { try? FileManager.default.removeItem(at: url) }
+            return try Data(contentsOf: url)
+        case .templateFormFilled, .preprintedVariableOnly:
+            let url = try createReceiptPDFURL(for: donation, mode: mode)
+            defer { try? FileManager.default.removeItem(at: url) }
+            return try Data(contentsOf: url)
+        }
     }
 
     /// Public method to print a receipt based on the donation information.
-    func printReceipt(for donation: DonationInfo, completion: @escaping (Bool) -> Void) {
+    func printReceipt(for donation: DonationInfo, mode: ReceiptOutputMode = .drawnProgrammatic, completion: @escaping (Bool) -> Void) {
         print("Starting to print receipt in ReceiptPrintingService for \(donation.donorName)")
-        guard let pdfURL = createReceiptPDF(for: donation) else {
-            print("Error: Failed to generate receipt PDF.")
+        let pdfURL: URL
+        do {
+            pdfURL = try createReceiptPDFURL(for: donation, mode: mode)
+        } catch {
+            print("Error: Failed to generate receipt PDF: \(error)")
             completion(false)
             return
         }
-        
+
         DispatchQueue.main.async {
             // Store in static property to ensure it stays alive across the app
             ReceiptPrintingService.activePrintController = UIPrintInteractionController.shared
@@ -219,7 +248,7 @@ final class ReceiptPrintingService {
     
     /// Public method to print multiple receipts as a single multi-page PDF.
     /// Each receipt will be on its own page.
-    func printReceipts(for donations: [DonationInfo], completion: @escaping (Bool) -> Void) {
+    func printReceipts(for donations: [DonationInfo], mode: ReceiptOutputMode = .drawnProgrammatic, completion: @escaping (Bool) -> Void) {
         print("Starting to print \(donations.count) receipts in ReceiptPrintingService")
         
         guard !donations.isEmpty else {
@@ -227,13 +256,16 @@ final class ReceiptPrintingService {
             completion(false)
             return
         }
-        
-        guard let pdfURL = createMultiReceiptPDF(for: donations) else {
-            print("Error: Failed to generate multi-receipt PDF.")
+
+        let pdfURL: URL
+        do {
+            pdfURL = try createMultiReceiptPDF(for: donations, mode: mode)
+        } catch {
+            print("Error: Failed to generate multi-receipt PDF: \(error)")
             completion(false)
             return
         }
-        
+
         DispatchQueue.main.async {
             // Store in static property to ensure it stays alive across the app
             ReceiptPrintingService.activePrintController = UIPrintInteractionController.shared
@@ -258,9 +290,66 @@ final class ReceiptPrintingService {
             }
         }
     }
-    
-    /// Creates a single PDF with multiple pages, one for each donation.
-    private func createMultiReceiptPDF(for donations: [DonationInfo]) -> URL? {
+
+    private static func writeTemporaryPDF(_ data: Data) throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("receipt-\(UUID().uuidString).pdf")
+        try data.write(to: url)
+        return url
+    }
+
+    private func createReceiptPDFURL(for donation: DonationInfo, mode: ReceiptOutputMode) throws -> URL {
+        switch mode {
+        case .drawnProgrammatic:
+            guard let url = createReceiptPDF(for: donation) else {
+                throw ReceiptPrintingPDFError.pdfGenerationFailed
+            }
+            return url
+        case .templateFormFilled:
+            let values = ReceiptFieldValuesBuilder.fieldValues(
+                donation: donation,
+                organization: organizationProvider.organizationInfo,
+                letterTemplates: letterTemplatesProvider()
+            )
+            let data = try ReceiptPDFRenderer().render(values: values)
+            return try Self.writeTemporaryPDF(data)
+        case .preprintedVariableOnly:
+            let values = ReceiptFieldValuesBuilder.fieldValues(
+                donation: donation,
+                organization: organizationProvider.organizationInfo,
+                letterTemplates: letterTemplatesProvider()
+            )
+            let data = try PreprintedVariablePDFGenerator().generatePdfData(values: values)
+            return try Self.writeTemporaryPDF(data)
+        }
+    }
+
+    private func createMultiReceiptPDF(for donations: [DonationInfo], mode: ReceiptOutputMode) throws -> URL {
+        switch mode {
+        case .drawnProgrammatic:
+            guard let url = createMultiReceiptDrawnPDF(for: donations) else {
+                throw ReceiptPrintingPDFError.pdfGenerationFailed
+            }
+            return url
+        case .templateFormFilled, .preprintedVariableOnly:
+            var documents: [PDFDocument] = []
+            for donation in donations {
+                let url = try createReceiptPDFURL(for: donation, mode: mode)
+                defer { try? FileManager.default.removeItem(at: url) }
+                if let doc = PDFDocument(url: url) {
+                    documents.append(doc)
+                }
+            }
+            guard let merged = ReceiptPDFMerger.merge(documents: documents),
+                  let data = merged.dataRepresentation() else {
+                throw ReceiptPrintingPDFError.pdfGenerationFailed
+            }
+            return try Self.writeTemporaryPDF(data)
+        }
+    }
+
+    /// Creates a single PDF with multiple pages, one for each donation (legacy drawn layout).
+    private func createMultiReceiptDrawnPDF(for donations: [DonationInfo]) -> URL? {
         let pageSize = CGSize(width: 612, height: 792) // 8.5" x 11"
         let pdfFilePath = FileManager.default.temporaryDirectory.appendingPathComponent("receipts_batch.pdf")
         

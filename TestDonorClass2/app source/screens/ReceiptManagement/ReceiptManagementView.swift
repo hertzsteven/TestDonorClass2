@@ -68,8 +68,9 @@ struct ReceiptManagementView: View {
     private func printTestReceipt() {
         let testDonation = createTestDonationInfo()
         let printingService = ReceiptPrintingService()
-        
-        printingService.printReceipt(for: testDonation) { success in
+        let mode = OrganizationSettingsManager().receiptOutputMode
+
+        printingService.printReceipt(for: testDonation, mode: mode) { success in
             DispatchQueue.main.async {
                 if success {
                     alertMessage = "Test receipt printed successfully"
@@ -648,40 +649,48 @@ class ReceiptManagementViewModel: ObservableObject {
             
             var donorName = "Anonymous"
             var donorTitle: String? = nil
-            if let donorId = donation.donorId, !donation.isAnonymous {
-                if let donor = try? await donationRepository.getDonorForDonation(donorId: donorId) {
-                    donorName = "\(donor.firstName ?? "") \(donor.lastName ?? "")"
-                    if donorName.trimmingCharacters(in: .whitespaces).isEmpty {
-                        donorName = donor.company ?? "Unknown"
-                    }
-                    donorTitle = donor.salutation
+            var donorAddress: String?
+            var donorCity: String?
+            var donorState: String?
+            var donorZip: String?
+            if let donorId = donation.donorId, !donation.isAnonymous,
+               let donor = try? await donationRepository.getDonorForDonation(donorId: donorId) {
+                donorName = "\(donor.firstName ?? "") \(donor.lastName ?? "")"
+                if donorName.trimmingCharacters(in: .whitespaces).isEmpty {
+                    donorName = donor.company ?? "Unknown"
                 }
+                donorTitle = donor.salutation
+                donorAddress = DonorAddressFormatter.formatStreetLine(
+                    address: donor.address,
+                    suite: donor.suite,
+                    additionalLine: donor.addl_line
+                )
+                donorCity = donor.city
+                donorState = donor.state
+                donorZip = donor.zip
             }
-            
-            // Format date for display
+
             let dateFormatter = DateFormatter()
             dateFormatter.dateStyle = .medium
             let dateString = dateFormatter.string(from: donation.donationDate)
-            
-            // Create donation info using the proper format
+
             let donationInfo = DonationInfo(
                 donorName: donorName,
                 donorTitle: donorTitle,
                 donationAmount: donation.amount,
                 date: dateString,
-                donorAddress: nil,
-                donorCity: nil,
-                donorState: nil,
-                donorZip: nil,
-                receiptNumber: nil
+                donorAddress: donorAddress,
+                donorCity: donorCity,
+                donorState: donorState,
+                donorZip: donorZip,
+                receiptNumber: donation.receiptNumber
             )
-            
-            // Create receipt printing service
+
             let printingService = ReceiptPrintingService()
-            
-            // Print the receipt on the main thread since it involves UI
+            let outputMode = OrganizationSettingsManager().receiptOutputMode
+
             await MainActor.run {
-                printingService.printReceipt(for: donationInfo) { success in
+                printingService.printReceipt(for: donationInfo, mode: outputMode) { success in
                     // This completion handler will run after printing completes or is cancelled
                     Task {
                         if success {
@@ -825,9 +834,10 @@ class ReceiptService {
         let taskCompletionSource = TaskCompletionSource<Void>()
         
         // Print the receipt on the main thread
+        let outputMode = OrganizationSettingsManager().receiptOutputMode
         await MainActor.run {
             let printingService = ReceiptPrintingService()
-            printingService.printReceipt(for: donationInfo) { success in
+            printingService.printReceipt(for: donationInfo, mode: outputMode) { success in
                 // Update status after printing is complete
                 Task {
                     if success {
@@ -1000,8 +1010,9 @@ struct PrintReceiptSheetView: View {
             }
             
             // Print all receipts at once
+            let outputMode = OrganizationSettingsManager().receiptOutputMode
             await MainActor.run {
-                printingService.printReceipts(for: donationInfos) { success in
+                printingService.printReceipts(for: donationInfos, mode: outputMode) { success in
                     Task {
                         if success {
                             await handleBatchSuccess()

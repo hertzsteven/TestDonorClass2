@@ -13,12 +13,22 @@ struct SettingsView: View {
     @State private var tempSettings: TempOrgSettings
     @State private var showingSaveAlert = false
     @State private var hasUnsavedChanges = false
-    
+    @State private var receiptOutputModeSelection: ReceiptOutputMode
+    @State private var showReceiptPreviewSheet = false
+    @State private var receiptPreviewData: Data?
+    @State private var showReceiptPreviewError = false
+    @State private var receiptPreviewErrorMessage = ""
+    @State private var letterGreetingDraft: String
+    @State private var letterBodyDraft: String
+
     @AppStorage("maxReceiptsPerPrint") private var maxReceiptsPerPrint: Int = 10
-    
+
     init(organizationManager: OrganizationSettingsManager) {
         self.organizationManager = organizationManager
         _tempSettings = State(initialValue: TempOrgSettings(from: organizationManager.organizationInfo))
+        _receiptOutputModeSelection = State(initialValue: organizationManager.receiptOutputMode)
+        _letterGreetingDraft = State(initialValue: organizationManager.receiptLetterGreeting)
+        _letterBodyDraft = State(initialValue: organizationManager.receiptLetterBody)
     }
     
     var body: some View {
@@ -69,19 +79,32 @@ struct SettingsView: View {
                 }
                 
                 Section("Receipt Printing") {
+                    Picker("Receipt output", selection: $receiptOutputModeSelection) {
+                        ForEach(ReceiptOutputMode.allCases) { mode in
+                            Text(mode.pickerTitle).tag(mode)
+                        }
+                    }
+                    .onChange(of: receiptOutputModeSelection) { _, newValue in
+                        organizationManager.receiptOutputMode = newValue
+                    }
+
                     HStack {
                         Text("Max receipts per print:")
                             .font(.subheadline)
                         Spacer()
                         Text("\(maxReceiptsPerPrint)")
                             .font(.subheadline)
-                            .fontWeight(.medium)
+                            .bold()
                             .frame(minWidth: 30)
                         Stepper("", value: $maxReceiptsPerPrint, in: 1...100)
                             .labelsHidden()
                             .fixedSize()
                     }
-                    
+
+                    Button("Preview test receipt PDF", systemImage: "doc.richtext") {
+                        generateReceiptPreview()
+                    }
+
                     Button(action: {
                         printTestReceipt()
                     }) {
@@ -90,7 +113,41 @@ struct SettingsView: View {
                             Spacer()
                         }
                     }
-                    .foregroundColor(.orange)
+                    .foregroundStyle(.orange)
+                }
+
+                Section {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Greeting")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        TextEditor(text: $letterGreetingDraft)
+                            .frame(minHeight: 44)
+                            .onChange(of: letterGreetingDraft) { _, newValue in
+                                organizationManager.receiptLetterGreeting = newValue
+                            }
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Body")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        TextEditor(text: $letterBodyDraft)
+                            .frame(minHeight: 160)
+                            .onChange(of: letterBodyDraft) { _, newValue in
+                                organizationManager.receiptLetterBody = newValue
+                            }
+                    }
+
+                    Button("Reset to default", systemImage: "arrow.uturn.backward") {
+                        organizationManager.resetReceiptLetterToDefault()
+                        letterGreetingDraft = organizationManager.receiptLetterGreeting
+                        letterBodyDraft = organizationManager.receiptLetterBody
+                    }
+                } header: {
+                    Text("Receipt Letter")
+                } footer: {
+                    Text("Used for Template and Pre-printed receipt modes. Placeholders: {donorName}, {amount}, {date}.")
                 }
 
                 Section("Receipt Template") {
@@ -138,6 +195,51 @@ struct SettingsView: View {
             } message: {
                 Text("You have unsaved changes. Are you sure you want to dismiss without saving?")
             }
+            .sheet(isPresented: $showReceiptPreviewSheet) {
+                NavigationStack {
+                    Group {
+                        if let data = receiptPreviewData {
+                            PDFKitView(data: data)
+                        } else {
+                            ContentUnavailableView("No PDF", systemImage: "doc")
+                        }
+                    }
+                    .navigationTitle("Receipt preview")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") {
+                                showReceiptPreviewSheet = false
+                            }
+                        }
+                    }
+                }
+            }
+            .alert("Preview failed", isPresented: $showReceiptPreviewError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(receiptPreviewErrorMessage)
+            }
+            .onAppear {
+                receiptOutputModeSelection = organizationManager.receiptOutputMode
+                letterGreetingDraft = organizationManager.receiptLetterGreeting
+                letterBodyDraft = organizationManager.receiptLetterBody
+            }
+        }
+    }
+
+    private func generateReceiptPreview() {
+        let donation = createTestDonationInfo()
+        do {
+            let data = try ReceiptPrintingService().pdfData(
+                for: donation,
+                mode: receiptOutputModeSelection
+            )
+            receiptPreviewData = data
+            showReceiptPreviewSheet = true
+        } catch {
+            receiptPreviewErrorMessage = error.localizedDescription
+            showReceiptPreviewError = true
         }
     }
     
@@ -183,8 +285,8 @@ struct SettingsView: View {
     private func printTestReceipt() {
         let testDonation = createTestDonationInfo()
         let printingService = ReceiptPrintingService()
-        
-        printingService.printReceipt(for: testDonation) { success in
+
+        printingService.printReceipt(for: testDonation, mode: receiptOutputModeSelection) { success in
             // Test print doesn't need alert in Settings - just prints
             print("Test receipt print \(success ? "succeeded" : "failed or cancelled")")
         }
