@@ -20,17 +20,23 @@ enum ReceiptFieldValuesBuilder {
         May you be blessed abundantly for your kindness and generosity.
         """
 
+    /// - Parameter printDate: The date the receipt is being produced. Used for
+    ///   the letter's `{date}` placeholder and the `letterDate` field. Defaults
+    ///   to `Date()` so production call sites get "today" automatically; tests
+    ///   inject a fixed value for deterministic output.
     static func fieldValues(
         donation: DonationInfo,
         organization: OrganizationInfo,
-        letterTemplates: ReceiptLetterTemplates = .default
+        letterTemplates: ReceiptLetterTemplates = .default,
+        printDate: Date = Date()
     ) -> ReceiptFieldValues {
         _ = organization
-        let placeholders = placeholderValues(for: donation)
+        let formattedPrintDate = formattedLetterDate(printDate)
+        let placeholders = placeholderValues(for: donation, printDate: formattedPrintDate)
         let greeting = letterTemplates.greeting.isEmpty ? defaultGreetingTemplate : letterTemplates.greeting
         let body = letterTemplates.body.isEmpty ? defaultBodyTemplate : letterTemplates.body
         return ReceiptFieldValues(
-            letterDate: donation.date,
+            letterDate: formattedPrintDate,
             letterGreeting: substitute(greeting, with: placeholders),
             letterBody: substitute(body, with: placeholders),
             donorName: donation.formattedDonorName,
@@ -51,17 +57,23 @@ enum ReceiptFieldValuesBuilder {
     }
 
     /// Values used for `{donorName}`, `{amount}`, `{date}` substitution.
-    /// Falls back to `Friend` when no usable donor name exists (anonymous gifts).
-    private static func placeholderValues(for donation: DonationInfo) -> [String: String] {
+    /// The `{donorName}` placeholder uses the donor's *titled* name (e.g.
+    /// "Mr. Steven Hertz") when a title is present, falling back to plain
+    /// name when not, and to `Friend` for anonymous gifts.
+    private static func placeholderValues(for donation: DonationInfo, printDate: String) -> [String: String] {
         let rawName = donation.donorName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let donorName = (rawName.isEmpty || rawName.localizedStandardContains("anonymous"))
-            ? "Friend"
-            : rawName
+        let isAnonymous = rawName.isEmpty || rawName.localizedStandardContains("anonymous")
+        let donorName = isAnonymous ? "Friend" : donation.formattedDonorName
         return [
             "donorName": donorName,
             "amount": donation.donationAmount.formatted(.currency(code: "USD")),
-            "date": donation.date,
+            "date": printDate,
         ]
+    }
+
+    /// Formats the print date for the letter (e.g. "May 26, 2026").
+    private static func formattedLetterDate(_ date: Date) -> String {
+        date.formatted(date: .abbreviated, time: .omitted)
     }
 
     private static func formattedReceiptNumber(_ receiptNumber: String?) -> String {
