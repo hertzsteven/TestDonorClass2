@@ -198,43 +198,43 @@ extension DonationRepository {
         }
     }
     
+    /// Updates a donation's receipt status. When transitioning to `.queued`
+    /// and the donation has no receipt number yet, a fresh number is assigned
+    /// in the **same write transaction** as the status update. Because GRDB
+    /// serializes writes, computing the next number and persisting it in one
+    /// transaction prevents two concurrent queues from reading the same
+    /// counter and producing duplicate receipt numbers.
     func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws {
-        if status == .queued {
-            // Check if receipt number already exists
-            let hasReceiptNumber = try await dbPool.read { db in
-                try String.fetchOne(db, sql: """
-                    SELECT receipt_number FROM donation 
-                    WHERE id = ? AND receipt_number IS NOT NULL AND receipt_number != ''
-                    """, arguments: [donationId]) != nil
-            }
-            
-            if !hasReceiptNumber {
-                let receiptNumber = try await generateReceiptNumber()
-                try await dbPool.write { db in
-                    try db.execute(sql: """
-                        UPDATE donation
-                        SET receipt_status = ?, receipt_number = ?
-                        WHERE id = ?
-                        """, arguments: [status.rawValue, receiptNumber, donationId])
-                }
-            } else {
-                // Just update status, keep existing receipt number
-                try await dbPool.write { db in
-                    try db.execute(sql: """
-                        UPDATE donation
-                        SET receipt_status = ?
-                        WHERE id = ?
-                        """, arguments: [status.rawValue, donationId])
-                }
-            }
-        } else {
-            try await dbPool.write { db in
+        try await dbPool.write { db in
+            guard status == .queued else {
                 try db.execute(sql: """
                     UPDATE donation
                     SET receipt_status = ?
                     WHERE id = ?
                     """, arguments: [status.rawValue, donationId])
+                return
             }
+
+            let existingNumber = try String.fetchOne(db, sql: """
+                SELECT receipt_number FROM donation
+                WHERE id = ? AND receipt_number IS NOT NULL AND receipt_number != ''
+                """, arguments: [donationId])
+
+            if existingNumber != nil {
+                try db.execute(sql: """
+                    UPDATE donation
+                    SET receipt_status = ?
+                    WHERE id = ?
+                    """, arguments: [status.rawValue, donationId])
+                return
+            }
+
+            let receiptNumber = try Self.computeNextReceiptNumber(db: db)
+            try db.execute(sql: """
+                UPDATE donation
+                SET receipt_status = ?, receipt_number = ?
+                WHERE id = ?
+                """, arguments: [status.rawValue, receiptNumber, donationId])
         }
     }
     
@@ -290,23 +290,41 @@ extension DonationRepository {
         }
     }
     
+    /// Read-only preview of the next receipt number that *would* be assigned
+    /// for the current year. Not used for actual assignment — assignment goes
+    /// through `updateReceiptStatus(_:status: .queued)`, which computes and
+    /// stores the number atomically inside one write transaction.
     func generateReceiptNumber() async throws -> String {
-        let year = Calendar.current.component(.year, from: Date())
-        let count = try await getReceiptCountForYear(year) + 1
-        return String(format: "R-%d-%06d", year, count)
-    }
-    
-    private func getReceiptCountForYear(_ year: Int) async throws -> Int {
         try await dbPool.read { db in
-            let startOfYear = Calendar.current.date(from: DateComponents(year: year, month: 1, day: 1))!
-            let startOfNextYear = Calendar.current.date(from: DateComponents(year: year + 1, month: 1, day: 1))!
-            
-            return try Donation
-                .filter(Donation.Columns.receiptStatus == ReceiptStatus.printed.rawValue &&
-                       Donation.Columns.donationDate >= startOfYear &&
-                       Donation.Columns.donationDate < startOfNextYear)
-                .fetchCount(db)
+            try Self.computeNextReceiptNumber(db: db)
         }
+    }
+
+    /// Computes the next receipt number for the current Gregorian year using
+    /// the supplied database handle. Must be invoked inside the same
+    /// transaction as the subsequent UPDATE so that the count and the write
+    /// are serialized as a single unit.
+    ///
+    /// Counts donations whose `receipt_number` has already been issued
+    /// (non-NULL, non-empty) — not just `.printed` ones — so that queued
+    /// receipts also reserve their slot in the sequence.
+    private static func computeNextReceiptNumber(db: Database) throws -> String {
+        let calendar = Calendar(identifier: .gregorian)
+        let year = calendar.component(.year, from: Date())
+        guard let startOfYear = calendar.date(from: DateComponents(year: year, month: 1, day: 1)),
+              let startOfNextYear = calendar.date(from: DateComponents(year: year + 1, month: 1, day: 1)) else {
+            throw DatabaseError.databaseSetupFailed("Could not compute year range for receipt numbering")
+        }
+
+        let issuedCount = try Int.fetchOne(db, sql: """
+            SELECT COUNT(*) FROM donation
+            WHERE receipt_number IS NOT NULL
+              AND receipt_number != ''
+              AND donation_date >= ?
+              AND donation_date <  ?
+            """, arguments: [startOfYear, startOfNextYear]) ?? 0
+
+        return String(format: "R-%d-%06d", year, issuedCount + 1)
     }
     
     /// Updates all donations with status .notRequested and amount >= minAmount to .requested

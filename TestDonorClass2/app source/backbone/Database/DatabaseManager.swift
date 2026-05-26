@@ -426,11 +426,58 @@ extension DatabaseManager {
                 }
             }
         }
+        // --- Migration 5: Enforce unique receipt_number ---
+        // Adds a partial UNIQUE index on donation.receipt_number so the
+        // database itself rejects duplicate receipt numbers. Before creating
+        // the index, any pre-existing duplicates are renamed by appending
+        // "-DUP-{id}" so the index can be created without losing rows.
+        migrator.registerMigration("v5_uniqueReceiptNumberIndex") { db in
+            print("Running migration: v5_uniqueReceiptNumberIndex")
+
+            // Step 1 — dedupe: keep the lowest-id row's number, rename later
+            // collisions. This is destructive in the sense that the renamed
+            // rows no longer hold their original number, but no rows are lost
+            // and the original number lives on the lowest-id record.
+            let duplicatesBefore = try Int.fetchOne(db, sql: """
+                SELECT COUNT(*) FROM donation
+                WHERE receipt_number IS NOT NULL
+                  AND receipt_number != ''
+                  AND id NOT IN (
+                      SELECT MIN(id) FROM donation
+                      WHERE receipt_number IS NOT NULL AND receipt_number != ''
+                      GROUP BY receipt_number
+                  )
+                """) ?? 0
+
+            try db.execute(sql: """
+                UPDATE donation
+                SET receipt_number = receipt_number || '-DUP-' || id
+                WHERE receipt_number IS NOT NULL
+                  AND receipt_number != ''
+                  AND id NOT IN (
+                      SELECT MIN(id) FROM donation
+                      WHERE receipt_number IS NOT NULL AND receipt_number != ''
+                      GROUP BY receipt_number
+                  )
+                """)
+            if duplicatesBefore > 0 {
+                print("v5_uniqueReceiptNumberIndex: renamed \(duplicatesBefore) duplicate receipt_number row(s)")
+            }
+
+            // Step 2 — create the partial unique index.
+            try db.execute(sql: """
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_donation_receipt_number_unique
+                ON donation(receipt_number)
+                WHERE receipt_number IS NOT NULL AND receipt_number != ''
+                """)
+            print("v5_uniqueReceiptNumberIndex: unique partial index created")
+        }
+
         // --- Future Migrations ---
         // If you need to add, say, an 'email_verified' column to donor later:
         /*
-        migrator.registerMigration("v5_addDonorEmailVerified") { db in
-            print("Running migration: v5_addDonorEmailVerified")
+        migrator.registerMigration("v6_addDonorEmailVerified") { db in
+            print("Running migration: v6_addDonorEmailVerified")
             try db.alter(table: "donor") { t in
                 t.add(column: "email_verified", .boolean).defaults(to: false)
             }
