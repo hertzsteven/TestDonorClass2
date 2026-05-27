@@ -81,6 +81,8 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
     var requestEmailReceipt: Bool
     var requestPrintedReceipt: Bool
     var receiptStatus: ReceiptStatus
+    var printBatchId: Int?
+    var printedAt: Date?
     var notes: String?
     var isAnonymous: Bool
     var donationDate: Date
@@ -103,6 +105,8 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
         static let requestEmailReceipt = Column("request_email_receipt")
         static let requestPrintedReceipt = Column("request_printed_receipt")
         static let receiptStatus = Column("receipt_status")
+        static let printBatchId = Column("print_batch_id")
+        static let printedAt = Column("printed_at")
         static let notes = Column("notes")
         static let isAnonymous = Column("is_anonymous")
         static let donationDate = Column("donation_date")
@@ -125,6 +129,8 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
         case requestEmailReceipt = "request_email_receipt"
         case requestPrintedReceipt = "request_printed_receipt"
         case receiptStatus = "receipt_status"
+        case printBatchId = "print_batch_id"
+        case printedAt = "printed_at"
         case notes
         case isAnonymous = "is_anonymous"
         case donationDate = "donation_date"
@@ -146,6 +152,9 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
          paymentProcessorInfo: String? = nil,
          requestEmailReceipt: Bool = false,
          requestPrintedReceipt: Bool = false,
+         receiptStatus: ReceiptStatus? = nil,
+         printBatchId: Int? = nil,
+         printedAt: Date? = nil,
          notes: String? = nil,
          isAnonymous: Bool = false,
          donationDate: Date = Date(),
@@ -164,7 +173,9 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
         self.paymentProcessorInfo = paymentProcessorInfo
         self.requestEmailReceipt = requestEmailReceipt
         self.requestPrintedReceipt = requestPrintedReceipt
-        self.receiptStatus = requestPrintedReceipt ? .requested : .notRequested
+        self.receiptStatus = receiptStatus ?? (requestPrintedReceipt ? .requested : .notRequested)
+        self.printBatchId = printBatchId
+        self.printedAt = printedAt
         self.notes = notes
         self.isAnonymous = isAnonymous
         self.donationDate = donationDate

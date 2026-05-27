@@ -10,6 +10,8 @@ import SwiftUI
 
 struct ReceiptListView: View {
     let receipts: [ReceiptItem]
+    let printedBatchGroups: [PrintBatchGroup]
+    let isGroupingByBatch: Bool
     let selectedReceipts: Set<UUID>
     let status: ReceiptStatus
 
@@ -17,38 +19,59 @@ struct ReceiptListView: View {
     let onPrintRow: (ReceiptItem) -> Void
     let onMarkPrinted: (ReceiptItem) -> Void
     let onMarkRequested: (ReceiptItem) -> Void
+    let onRevertBatch: (PrintBatchGroup) -> Void
 
     var body: some View {
         List {
-            Section(header: Text("Receipts")) {
-                ForEach(receipts) { receipt in
-                    ReceiptRowView(
-                        receipt: receipt,
-                        isSelected: selectedReceipts.contains(receipt.id),
-                        showCheckbox: status == .requested
-                    )
-                    .contentShape(.rect)
-                    .onTapGesture {
-                        guard status == .requested else { return }
-                        onToggleSelection(receipt)
+            if isGroupingByBatch {
+                ForEach(printedBatchGroups) { group in
+                    Section {
+                        ForEach(group.receipts) { receipt in
+                            receiptRow(receipt)
+                        }
+                    } header: {
+                        PrintedBatchSectionHeader(group: group) {
+                            onRevertBatch(group)
+                        }
                     }
-                    .swipeActions {
-                        if receipt.status == .requested || receipt.status == .failed {
-                            Button("Print") { onPrintRow(receipt) }
-                                .tint(.blue)
-                        }
-                        if receipt.status != .printed {
-                            Button("Mark Printed") { onMarkPrinted(receipt) }
-                                .tint(.green)
-                        }
-                        if receipt.status == .printed {
-                            Button("Mark Requested") { onMarkRequested(receipt) }
-                                .tint(.orange)
-                        }
+                }
+            } else {
+                Section(header: Text("Receipts")) {
+                    ForEach(receipts) { receipt in
+                        receiptRow(receipt, showBatchChip: status == .printed)
                     }
                 }
             }
         }
         .listStyle(.insetGrouped)
+    }
+
+    @ViewBuilder
+    private func receiptRow(_ receipt: ReceiptItem, showBatchChip: Bool = false) -> some View {
+        ReceiptRowView(
+            receipt: receipt,
+            isSelected: selectedReceipts.contains(receipt.id),
+            showCheckbox: status == .requested,
+            showBatchChip: showBatchChip
+        )
+        .contentShape(.rect)
+        .onTapGesture {
+            guard status == .requested else { return }
+            onToggleSelection(receipt)
+        }
+        .swipeActions {
+            if receipt.status == .requested || receipt.status == .failed {
+                Button("Print") { onPrintRow(receipt) }
+                    .tint(.blue)
+            }
+            if receipt.status != .printed {
+                Button("Mark Printed") { onMarkPrinted(receipt) }
+                    .tint(.green)
+            }
+            if receipt.status == .printed {
+                Button("Mark Requested") { onMarkRequested(receipt) }
+                    .tint(.orange)
+            }
+        }
     }
 }

@@ -11,17 +11,20 @@ import Foundation
 
 final class ReceiptService {
     private let donationRepository: DonationRepository
+    private let printBatchRepository: PrintBatchRepository
     private let printingService: ReceiptPrintingService
     private let settingsProvider: () -> ReceiptOutputMode
 
     init(
         donationRepository: DonationRepository,
+        printBatchRepository: PrintBatchRepository = PrintBatchRepository(),
         printingService: ReceiptPrintingService = ReceiptPrintingService(),
         settingsProvider: @escaping () -> ReceiptOutputMode = {
             OrganizationSettingsManager().receiptOutputMode
         }
     ) {
         self.donationRepository = donationRepository
+        self.printBatchRepository = printBatchRepository
         self.printingService = printingService
         self.settingsProvider = settingsProvider
     }
@@ -49,6 +52,10 @@ final class ReceiptService {
 
     func bulkPromoteToRequested(minAmount: Double) async throws -> Int {
         try await donationRepository.bulkUpdateToRequested(minAmount: minAmount)
+    }
+
+    func revertBatch(batchId: Int) async throws {
+        try await printBatchRepository.revertBatch(batchId: batchId)
     }
 
     // MARK: - Printing
@@ -82,8 +89,15 @@ final class ReceiptService {
         )
 
         if success {
-            for receipt in receipts {
-                try? await updateStatus(donationId: receipt.donationId, to: .printed)
+            do {
+                _ = try await printBatchRepository.createBatch(
+                    donationIds: receipts.map(\.donationId),
+                    label: nil
+                )
+            } catch {
+                for receipt in receipts {
+                    try? await updateStatus(donationId: receipt.donationId, to: .printed)
+                }
             }
             return (printed: receipts.count, cancelled: 0, failed: 0)
         } else {
@@ -123,13 +137,14 @@ final class ReceiptService {
             let campaignName = await campaignDisplayName(for: donation)
             items.append(
                 ReceiptItem(
-                    id: UUID(),
                     donationId: donation.id ?? 0,
                     donorName: donorName,
                     amount: donation.amount,
                     date: donation.donationDate,
                     campaignName: campaignName,
-                    status: donation.receiptStatus
+                    status: donation.receiptStatus,
+                    printBatchId: donation.printBatchId,
+                    printedAt: donation.printedAt
                 )
             )
         }

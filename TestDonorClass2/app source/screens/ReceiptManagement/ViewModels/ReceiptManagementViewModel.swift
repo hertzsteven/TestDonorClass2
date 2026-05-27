@@ -15,6 +15,7 @@ final class ReceiptManagementViewModel {
     private(set) var filteredReceipts: [ReceiptItem] = []
     private(set) var statusCounts: [ReceiptStatus: Int] = [:]
     private(set) var isLoading = false
+    private(set) var currentStatus: ReceiptStatus = .requested
 
     var selectedReceipt: ReceiptItem?
     private(set) var maxReceiptsPerPrint: Int = ReceiptManagementViewModel.readMaxFromSettings()
@@ -27,6 +28,19 @@ final class ReceiptManagementViewModel {
     private var currentMaxAmount: Double?
 
     private let service: ReceiptService
+
+    var isGroupingByBatch: Bool {
+        PrintBatchGroup.shouldGroup(
+            status: currentStatus,
+            searchText: currentSearchText,
+            minAmount: currentMinAmount,
+            maxAmount: currentMaxAmount
+        )
+    }
+
+    var printedBatchGroups: [PrintBatchGroup] {
+        PrintBatchGroup.buildGroups(from: filteredReceipts)
+    }
 
     init(service: ReceiptService) {
         self.service = service
@@ -45,6 +59,7 @@ final class ReceiptManagementViewModel {
         isLoading = true
         defer { isLoading = false }
 
+        currentStatus = status
         maxReceiptsPerPrint = Self.readMaxFromSettings()
 
         do {
@@ -103,11 +118,21 @@ final class ReceiptManagementViewModel {
     // MARK: - Status mutations (called from row swipe actions)
 
     func markAsPrinted(_ receipt: ReceiptItem) async {
-        await updateStatus(donationId: receipt.donationId, to: .printed)
+        await updateStatus(donationId: receipt.donationId, to: .printed, refreshStatus: .requested)
     }
 
     func markAsRequested(_ receipt: ReceiptItem) async {
-        await updateStatus(donationId: receipt.donationId, to: .requested)
+        await updateStatus(donationId: receipt.donationId, to: .requested, refreshStatus: currentStatus)
+    }
+
+    func revertBatch(_ group: PrintBatchGroup) async {
+        guard let batchId = group.batch?.id else { return }
+        do {
+            try await service.revertBatch(batchId: batchId)
+            await refresh(status: currentStatus)
+        } catch {
+            print("Error reverting print batch \(batchId): \(error)")
+        }
     }
 
     /// Marks every receipt in the supplied list as Printed without
@@ -142,10 +167,14 @@ final class ReceiptManagementViewModel {
 
     // MARK: - Private helpers
 
-    private func updateStatus(donationId: Int, to status: ReceiptStatus) async {
+    private func updateStatus(
+        donationId: Int,
+        to status: ReceiptStatus,
+        refreshStatus: ReceiptStatus = .requested
+    ) async {
         do {
             try await service.updateStatus(donationId: donationId, to: status)
-            await refresh(status: .requested)
+            await refresh(status: refreshStatus)
         } catch {
             print("Error updating receipt status to \(status): \(error)")
         }

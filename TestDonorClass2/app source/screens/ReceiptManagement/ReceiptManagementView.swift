@@ -32,6 +32,8 @@ struct ReceiptManagementView: View {
     @State private var bulkUpdateCount = 0
 
     @State private var showingMarkPrintedConfirm = false
+    @State private var batchPendingRevert: PrintBatchGroup?
+    @State private var showingRevertBatchConfirm = false
 
     init() {
         let service: ReceiptService
@@ -88,6 +90,8 @@ struct ReceiptManagementView: View {
             ReceiptContentView(
                 isLoading: viewModel.isLoading,
                 receipts: viewModel.filteredReceipts,
+                printedBatchGroups: viewModel.printedBatchGroups,
+                isGroupingByBatch: viewModel.isGroupingByBatch,
                 selectedReceipts: selectedReceipts,
                 status: selectedStatus,
                 hasActiveFilter: hasActiveFilter,
@@ -96,6 +100,7 @@ struct ReceiptManagementView: View {
                 onPrintRow: printSingleRow,
                 onMarkPrinted: markRowAsPrinted,
                 onMarkRequested: markRowAsRequested,
+                onRevertBatch: prepareRevertBatch,
                 onDeselectAll: { selectedReceipts.removeAll() },
                 onTestPrint: handleTestPrint,
                 onRefresh: { Task { await viewModel.refresh(status: selectedStatus) } },
@@ -128,6 +133,17 @@ struct ReceiptManagementView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("They will move to the Printed tab. The print dialog will not open.")
+        }
+        .alert(
+            "Revert \(batchPendingRevert?.receipts.count ?? 0) receipt(s)?",
+            isPresented: $showingRevertBatchConfirm
+        ) {
+            Button("Revert to Requested", role: .destructive, action: confirmRevertBatch)
+            Button("Cancel", role: .cancel) {
+                batchPendingRevert = nil
+            }
+        } message: {
+            Text("All receipts in this print batch will return to the Requested tab so you can reprint them.")
         }
         .sheet(isPresented: $showingPrintSheet, onDismiss: presentPendingAlertIfNeeded) {
             PrintReceiptSheetView(
@@ -192,6 +208,21 @@ struct ReceiptManagementView: View {
         Task {
             await viewModel.markAsRequested(receipt)
             selectedStatus = .requested
+        }
+    }
+
+    private func prepareRevertBatch(_ group: PrintBatchGroup) {
+        batchPendingRevert = group
+        showingRevertBatchConfirm = true
+    }
+
+    private func confirmRevertBatch() {
+        guard let group = batchPendingRevert else { return }
+        Task {
+            await viewModel.revertBatch(group)
+            batchPendingRevert = nil
+            alertMessage = "Reverted \(group.receipts.count) receipt(s) to Requested."
+            showingAlert = true
         }
     }
 

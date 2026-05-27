@@ -473,17 +473,42 @@ extension DatabaseManager {
             print("v5_uniqueReceiptNumberIndex: unique partial index created")
         }
 
-        // --- Future Migrations ---
-        // If you need to add, say, an 'email_verified' column to donor later:
-        /*
-        migrator.registerMigration("v6_addDonorEmailVerified") { db in
-            print("Running migration: v6_addDonorEmailVerified")
-            try db.alter(table: "donor") { t in
-                t.add(column: "email_verified", .boolean).defaults(to: false)
+        // --- Migration 7: Print batch tracking ---
+        migrator.registerMigration("v7_addPrintBatch") { db in
+            print("Running migration: v7_addPrintBatch")
+
+            if try !db.tableExists(PrintBatch.databaseTableName) {
+                try db.create(table: PrintBatch.databaseTableName) { t in
+                    t.autoIncrementedPrimaryKey(PrintBatch.Columns.id.name)
+                    t.column(PrintBatch.Columns.printedAt.name, .datetime).notNull()
+                    t.column(PrintBatch.Columns.receiptCount.name, .integer).notNull()
+                    t.column(PrintBatch.Columns.label.name, .text)
+                    t.column(PrintBatch.Columns.status.name, .text).notNull().defaults(to: PrintBatchStatus.printed.rawValue)
+                }
             }
+
+            let donationColumns = try db.columns(in: "donation")
+            if !donationColumns.contains(where: { $0.name == Donation.Columns.printBatchId.name }) {
+                try db.alter(table: "donation") { t in
+                    t.add(column: Donation.Columns.printBatchId.name, .integer)
+                        .references(PrintBatch.databaseTableName, onDelete: .setNull)
+                }
+            }
+            if !donationColumns.contains(where: { $0.name == Donation.Columns.printedAt.name }) {
+                try db.alter(table: "donation") { t in
+                    t.add(column: Donation.Columns.printedAt.name, .datetime)
+                }
+            }
+
+            try db.create(
+                index: "idx_donation_print_batch_id",
+                on: "donation",
+                columns: [Donation.Columns.printBatchId.name],
+                ifNotExists: true
+            )
+            print("v7_addPrintBatch: complete")
         }
-        */
-        
+
         return migrator
     }
 }

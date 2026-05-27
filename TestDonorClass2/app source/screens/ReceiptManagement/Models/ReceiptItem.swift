@@ -17,4 +17,28 @@ struct ReceiptItem: Identifiable, Hashable, Sendable {
     let date: Date
     let campaignName: String?
     let status: ReceiptStatus
+    let printBatchId: Int?
+    let printedAt: Date?
+
+    init(
+        id: UUID = UUID(),
+        donationId: Int,
+        donorName: String,
+        amount: Double,
+        date: Date,
+        campaignName: String?,
+        status: ReceiptStatus,
+        printBatchId: Int? = nil,
+        printedAt: Date? = nil
+    ) {
+        self.id = id
+        self.donationId = donationId
+        self.donorName = donorName
+        self.amount = amount
+        self.date = date
+        self.campaignName = campaignName
+        self.status = status
+        self.printBatchId = printBatchId
+        self.printedAt = printedAt
+    }
 }

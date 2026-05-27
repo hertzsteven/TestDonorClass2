@@ -207,11 +207,19 @@ extension DonationRepository {
     func updateReceiptStatus(donationId: Int, status: ReceiptStatus) async throws {
         try await dbPool.write { db in
             guard status == .queued else {
-                try db.execute(sql: """
-                    UPDATE donation
-                    SET receipt_status = ?
-                    WHERE id = ?
-                    """, arguments: [status.rawValue, donationId])
+                if status == .requested {
+                    try db.execute(sql: """
+                        UPDATE donation
+                        SET receipt_status = ?, print_batch_id = NULL, printed_at = NULL
+                        WHERE id = ?
+                        """, arguments: [status.rawValue, donationId])
+                } else {
+                    try db.execute(sql: """
+                        UPDATE donation
+                        SET receipt_status = ?
+                        WHERE id = ?
+                        """, arguments: [status.rawValue, donationId])
+                }
                 return
             }
 

@@ -11,6 +11,8 @@ import SwiftUI
 struct ReceiptContentView: View {
     let isLoading: Bool
     let receipts: [ReceiptItem]
+    let printedBatchGroups: [PrintBatchGroup]
+    let isGroupingByBatch: Bool
     let selectedReceipts: Set<UUID>
     let status: ReceiptStatus
     let hasActiveFilter: Bool
@@ -20,6 +22,7 @@ struct ReceiptContentView: View {
     let onPrintRow: (ReceiptItem) -> Void
     let onMarkPrinted: (ReceiptItem) -> Void
     let onMarkRequested: (ReceiptItem) -> Void
+    let onRevertBatch: (PrintBatchGroup) -> Void
 
     let onDeselectAll: () -> Void
     let onTestPrint: () -> Void
@@ -42,12 +45,15 @@ struct ReceiptContentView: View {
             } else {
                 ReceiptListView(
                     receipts: receipts,
+                    printedBatchGroups: printedBatchGroups,
+                    isGroupingByBatch: isGroupingByBatch,
                     selectedReceipts: selectedReceipts,
                     status: status,
                     onToggleSelection: onToggleSelection,
                     onPrintRow: onPrintRow,
                     onMarkPrinted: onMarkPrinted,
-                    onMarkRequested: onMarkRequested
+                    onMarkRequested: onMarkRequested,
+                    onRevertBatch: onRevertBatch
                 )
             }
 

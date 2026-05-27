@@ -11,6 +11,7 @@ struct ReceiptRowView: View {
     let receipt: ReceiptItem
     let isSelected: Bool
     let showCheckbox: Bool
+    var showBatchChip: Bool = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -42,6 +43,10 @@ struct ReceiptRowView: View {
                     Text("Campaign: \(campaign)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                if showBatchChip {
+                    PrintedBatchChipView(printedAt: receipt.printedAt)
                 }
 
                 Text("Donation ID: \(receipt.donationId)")
