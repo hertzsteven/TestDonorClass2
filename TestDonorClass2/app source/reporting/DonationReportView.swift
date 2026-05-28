@@ -78,7 +78,7 @@ struct DonationReportView: View {
 
                             // Custom Date Range
                             VStack(alignment: .leading, spacing: 8) {
-                                Toggle("Donation Date Range", isOn: $viewModel.useCustomDateRange)
+                                Toggle("Custom Date Donated Range", isOn: $viewModel.useCustomDateRange)
                                     .onChange(of: viewModel.useCustomDateRange) { isEnabled in
                                         if !isEnabled {
                                             // Clear custom dates when disabling
@@ -86,7 +86,11 @@ struct DonationReportView: View {
                                             viewModel.toDate = nil
                                         }
                                     }
-                                
+
+                                Text("Filters by the date the donor actually gave.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
                                 if viewModel.useCustomDateRange {
                                     HStack {
                                         VStack(alignment: .leading) {
@@ -135,7 +139,11 @@ struct DonationReportView: View {
 
                             // Updated Date Range
                             VStack(alignment: .leading, spacing: 8) {
-                                Toggle("Updated Date Range", isOn: $viewModel.useCustomUpdatedDateRange)
+                                Toggle("Custom Date Entered/Edited Range", isOn: $viewModel.useCustomUpdatedDateRange)
+
+                                Text("Filters by when the donation record was entered or last edited in the app.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
 
                                 if viewModel.useCustomUpdatedDateRange {
                                     HStack {
@@ -194,23 +202,36 @@ struct DonationReportView: View {
 
                             // Donor
                             HStack {
-                                Text("Donor:")
-                                Spacer()
-                                Button {
-                                    showingDonorSearchView = true
-                                } label: {
-                                    HStack {
-                                        Text(viewModel.selectedDonorName)
-                                            .foregroundColor(viewModel.selectedDonorId == nil ? .gray : .accentColor)
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundColor(.gray)
+                                HStack {
+                                    Text("Donor:")
+                                    Spacer()
+                                    Button {
+                                        showingDonorSearchView = true
+                                    } label: {
+                                        HStack {
+                                            Text(viewModel.selectedDonorName)
+                                                .foregroundColor(viewModel.selectedDonorId == nil ? .gray : .accentColor)
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundColor(.gray)
+                                        }
                                     }
                                 }
-                            }
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                showingDonorSearchView = true
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    showingDonorSearchView = true
+                                }
+
+                                if viewModel.selectedDonorId != nil {
+                                    Button {
+                                        viewModel.donorSelected(nil)
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.gray)
+                                    }
+                                    .buttonStyle(.borderless)
+                                    .accessibilityLabel("Clear donor filter — show all donors")
+                                }
                             }
 
                             // Prayer Notes Filter

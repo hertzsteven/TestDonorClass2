@@ -8,18 +8,36 @@
 
 import SwiftUI
 
+/// Identifies each focusable field in the filters card. Lifting focus
+/// here (instead of letting SwiftUI infer it from view identity)
+/// prevents the system from spontaneously re-granting focus to Min or
+/// Max when the chip button appears/disappears or when the filter
+/// inputs are cleared from outside.
+enum ReceiptFilterField: Hashable {
+    case search
+    case minAmount
+    case maxAmount
+}
+
 struct ReceiptFiltersView: View {
     @Binding var searchText: String
     @Binding var minAmount: Double?
     @Binding var maxAmount: Double?
     let onChange: () -> Void
 
+    @FocusState private var focusedField: ReceiptFilterField?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ReceiptSearchRow(searchText: $searchText, onChange: onChange)
+            ReceiptSearchRow(
+                searchText: $searchText,
+                focusedField: $focusedField,
+                onChange: onChange
+            )
             ReceiptAmountRangeRow(
                 minAmount: $minAmount,
                 maxAmount: $maxAmount,
+                focusedField: $focusedField,
                 onChange: onChange
             )
         }
@@ -29,11 +47,27 @@ struct ReceiptFiltersView: View {
             in: .rect(cornerRadius: 12)
         )
         .padding(.horizontal)
+        .onChange(of: searchText) { _, newValue in
+            if newValue.isEmpty && focusedField == .search {
+                focusedField = nil
+            }
+        }
+        .onChange(of: minAmount) { _, newValue in
+            if newValue == nil && focusedField == .minAmount {
+                focusedField = nil
+            }
+        }
+        .onChange(of: maxAmount) { _, newValue in
+            if newValue == nil && focusedField == .maxAmount {
+                focusedField = nil
+            }
+        }
     }
 }
 
 private struct ReceiptSearchRow: View {
     @Binding var searchText: String
+    @FocusState.Binding var focusedField: ReceiptFilterField?
     let onChange: () -> Void
 
     var body: some View {
@@ -44,6 +78,7 @@ private struct ReceiptSearchRow: View {
                 .textFieldStyle(.roundedBorder)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
+                .focused($focusedField, equals: .search)
                 .onChange(of: searchText) { _, _ in onChange() }
 
             if !searchText.isEmpty {
@@ -61,6 +96,7 @@ private struct ReceiptSearchRow: View {
 private struct ReceiptAmountRangeRow: View {
     @Binding var minAmount: Double?
     @Binding var maxAmount: Double?
+    @FocusState.Binding var focusedField: ReceiptFilterField?
     let onChange: () -> Void
 
     var body: some View {
@@ -77,6 +113,7 @@ private struct ReceiptAmountRangeRow: View {
             .keyboardType(.decimalPad)
             .textFieldStyle(.roundedBorder)
             .frame(maxWidth: 120)
+            .focused($focusedField, equals: .minAmount)
             .onChange(of: minAmount) { _, _ in onChange() }
 
             Text("–")
@@ -90,6 +127,7 @@ private struct ReceiptAmountRangeRow: View {
             .keyboardType(.decimalPad)
             .textFieldStyle(.roundedBorder)
             .frame(maxWidth: 120)
+            .focused($focusedField, equals: .maxAmount)
             .onChange(of: maxAmount) { _, _ in onChange() }
 
             Spacer()
