@@ -313,26 +313,33 @@ extension DonationRepository {
     /// transaction as the subsequent UPDATE so that the count and the write
     /// are serialized as a single unit.
     ///
-    /// Counts donations whose `receipt_number` has already been issued
-    /// (non-NULL, non-empty) — not just `.printed` ones — so that queued
-    /// receipts also reserve their slot in the sequence.
+    /// Derives the next receipt number for the current year by reading the
+    /// highest sequence already issued under this year's `R-<year>-` prefix
+    /// and adding one.
+    ///
+    /// The previous implementation counted donations dated within the current
+    /// calendar year. That broke for donations carrying a placeholder
+    /// `donation_date` (e.g. 2000-01-01): their numbers were never counted, so
+    /// every receipt in a batch recomputed the same `R-<year>-000001`, which
+    /// then collided with the UNIQUE index on `receipt_number`. Keying off the
+    /// existing numbers themselves (not the donation date) makes the sequence
+    /// monotonic regardless of donation dates. Any `-DUP-<id>` suffix appended
+    /// by the dedup migration is ignored when parsing the sequence.
     private static func computeNextReceiptNumber(db: Database) throws -> String {
-        let calendar = Calendar(identifier: .gregorian)
-        let year = calendar.component(.year, from: Date())
-        guard let startOfYear = calendar.date(from: DateComponents(year: year, month: 1, day: 1)),
-              let startOfNextYear = calendar.date(from: DateComponents(year: year + 1, month: 1, day: 1)) else {
-            throw DatabaseError.databaseSetupFailed("Could not compute year range for receipt numbering")
+        let year = Calendar(identifier: .gregorian).component(.year, from: Date())
+        let prefix = "R-\(year)-"
+
+        let existingNumbers = try String.fetchAll(db, sql: """
+            SELECT receipt_number FROM donation
+            WHERE receipt_number LIKE ?
+            """, arguments: ["\(prefix)%"])
+
+        let highestSequence = existingNumbers.reduce(0) { currentMax, number in
+            let sequencePart = number.dropFirst(prefix.count).prefix { $0.isNumber }
+            return max(currentMax, Int(sequencePart) ?? 0)
         }
 
-        let issuedCount = try Int.fetchOne(db, sql: """
-            SELECT COUNT(*) FROM donation
-            WHERE receipt_number IS NOT NULL
-              AND receipt_number != ''
-              AND donation_date >= ?
-              AND donation_date <  ?
-            """, arguments: [startOfYear, startOfNextYear]) ?? 0
-
-        return String(format: "R-%d-%06d", year, issuedCount + 1)
+        return String(format: "R-%d-%06d", year, highestSequence + 1)
     }
     
     /// Updates all donations with status .notRequested and amount >= minAmount to .requested

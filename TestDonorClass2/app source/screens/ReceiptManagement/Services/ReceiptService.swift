@@ -64,15 +64,23 @@ final class ReceiptService {
     /// receipt's status based on the outcome.
     /// Returns a tuple of (printed, cancelled, failed).
     @MainActor
-    func batchPrint(_ receipts: [ReceiptItem]) async -> (printed: Int, cancelled: Int, failed: Int) {
+    func batchPrint(_ receipts: [ReceiptItem]) async -> (printed: Int, cancelled: Int, failed: Int, receiptNumbers: [String]) {
         for receipt in receipts {
-            try? await updateStatus(donationId: receipt.donationId, to: .queued)
+            do {
+                try await updateStatus(donationId: receipt.donationId, to: .queued)
+            } catch {
+                print("Error assigning receipt number for donation \(receipt.donationId): \(error)")
+            }
         }
 
         var donationInfos: [DonationInfo] = []
+        var assignedReceiptNumbers: [String] = []
         for receipt in receipts {
             if let info = await donationInfo(for: receipt) {
                 donationInfos.append(info)
+                if let number = info.receiptNumber, !number.isEmpty {
+                    assignedReceiptNumbers.append(number)
+                }
             }
         }
 
@@ -80,7 +88,7 @@ final class ReceiptService {
             for receipt in receipts {
                 try? await updateStatus(donationId: receipt.donationId, to: .failed)
             }
-            return (printed: 0, cancelled: 0, failed: receipts.count)
+            return (printed: 0, cancelled: 0, failed: receipts.count, receiptNumbers: [])
         }
 
         let success = await printingService.printReceipts(
@@ -99,12 +107,12 @@ final class ReceiptService {
                     try? await updateStatus(donationId: receipt.donationId, to: .printed)
                 }
             }
-            return (printed: receipts.count, cancelled: 0, failed: 0)
+            return (printed: receipts.count, cancelled: 0, failed: 0, receiptNumbers: assignedReceiptNumbers)
         } else {
             for receipt in receipts {
                 try? await updateStatus(donationId: receipt.donationId, to: .requested)
             }
-            return (printed: 0, cancelled: receipts.count, failed: 0)
+            return (printed: 0, cancelled: receipts.count, failed: 0, receiptNumbers: assignedReceiptNumbers)
         }
     }
 

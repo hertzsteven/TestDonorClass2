@@ -16,6 +16,7 @@ struct PrintReceiptSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isPrinting = false
     @State private var statusMessage = ""
+    @State private var assignedNumbers: [String] = []
 
     private let service: ReceiptService
 
@@ -39,7 +40,9 @@ struct PrintReceiptSheetView: View {
                 .font(.title)
                 .bold()
 
-            if isPrinting {
+            if !assignedNumbers.isEmpty {
+                AssignedReceiptNumbersBanner(numbers: assignedNumbers)
+            } else if isPrinting {
                 ProgressView()
                     .scaleEffect(1.5)
                     .padding()
@@ -84,15 +87,53 @@ struct PrintReceiptSheetView: View {
 
         statusMessage = "Done"
         isPrinting = false
-        dismiss()
 
         let outcome = PrintBatchOutcome(
             printed: result.printed,
             cancelled: result.cancelled,
             failed: result.failed,
-            totalRequested: receipts.count
+            totalRequested: receipts.count,
+            receiptNumbers: result.receiptNumbers
         )
+
+        // Briefly surface the freshly generated receipt numbers so the user
+        // can confirm numbering worked, then auto-dismiss.
+        if !result.receiptNumbers.isEmpty {
+            withAnimation { assignedNumbers = result.receiptNumbers }
+            try? await Task.sleep(for: .seconds(3))
+        }
+
+        dismiss()
         onCompletion(outcome)
+    }
+}
+
+/// Transient confirmation banner that lists the receipt numbers assigned
+/// during a batch print. Shown for a few seconds, then dismissed.
+private struct AssignedReceiptNumbersBanner: View {
+    let numbers: [String]
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Label("Receipt numbers assigned", systemImage: "checkmark.seal.fill")
+                .foregroundStyle(.green)
+                .bold()
+
+            ScrollView {
+                VStack(alignment: .leading) {
+                    ForEach(numbers, id: \.self) { number in
+                        Text(number)
+                            .font(.body.monospaced())
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxHeight: 160)
+            .scrollIndicators(.hidden)
+        }
+        .padding()
+        .background(.green.opacity(0.12), in: .rect(cornerRadius: 12))
+        .transition(.opacity)
     }
 }
 
@@ -103,6 +144,7 @@ struct PrintBatchOutcome {
     let cancelled: Int
     let failed: Int
     let totalRequested: Int
+    var receiptNumbers: [String] = []
 
     var wasCancelled: Bool { cancelled > 0 && printed == 0 && failed == 0 }
 }
