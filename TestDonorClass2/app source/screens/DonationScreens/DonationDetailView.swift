@@ -61,7 +61,7 @@ struct DonationDetailView: View {
                     HStack {
                         Text("Payment Type")
                         Spacer()
-                        Text(donation.donationType.rawValue.uppercased())
+                        Text(donation.donationType.displayName)
                             .foregroundColor(.secondary)
                     }
                     
@@ -150,7 +150,7 @@ struct DonationDetailView: View {
                     HStack {
                         Text("Donation Type")
                         Spacer()
-                        Text(donation.donationType.rawValue.uppercased())
+                        Text(donation.donationType.displayName)
                             .foregroundColor(.secondary)
                     }
                 }

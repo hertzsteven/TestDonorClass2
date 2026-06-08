@@ -21,7 +21,42 @@ enum DonationType: String, Codable, CaseIterable {
     case creditCard = "CC"
     case check = "CHECK"
     case cash = "CASH"
+    case zelle = "ZELLE"
+    case websiteCreditCard = "WEB_CC"
+    case websiteOrganization = "WEB_ORG"
+    case organizationDirect = "ORG_DIRECT"
     case other = "OTHER"
+
+    /// Human-readable label for pickers and detail views. The `rawValue`
+    /// is the stable token persisted to the database, so it must never be
+    /// shown directly to users for newer codes like `WEB_CC`.
+    var displayName: String {
+        switch self {
+        case .creditCard:         "Credit Card"
+        case .check:              "Check"
+        case .cash:               "Cash"
+        case .zelle:              "Zelle"
+        case .websiteCreditCard:  "Website – Credit Card"
+        case .websiteOrganization: "Website – Donor Organization"
+        case .organizationDirect: "Donor Organization (Direct)"
+        case .other:              "Other"
+        }
+    }
+
+    /// Compact label for tight layouts such as the per-row picker in the
+    /// batch entry table, where the full `displayName` would wrap.
+    var shortName: String {
+        switch self {
+        case .creditCard:          "CC"
+        case .check:               "Check"
+        case .cash:                "Cash"
+        case .zelle:               "Zelle"
+        case .websiteCreditCard:   "Web CC"
+        case .websiteOrganization: "Web Org"
+        case .organizationDirect:  "Direct"
+        case .other:               "Other"
+        }
+    }
 }
 
 enum PaymentStatus: String, Codable, CaseIterable {

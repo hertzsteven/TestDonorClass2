@@ -58,7 +58,7 @@ struct DonationRowView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            Text(donation.donationType.rawValue)
+            Text(donation.donationType.displayName)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }

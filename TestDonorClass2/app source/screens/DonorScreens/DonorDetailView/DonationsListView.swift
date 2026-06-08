@@ -49,7 +49,7 @@ struct DonationDetailsView: View {
             Section(header: Text("Donation Details")) {
                 LabeledContent("Amount", value: String(format: "$%.2f", donation.amount))
                 LabeledContent("Date", value: donation.donationDate.formatted())
-                LabeledContent("Type", value: donation.donationType.rawValue)
+                LabeledContent("Type", value: donation.donationType.displayName)
 //                if let campaign = donation.campaignId {
 //                    LabeledContent("Campaign", value: campaign)
 //                }

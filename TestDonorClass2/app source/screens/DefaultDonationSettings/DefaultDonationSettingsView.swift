@@ -41,7 +41,7 @@ struct DefaultDonationSettingsView: View {
                         set: { viewModel.settings.donationType = $0 }
                     )) {
                         ForEach(DonationType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
+                            Text(type.displayName).tag(type)
                         }
                     }
                 }

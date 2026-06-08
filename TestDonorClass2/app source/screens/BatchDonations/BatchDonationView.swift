@@ -138,12 +138,12 @@ struct BatchDonationView: View {
                     .foregroundColor(.secondary)
                 Menu {
                     ForEach(DonationType.allCases, id: \.self) { type in
-                        Button(type.rawValue) {
+                        Button(type.displayName) {
                             viewModel.globalDonationType = type
                         }
                     }
                 } label: {
-                    Text(viewModel.globalDonationType.rawValue)
+                    Text(viewModel.globalDonationType.displayName)
                         .foregroundColor(.blue)
                 }
             }
@@ -424,13 +424,21 @@ struct BatchDonationView: View {
                 .frame(width: 60, alignment: .center)
                 .disabled(!r.isValidDonor)
 
-            // Donation Type Override
-            Picker("", selection: row.donationTypeOverride) {
+            // Donation Type Override — short, single-line label in this tight
+            // column; the dropdown still lists the full display names.
+            Menu {
                 ForEach(DonationType.allCases, id: \.self) { type in
-                    Text(type.rawValue).tag(type)
+                    Button(type.displayName) { row.donationTypeOverride.wrappedValue = type }
+                }
+            } label: {
+                HStack(spacing: 2) {
+                    Text(row.donationTypeOverride.wrappedValue.shortName)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption2)
                 }
             }
-            .pickerStyle(.menu)
             .frame(width: 90, alignment: .center)
             .disabled(!r.isValidDonor)
 

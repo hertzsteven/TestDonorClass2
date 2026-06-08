@@ -23,7 +23,7 @@ struct DonationListItemView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            Text("Donation Type: \(donation.donationType.rawValue)")
+            Text("Donation Type: \(donation.donationType.displayName)")
                 .font(.caption)
                 .foregroundColor(.secondary)
             Text("Date: \(donation.donationDate.formatted(date: .abbreviated, time: .omitted))")

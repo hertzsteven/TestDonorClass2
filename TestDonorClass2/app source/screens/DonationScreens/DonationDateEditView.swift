@@ -69,7 +69,7 @@ struct DonationDateEditView: View {
                 Section(header: Text("PAYMENT TYPE")) {     // NEW
                     Picker("Payment Type", selection: $donationType) {
                         ForEach(DonationType.allCases, id: \.self) { type in
-                            Text(type.rawValue.uppercased()).tag(type)
+                            Text(type.displayName).tag(type)
                         }
                     }
                     .pickerStyle(.wheel)

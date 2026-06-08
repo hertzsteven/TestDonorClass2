@@ -119,7 +119,7 @@
                         
                         Picker("Type", selection: $donationType) {
                             ForEach(DonationType.allCases, id: \.self) { type in
-                                Text(type.rawValue).tag(type)
+                                Text(type.displayName).tag(type)
                             }
                         }
                     }
