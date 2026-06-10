@@ -209,6 +209,18 @@ class BatchDonationViewModel: ObservableObject {
         try await repository.getOne(id)
     }
 
+    /// Clears the amount when its field gains focus so the user types a fresh
+    /// value; if the field is left empty, the global amount is restored.
+    func amountFieldFocusChanged(from oldRowID: UUID?, to newRowID: UUID?) {
+        if let id = newRowID, let idx = rows.firstIndex(where: { $0.id == id }) {
+            rows[idx].donationOverride = 0
+        }
+        if let id = oldRowID, let idx = rows.firstIndex(where: { $0.id == id }),
+           rows[idx].donationOverride == 0 {
+            rows[idx].donationOverride = globalDonation
+        }
+    }
+
     func refreshDonorDisplay(_ donor: Donor, for rowID: UUID) {
         guard let rowIndex = rows.firstIndex(where: { $0.id == rowID }) else { return }
         rows[rowIndex].displayInfo = displayInfo(for: donor)

@@ -8,6 +8,15 @@
 import SwiftUI
 
 struct BatchDonationView: View {
+    /// Identifiable payload for the donor search sheet. Using `.sheet(item:)`
+    /// guarantees the sheet is rebuilt with fresh state on every presentation,
+    /// so a previous "not found" search can never leak into the next one.
+    private struct DonorSearchRequest: Identifiable {
+        let id = UUID()
+        let rowID: UUID
+        let initialSearchText: String?
+    }
+
     @EnvironmentObject private var donorObject: DonorObjectClass
     @EnvironmentObject private var donationObject: DonationObjectClass
     @EnvironmentObject var campaignObject: CampaignObjectClass
@@ -16,10 +25,9 @@ struct BatchDonationView: View {
     @StateObject private var viewModel: BatchDonationViewModel
 
     @State private var selectedCampaign: Campaign?
-    @State private var showingDonorSearch = false
-    @State private var currentRowID: UUID? = nil
-    @State private var initialSearchText: String? = nil
+    @State private var donorSearchRequest: DonorSearchRequest? = nil
     @FocusState private var focusedRowID: UUID?
+    @FocusState private var focusedAmountRowID: UUID?
 
     @State private var showingSaveSummary = false
     @State private var saveResult: (success: Int, failed: Int, totalAmount: Double)? = nil
@@ -75,8 +83,8 @@ struct BatchDonationView: View {
         .toolbar {
             toolbarContent
         }
-        .sheet(isPresented: $showingDonorSearch) {
-            donorSearchSheet
+        .sheet(item: $donorSearchRequest) { request in
+            donorSearchSheet(for: request)
         }
         .alert("Batch Save Summary", isPresented: $showingSaveSummary, presenting: saveResult) { result in
             saveSummaryAlert(result)
@@ -115,6 +123,12 @@ struct BatchDonationView: View {
             .environmentObject(donorObject)
             .interactiveDismissDisabled()
         }
+        .onChange(of: focusedAmountRowID) { oldValue, newValue in
+            viewModel.amountFieldFocusChanged(from: oldValue, to: newValue)
+        }
+        .onChange(of: viewModel.focusedRowID) { _, newValue in
+            focusedRowID = newValue
+        }
         .task {
             await campaignObject.loadCampaigns()
         }
@@ -139,8 +153,9 @@ struct BatchDonationView: View {
                     .foregroundColor(.secondary)
                     .lineLimit(1)
                     .fixedSize()
-                TextField("", value: $viewModel.globalDonation, format: .currency(code: "USD"))
+                TextField("", value: $viewModel.globalDonation, format: .currency(code: "USD").precision(.fractionLength(0...2)))
                     .textFieldStyle(.roundedBorder)
+                    .keyboardType(.decimalPad)
                     .frame(width: 80)
             }
 
@@ -241,7 +256,6 @@ struct BatchDonationView: View {
         List {
             ForEach(viewModel.rows) { row in
                 batchRowView(row: binding(for: row.id))
-                    .focused($focusedRowID, equals: row.id)
                     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     .listRowSeparator(.visible)
             }
@@ -250,6 +264,15 @@ struct BatchDonationView: View {
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .padding(.horizontal, 16)
+    }
+
+    /// Maps the row amount to an optional so a cleared field shows the
+    /// "Amount" placeholder instead of "$0.00".
+    private func amountBinding(for row: Binding<BatchDonationViewModel.RowEntry>) -> Binding<Double?> {
+        Binding(
+            get: { row.wrappedValue.donationOverride == 0 ? nil : row.wrappedValue.donationOverride },
+            set: { row.wrappedValue.donationOverride = $0 ?? 0 }
+        )
     }
 
     private func binding(for id: UUID) -> Binding<BatchDonationViewModel.RowEntry> {
@@ -304,20 +327,14 @@ struct BatchDonationView: View {
         }
     }
     
-    private var donorSearchSheet: some View {
+    private func donorSearchSheet(for request: DonorSearchRequest) -> some View {
         DonorSearchSelectionView(onDonorSelected: { selectedDonor in
-            if let rowID = currentRowID {
-                Task {
-                    await viewModel.setDonorFromSearch(selectedDonor, for: rowID)
-                    currentRowID = nil
-                    initialSearchText = nil
-                }
-            } else {
-                  print("Error: currentRowID was nil when donor search returned.")
-             }
-         }, initialSearchText: initialSearchText)
-         .environmentObject(donorObject)
-         .interactiveDismissDisabled()
+            Task {
+                await viewModel.setDonorFromSearch(selectedDonor, for: request.rowID)
+            }
+        }, initialSearchText: request.initialSearchText)
+        .environmentObject(donorObject)
+        .interactiveDismissDisabled()
     }
     
     private func saveSummaryAlert(_ result: (success: Int, failed: Int, totalAmount: Double)) -> some View {
@@ -379,6 +396,7 @@ struct BatchDonationView: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 70)
                 .keyboardType(.numberPad)
+                .focused($focusedRowID, equals: r.id)
                 .disabled(r.isValidDonor)
                 .foregroundColor(r.isValidDonor ? .gray : .primary)
                 .background(r.isValidDonor ? Color(.systemGray6) : Color(.systemBackground))
@@ -392,16 +410,15 @@ struct BatchDonationView: View {
                     .frame(width: 100)
                     .onSubmit {
                         if !r.lastNameSearch.isEmpty {
-                            currentRowID = r.id
-                            initialSearchText = r.lastNameSearch
-                            showingDonorSearch = true
+                            donorSearchRequest = DonorSearchRequest(rowID: r.id, initialSearchText: r.lastNameSearch)
                         }
                     }
 
                 Button {
-                    currentRowID = r.id
-                    initialSearchText = r.lastNameSearch.isEmpty ? nil : r.lastNameSearch
-                    showingDonorSearch = true
+                    donorSearchRequest = DonorSearchRequest(
+                        rowID: r.id,
+                        initialSearchText: r.lastNameSearch.isEmpty ? nil : r.lastNameSearch
+                    )
                 } label: {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 14))
@@ -500,9 +517,10 @@ struct BatchDonationView: View {
                 .frame(width: 100, alignment: .center)
                 .disabled(!r.isValidDonor)
 
-            TextField("Amount", value: row.donationOverride, format: .currency(code: "USD"))
+            TextField("Amount", value: amountBinding(for: row), format: .currency(code: "USD").precision(.fractionLength(0...2)))
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .keyboardType(.decimalPad)
+                .focused($focusedAmountRowID, equals: r.id)
                 .frame(width: 80)
                 .foregroundColor(r.hasDonationOverride ? .blue : .primary)
                 .disabled(!r.isValidDonor)
