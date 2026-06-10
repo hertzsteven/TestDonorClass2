@@ -97,6 +97,7 @@ struct BatchPledgeView: View {
                 currentRowIDForSearch = nil
             }
             .environmentObject(donorObject)
+            .interactiveDismissDisabled()
         }
         .alert("Batch Pledges Saved", isPresented: $showingSaveSummary, presenting: saveResult) { result in
             Button("OK") {
@@ -112,8 +113,11 @@ struct BatchPledgeView: View {
                 if currentPrayerNote.isEmpty { viewModel.rows[rowIndex].prayerNoteSW = false }
             }
         }) {
-            if let donor = selectedDonorForPrayer { PrayerNoteSheet(donor: donor, prayerNote: $currentPrayerNote) }
-            else { PrayerNoteSheet(donor: nil, prayerNote: $currentPrayerNote) }
+            Group {
+                if let donor = selectedDonorForPrayer { PrayerNoteSheet(donor: donor, prayerNote: $currentPrayerNote) }
+                else { PrayerNoteSheet(donor: nil, prayerNote: $currentPrayerNote) }
+            }
+            .interactiveDismissDisabled()
         }
         .task {
             await campaignObject.loadCampaigns()

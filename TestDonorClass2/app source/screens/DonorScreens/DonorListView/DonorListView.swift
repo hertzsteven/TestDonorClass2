@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Main List View
 struct DonorListView: View {
-    @EnvironmentObject var keyboardObserver: KeyboardObserver
+    @Environment(KeyboardObserver.self) var keyboardObserver
     
     @EnvironmentObject var donorObject        : DonorObjectClass
     @EnvironmentObject var donationObject     : DonationObjectClass
@@ -44,6 +44,7 @@ struct DonorListView: View {
     enum SearchMode: String, CaseIterable {
         case name = "Name"
         case id = "ID"
+        case address = "Address"
     }
     
     init(donorObject: DonorObjectClass, maintenanceMode: Bool) {
@@ -70,7 +71,7 @@ struct DonorListView: View {
 //        .navigationTitle(viewModel.maintenanceMode ? "Update Donor" : "Enter Donation")
         
         .sheet(isPresented: $isShowingScanner) {
-            BarcodeScannerView(scannedCode: $scannedCode)
+            BarcodeScannerSheetView(scannedCode: $scannedCode)
         }
         
         .onChange(of: scannedCode) { newValue in
@@ -93,6 +94,7 @@ struct DonorListView: View {
                 }
                 .padding()
             }
+            .interactiveDismissDisabled()
         }
         
         
@@ -128,9 +130,11 @@ struct DonorListView: View {
         
         .sheet(isPresented: $showingAddDonor) {
             DonorEditView(mode: .add, donor: $blankDonor)
+                .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingDefaults) {
             DefaultDonationSettingsView()
+                .interactiveDismissDisabled()
             //                .environmentObject(defaultDonationSettingsViewModel)
         }
     }
@@ -177,6 +181,14 @@ extension DonorListView {
 
 extension DonorListView {
     
+    fileprivate var searchPlaceholder: String {
+        switch searchMode {
+        case .name: return "by name or company"
+        case .id: return "by donor ID"
+        case .address: return "by address, city, state, or zip"
+        }
+    }
+    
     fileprivate func SearchComponent() -> some View {
         VStack {
 //            ExperimentalToolbarView()
@@ -187,7 +199,7 @@ extension DonorListView {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.gray)
-                    TextField(searchMode == .name ? "by name or company" : "by donor id123",
+                    TextField(searchPlaceholder,
                               text: $viewModel.searchText)
                     .focused($isSearchFieldFocused)
                     .onSubmit {
@@ -213,6 +225,7 @@ extension DonorListView {
                 Picker("Search Mode", selection: $searchMode) {
                     Text("Name").tag(SearchMode.name)
                     Text("ID").tag(SearchMode.id)
+                    Text("Address").tag(SearchMode.address)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 8)
@@ -354,6 +367,7 @@ extension DonorListView {
                     VStack(spacing: 8) {
                         searchOptionButton(mode: .name, icon: "magnifyingglass", title: "Search by name/company")
                         searchOptionButton(mode: .id, icon: "number", title: "Enter donor ID")
+                        searchOptionButton(mode: .address, icon: "mappin.and.ellipse", title: "Search by address")
                     }
                 }
                 
@@ -736,7 +750,7 @@ struct EmptyStateView: View {
             DonorListView(donorObject: donorObject, maintenanceMode: false)
                 .environmentObject(donorObject)
                 .environmentObject(donationObject)
-                .environmentObject(keyboardObserver)
+                .environment(keyboardObserver)
         }
     }
 }
@@ -747,7 +761,7 @@ struct EmptyStateView: View {
             DonorListView(donorObject: donorObject, maintenanceMode: true)
                 .environmentObject(donorObject)
                 .environmentObject(donationObject)
-                .environmentObject(keyboardObserver)
+                .environment(keyboardObserver)
         }
     }
 }
@@ -758,7 +772,7 @@ struct EmptyStateView: View {
             DonorListView(donorObject: donorObject, maintenanceMode: false)
                 .environmentObject(donorObject)
                 .environmentObject(donationObject)
-                .environmentObject(keyboardObserver)
+                .environment(keyboardObserver)
         }
     }
 }

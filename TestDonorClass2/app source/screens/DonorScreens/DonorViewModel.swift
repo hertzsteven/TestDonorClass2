@@ -51,6 +51,9 @@ class DonorListViewModel: ObservableObject {
                 if let id = Int(searchText) {
                   try  await donorObject.searchDonorById(id)
                 }
+            case .address:
+                let results = try await donorObject.searchDonorsByAddressWithReturn(searchText)
+                donorObject.donors = results
             }
         }
 }

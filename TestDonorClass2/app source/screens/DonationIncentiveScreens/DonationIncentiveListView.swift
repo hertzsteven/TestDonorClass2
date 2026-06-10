@@ -100,6 +100,7 @@ struct DonationIncentiveListView: View {
             Task { await updateTotalCount() }
         }) {
             DonationIncentiveEditView(mode: .add)
+                .interactiveDismissDisabled()
         }
         .alert("Cannot Delete Incentive", isPresented: $showDeleteError) {
             Button("OK", role: .cancel) { }

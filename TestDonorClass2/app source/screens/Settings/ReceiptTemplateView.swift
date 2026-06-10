@@ -70,6 +70,7 @@ struct ReceiptTemplateView: View {
                 pdfData: viewModel.currentTemplatePDFData,
                 onDismiss: { isPreviewPresented = false }
             )
+            .interactiveDismissDisabled()
         }
         .confirmationDialog(
             "Reset to Bundled Template?",

@@ -129,6 +129,7 @@ struct DonorDetailView: View {
         .sheet(isPresented: $showingEditSheet) {
 //            NavigationView {
             DonorEditView(mode: .edit(donor), donor: $donor)
+                .interactiveDismissDisabled()
 //            }
         }
         .sheet(isPresented: $showingTestSheet) {
@@ -145,6 +146,7 @@ struct DonorDetailView: View {
                 }
                 .navigationTitle("Test Sheet")
             }
+            .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingTextView) {
             NavigationView {
@@ -160,6 +162,7 @@ struct DonorDetailView: View {
                 }
                 .navigationTitle("Text View")
             }
+            .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingStringView) {
             NavigationView {
@@ -176,11 +179,13 @@ struct DonorDetailView: View {
                 }
                 .navigationTitle("String Handler")
             }
+            .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingDonationDetail) {
             if let donation = selectedDonation {
                 DonationDetailView(donation: donation)
                     .environmentObject(donorObject)
+                    .interactiveDismissDisabled()
             }
         }
         .onChange(of: showingDonationDetail) { isPresented in

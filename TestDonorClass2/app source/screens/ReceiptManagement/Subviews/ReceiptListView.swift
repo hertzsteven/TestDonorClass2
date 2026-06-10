@@ -20,6 +20,7 @@ struct ReceiptListView: View {
     let onMarkPrinted: (ReceiptItem) -> Void
     let onMarkRequested: (ReceiptItem) -> Void
     let onRevertBatch: (PrintBatchGroup) -> Void
+    let onViewDetails: (ReceiptItem) -> Void
 
     var body: some View {
         List {
@@ -58,6 +59,11 @@ struct ReceiptListView: View {
         .onTapGesture {
             guard status == .requested else { return }
             onToggleSelection(receipt)
+        }
+        .contextMenu {
+            Button("View Details", systemImage: "doc.text.magnifyingglass") {
+                onViewDetails(receipt)
+            }
         }
         .swipeActions {
             if receipt.status == .requested || receipt.status == .failed {

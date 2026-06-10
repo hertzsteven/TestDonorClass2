@@ -8,15 +8,13 @@ import SwiftUI
 import UIKit
 
 // MARK: - Keyboard Observer Class
-class KeyboardObserver: ObservableObject {
-    @Published var isKeyboardVisible = false
+@MainActor
+@Observable
+final class KeyboardObserver {
+    var isKeyboardVisible = false
 
     init() {
         setupNotifications()
-    }
-
-    deinit {
-        NotificationCenter.default.removeObserver(self)
     }
 
     private func setupNotifications() {
@@ -44,16 +42,22 @@ class KeyboardObserver: ObservableObject {
         // A hardware keyboard will report a small or zero height for the keyboard frame.
         // We check if the height is substantial enough to be the on-screen keyboard.
         // A threshold of 100 points should be safe enough to ignore accessory views.
-        if keyboardFrame.height > 100 {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                isKeyboardVisible = true
-            }
-        }
+        guard keyboardFrame.height > 100 else { return }
+        setKeyboardVisible(true)
     }
 
     @objc private func keyboardWillHide(_ notification: Notification) {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            isKeyboardVisible = false
+        setKeyboardVisible(false)
+    }
+
+    // Keyboard notifications can arrive synchronously while SwiftUI is mid-render
+    // (e.g. a text field becoming first responder), so defer the mutation one
+    // runloop tick to stay out of the current view update transaction.
+    private func setKeyboardVisible(_ visible: Bool) {
+        Task { @MainActor in
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isKeyboardVisible = visible
+            }
         }
     }
 }

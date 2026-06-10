@@ -15,6 +15,14 @@ struct PrintReceiptView: View {
     
     var body: some View {
         VStack {
+            HStack {
+                Button("Cancel", systemImage: "xmark") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+                Spacer()
+            }
+            .padding(.horizontal)
+
             Text("Print Receipt")
                 .font(.title)
             

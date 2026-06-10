@@ -74,6 +74,7 @@ struct DonorRowView: View {
                 DonationEditView(donor: donor)
                     .environmentObject(donationObject)
             }
+            .interactiveDismissDisabled()
         }
     }
     

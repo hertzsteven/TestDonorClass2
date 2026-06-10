@@ -42,6 +42,7 @@ struct DonationIncentiveDetailView: View {
         .toolbar(.hidden, for: .tabBar)
         .sheet(isPresented: $showingEditSheet) {
             DonationIncentiveEditView(mode: .edit(incentive))
+                .interactiveDismissDisabled()
         }
         .onAppear {
             print("DonationIncentiveDetailView appeared")

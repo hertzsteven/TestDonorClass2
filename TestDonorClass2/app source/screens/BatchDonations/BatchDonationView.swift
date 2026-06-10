@@ -104,12 +104,16 @@ struct BatchDonationView: View {
     // MARK: - View Components
     
     private var globalSettingsBar: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 12) {
             Text("Global Settings:")
                 .font(.headline)
+                .lineLimit(1)
+                .fixedSize()
             HStack(spacing: 8) {
                 Text("Amount:")
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .fixedSize()
                 TextField("", value: $viewModel.globalDonation, format: .currency(code: "USD"))
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 80)
@@ -118,6 +122,8 @@ struct BatchDonationView: View {
             HStack(spacing: 8) {
                 Text("Campaign:")
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .fixedSize()
                 Menu {
                     Button("None") {
                         selectedCampaign = nil
@@ -130,12 +136,15 @@ struct BatchDonationView: View {
                 } label: {
                     Text(selectedCampaign?.name ?? "None")
                         .foregroundColor(.blue)
+                        .lineLimit(1)
                 }
             }
 
             HStack(spacing: 8) {
                 Text("Type:")
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .fixedSize()
                 Menu {
                     ForEach(DonationType.allCases, id: \.self) { type in
                         Button(type.displayName) {
@@ -143,14 +152,17 @@ struct BatchDonationView: View {
                         }
                     }
                 } label: {
-                    Text(viewModel.globalDonationType.displayName)
+                    Text(viewModel.globalDonationType.shortName)
                         .foregroundColor(.blue)
+                        .lineLimit(1)
                 }
             }
 
             HStack(spacing: 8) {
                 Text("Receipt:")
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .fixedSize()
                 Toggle("", isOn: $viewModel.globalPrintReceipt)
                     .labelsHidden()
             }
@@ -158,6 +170,8 @@ struct BatchDonationView: View {
             HStack(spacing: 8) {
                 Text("Date:")
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .fixedSize()
                 DatePicker(
                     "",
                     selection: $viewModel.globalDonationDate,
@@ -182,9 +196,9 @@ struct BatchDonationView: View {
             Text("Address").frame(maxWidth: .infinity, alignment: .leading)
             Text("Request").frame(width: 70, alignment: .trailing).font(.body.bold()).lineLimit(1).padding(.leading, 15)
             Text("Receipt").frame(width: 70, alignment: .trailing).font(.body.bold()).lineLimit(1).padding(.leading, 10)
-            Text("Type").frame(width: 60, alignment: .center).padding(.leading, 15)
-            Text("Date").frame(width: 110, alignment: .center)
-            Text("Amount").frame(width: 90, alignment: .leading).padding(.leading, 10)
+            Text("Type").frame(width: 90, alignment: .center).padding(.leading, 15)
+            Text("Date").frame(width: 100, alignment: .center)
+            Text("Amount").frame(width: 80, alignment: .leading).padding(.leading, 10)
             Text("").frame(width: 50)
         }
         .font(.body.bold())
@@ -278,6 +292,7 @@ struct BatchDonationView: View {
              }
          }, initialSearchText: initialSearchText)
          .environmentObject(donorObject)
+         .interactiveDismissDisabled()
     }
     
     private func saveSummaryAlert(_ result: (success: Int, failed: Int, totalAmount: Double)) -> some View {
@@ -307,6 +322,7 @@ struct BatchDonationView: View {
                 PrayerNoteSheet(donor: nil, prayerNote: $currentPrayerNote)
             }
         }
+        .interactiveDismissDisabled()
     }
     
     // MARK: - Helper Methods

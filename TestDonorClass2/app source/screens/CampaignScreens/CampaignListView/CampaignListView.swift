@@ -38,6 +38,7 @@ struct CampaignListView: View {
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingAddCampaign) {
             CampaignEditView(mode: .add)
+                .interactiveDismissDisabled()
         }
         .alert("Error", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }

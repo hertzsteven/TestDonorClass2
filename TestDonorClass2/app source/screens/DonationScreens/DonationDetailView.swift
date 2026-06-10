@@ -194,6 +194,7 @@ struct DonationDetailView: View {
                 self.donation = updatedDonation        // keep UI in sync
                 showingEditSheet = false
             }
+            .interactiveDismissDisabled()
         }
         .alert("Error", isPresented: .init(
             get: { errorMessage != nil },

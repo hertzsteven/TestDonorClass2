@@ -118,7 +118,7 @@ final class ReceiptManagementViewModel {
     // MARK: - Status mutations (called from row swipe actions)
 
     func markAsPrinted(_ receipt: ReceiptItem) async {
-        await updateStatus(donationId: receipt.donationId, to: .printed, refreshStatus: .requested)
+        await updateStatus(donationId: receipt.donationId, to: .printed, refreshStatus: currentStatus)
     }
 
     func markAsRequested(_ receipt: ReceiptItem) async {

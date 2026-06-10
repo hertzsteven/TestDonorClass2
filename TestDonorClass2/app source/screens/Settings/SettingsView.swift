@@ -216,6 +216,7 @@ struct SettingsView: View {
                         }
                     }
                 }
+                .interactiveDismissDisabled()
             }
             .alert("Preview failed", isPresented: $showReceiptPreviewError) {
                 Button("OK", role: .cancel) { }

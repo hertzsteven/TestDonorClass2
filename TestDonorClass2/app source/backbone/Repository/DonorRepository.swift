@@ -158,6 +158,23 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
         }
     }
     
+    func findByAddress(_ searchText: String) async throws -> [Donor] {
+        do {
+            let donors = try await dbPool.read { db in
+                try Donor.filter(Column("address").like("%\(searchText)%") ||
+                                 Column("city").like("%\(searchText)%") ||
+                                 Column("state").like("%\(searchText)%") ||
+                                 Column("zip").like("%\(searchText)%"))
+                .order(Column("last_name"), Column("first_name"))
+                .fetchAll(db)
+            }
+            return donors
+        } catch {
+            handleError(error, context: "Failed to search donors by address")
+            throw error
+        }
+    }
+    
     
         // Add implementation for getting donor by ID
         func getDonorById(_ id: Int) async throws -> Donor? {

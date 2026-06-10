@@ -31,6 +31,10 @@ protocol RepositoryProtocol {
 protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Donor {
     /// Find donors by a name or partial name match
     func findByName(_ searchText: String) async throws -> [Donor]
+    
+    /// Find donors by address, city, state, or zip
+    func findByAddress(_ searchText: String) async throws -> [Donor]
+    
     /// A domain-specific method:
     /// e.g. total donation amount for a particular donor.
     //        func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double

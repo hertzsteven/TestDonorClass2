@@ -398,6 +398,7 @@ struct DonationReportView: View {
                     viewModel.donorSelected(selectedDonor)
                 }
                 .environmentObject(donorObject)
+                .interactiveDismissDisabled()
             }
             .fileExporter(
                 isPresented: $isExportSheetPresented,
@@ -436,6 +437,7 @@ struct DonationReportView: View {
                     .onAppear {
                         lastShownDonationId = donation.id
                     }
+                    .interactiveDismissDisabled()
             }
             .onChange(of: donationToShow) { donation in
                 // When the sheet is dismissed (donationToShow becomes nil), update just that donation

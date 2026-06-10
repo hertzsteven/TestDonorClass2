@@ -34,6 +34,11 @@ struct ReceiptManagementView: View {
     @State private var showingMarkPrintedConfirm = false
     @State private var batchPendingRevert: PrintBatchGroup?
     @State private var showingRevertBatchConfirm = false
+    @State private var receiptForDetail: ReceiptItem?
+
+    /// Bumped whenever a row is promoted/demoted via swipe so the user
+    /// gets a brief success haptic as the row leaves the current list.
+    @State private var statusChangeTrigger = 0
 
     init() {
         let service: ReceiptService
@@ -101,6 +106,7 @@ struct ReceiptManagementView: View {
                 onMarkPrinted: markRowAsPrinted,
                 onMarkRequested: markRowAsRequested,
                 onRevertBatch: prepareRevertBatch,
+                onViewDetails: { receiptForDetail = $0 },
                 onDeselectAll: { selectedReceipts.removeAll() },
                 onTestPrint: handleTestPrint,
                 onRefresh: { Task { await viewModel.refresh(status: selectedStatus) } },
@@ -110,6 +116,7 @@ struct ReceiptManagementView: View {
             )
         }
         .navigationTitle("Receipts")
+        .sensoryFeedback(.success, trigger: statusChangeTrigger)
         .alert("Receipt Status", isPresented: $showingAlert) {
             Button("OK") { }
         } message: {
@@ -151,6 +158,16 @@ struct ReceiptManagementView: View {
                 service: service,
                 onCompletion: handlePrintCompletion
             )
+            .interactiveDismissDisabled()
+        }
+        .sheet(item: $receiptForDetail) { receipt in
+            if let repository = try? DonationRepository() {
+                ReceiptDetailSheetView(
+                    receiptItem: receipt,
+                    donationRepository: repository
+                )
+                .interactiveDismissDisabled()
+            }
         }
         .onAppear {
             overrideMaxReceipts = nil
@@ -201,13 +218,16 @@ struct ReceiptManagementView: View {
     }
 
     private func markRowAsPrinted(_ receipt: ReceiptItem) {
-        Task { await viewModel.markAsPrinted(receipt) }
+        Task {
+            await viewModel.markAsPrinted(receipt)
+            statusChangeTrigger += 1
+        }
     }
 
     private func markRowAsRequested(_ receipt: ReceiptItem) {
         Task {
             await viewModel.markAsRequested(receipt)
-            selectedStatus = .requested
+            statusChangeTrigger += 1
         }
     }
 

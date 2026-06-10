@@ -15,7 +15,7 @@ struct AppRootView: View {
   @StateObject private var campaignObject: CampaignObjectClass
   @StateObject private var incentiveObject: DonationIncentiveObjectClass
   @StateObject private var defaultSettingsVM: DefaultDonationSettingsViewModel
-  @StateObject private var keyboardObserver = KeyboardObserver()
+  @State private var keyboardObserver = KeyboardObserver()
 
 
   init() {
@@ -37,7 +37,7 @@ struct AppRootView: View {
   var body: some View {
 //      Text("Hello, World!")
     LaunchScreenManager()
-      .environmentObject(keyboardObserver)
+      .environment(keyboardObserver)
       .environmentObject(donorObject)
       .environmentObject(donationObject)
       .environmentObject(campaignObject)

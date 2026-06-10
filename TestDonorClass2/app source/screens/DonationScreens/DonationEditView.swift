@@ -223,8 +223,8 @@
               
                 .sheet(isPresented: $isShowingPrintView) {
                     doPrintReceipt()
+                        .interactiveDismissDisabled()
                 }
-                .interactiveDismissDisabled(true)
                 
                 .sheet(isPresented: $isShowingMailView) {
                     doMailReceipt()

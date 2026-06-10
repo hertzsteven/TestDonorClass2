@@ -74,4 +74,15 @@ class MockDonorRepository: DonorSpecificRepositoryProtocol {
     func getDonorById(_ id: Int) async throws -> Donor? {
         return mockDonors.first { $0.id == id }
     }
+    
+    func findByAddress(_ searchText: String) async throws -> [Donor] {
+        let search = searchText.lowercased()
+        return mockDonors.filter { donor in
+            let addressMatch = donor.address?.lowercased().contains(search) ?? false
+            let cityMatch = donor.city?.lowercased().contains(search) ?? false
+            let stateMatch = donor.state?.lowercased().contains(search) ?? false
+            let zipMatch = donor.zip?.lowercased().contains(search) ?? false
+            return addressMatch || cityMatch || stateMatch || zipMatch
+        }
+    }
 }

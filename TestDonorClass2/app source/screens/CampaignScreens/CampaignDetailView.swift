@@ -49,6 +49,7 @@ struct CampaignDetailView: View {
         .toolbar(.hidden, for: .tabBar)
         .sheet(isPresented: $showingEditSheet) {
             CampaignEditView(mode: .edit(campaign))
+                .interactiveDismissDisabled()
         }
     }
 }

@@ -19,6 +19,7 @@ import SwiftUI
         enum SearchMode: String, CaseIterable {
             case id = "ID"
             case name = "Name"
+            case address = "Address"
         }
         // Add this state property
         @State private var searchMode: SearchMode = .name
@@ -29,7 +30,7 @@ import SwiftUI
         
         @State private var isTabBarHidden = true
         @Environment(\.dismiss) private var dismiss
-        @EnvironmentObject var keyboardObserver: KeyboardObserver
+        @Environment(KeyboardObserver.self) var keyboardObserver
         
         init(donorObject: DonorObjectClass, selectedTab: Binding<Int> = .constant(0)) {
 //        init(donorObject: DonorObjectClass, ) {
@@ -92,7 +93,7 @@ import SwiftUI
             }
             
             .sheet(isPresented: $isShowingScanner) {
-                BarcodeScannerView(scannedCode: $scannedCode)
+                BarcodeScannerSheetView(scannedCode: $scannedCode)
             }
             
             .onChange(of: scannedCode) { newValue in
@@ -113,12 +114,20 @@ import SwiftUI
         }
         }
         
+        private var searchPlaceholder: String {
+            switch searchMode {
+            case .id: return "Enter donor ID..."
+            case .name: return "Search by name or company..."
+            case .address: return "Search by address, city, state, or zip..."
+            }
+        }
+        
         private var searchBar: some View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.gray)
                 
-                TextField("Search donors...", text: $viewModel.searchText)
+                TextField(searchPlaceholder, text: $viewModel.searchText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .submitLabel(.search)
                 if !viewModel.searchText.isEmpty {

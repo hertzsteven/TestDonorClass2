@@ -101,6 +101,24 @@ extension DonorObjectClass {
         
     }
     
+        // MARK: - Address Search Operations
+    func searchDonorsByAddressWithReturn(_ searchText: String) async throws -> [Donor] {
+        try await reconnectIfNeeded()
+        
+        let trimmedSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if trimmedSearchText.isEmpty {
+            return []
+        }
+        if trimmedSearchText.count < 2 {
+            return []
+        }
+        
+        let donors = try await repository.findByAddress(trimmedSearchText)
+        
+        return donors
+    }
+    
         // Add method for searching by ID
     @MainActor
     func searchDonorById(_ id: Int) async {

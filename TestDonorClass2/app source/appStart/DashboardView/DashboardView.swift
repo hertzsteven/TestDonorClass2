@@ -201,9 +201,11 @@ struct DashboardView: View {
                     .environmentObject(campaignObject)
                     .environmentObject(incentiveObject)
                     .environmentObject(defaultDonationSettingsViewModel)
+                    .interactiveDismissDisabled()
             }
             .sheet(isPresented: $showingHelp) {
                 HelpCenterView()
+                    .interactiveDismissDisabled()
             }
         }
         // Trigger initial fade-in animation

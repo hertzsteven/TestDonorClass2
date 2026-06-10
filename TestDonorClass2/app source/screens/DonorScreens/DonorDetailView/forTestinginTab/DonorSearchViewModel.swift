@@ -77,7 +77,9 @@
                         donors.append(oneDonor)
                     }
                 }
+            case .address:
+                let theDonors = try await donorObject.searchDonorsByAddressWithReturn(searchText)
+                donors = theDonors
             }
         }
     }
-
