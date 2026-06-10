@@ -1,6 +1,12 @@
 import SwiftUI
 
 struct BatchDonorEditView: View {
+    enum Mode {
+        case add
+        case edit
+    }
+
+    let mode: Mode
     @Binding var donor: Donor
     let onSave: (Donor) -> Void
     let onCancel: () -> Void
@@ -8,6 +14,21 @@ struct BatchDonorEditView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var donorObject: DonorObjectClass
 
+    init(
+        mode: Mode = .add,
+        donor: Binding<Donor>,
+        onSave: @escaping (Donor) -> Void,
+        onCancel: @escaping () -> Void
+    ) {
+        self.mode = mode
+        self._donor = donor
+        self.onSave = onSave
+        self.onCancel = onCancel
+        // Adding a new donor goes straight to the form; editing starts read-only.
+        self._isEditing = State(initialValue: mode == .add)
+    }
+
+    @State private var isEditing: Bool
     @State private var showValidationError = false
     @State private var isPhoneValid = true
     @State private var isSaving = false
@@ -19,40 +40,59 @@ struct BatchDonorEditView: View {
 
     // MARK: - Body
     var body: some View {
-        NavigationView {
-            Form {
-                personalInfoSection
-                addressInfoSection
-                contactInfoSection
-                additionalInfoSection
+        NavigationStack {
+            Group {
+                if isEditing {
+                    Form {
+                        personalInfoSection
+                        addressInfoSection
+                        contactInfoSection
+                        additionalInfoSection
+                    }
+                } else {
+                    BatchDonorReadOnlyView(donor: donor)
+                }
             }
-            .navigationTitle("Add New Donor")
+            .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(isEditing ? "Cancel" : "Done") {
                         onCancel()
                     }
                     .disabled(isSaving)
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: saveAction) {
-                        if isSaving {
-                            ProgressView()
-                        } else {
-                            Text("Save")
+                    if isEditing {
+                        Button(action: saveAction) {
+                            if isSaving {
+                                ProgressView()
+                            } else {
+                                Text("Save")
+                            }
+                        }
+                        .disabled(!isFormValid || isSaving)
+                    } else {
+                        Button("Edit", systemImage: "pencil") {
+                            isEditing = true
                         }
                     }
-                    .disabled(!isFormValid || isSaving)
                 }
             }
-            // No more onAppear or setupInitialValues needed!
         }
+    }
+
+    private var navigationTitle: String {
+        if mode == .add {
+            return "Add New Donor"
+        }
+        return isEditing ? "Edit Donor" : "Donor Info"
     }
 
     // MARK: - Actions
     private func saveAction() {
+        normalizeFields()
         if isFormValid {
             Task {
                 await saveDonor()
@@ -130,11 +170,25 @@ struct BatchDonorEditView: View {
     // MARK: - Helper Functions
 
     /// Creates a two-way binding for the donor's optional string properties.
+    /// The raw text is kept while typing (so spaces are allowed mid-entry);
+    /// trimming happens once at save time in `normalizeFields()`.
     private func bind(_ keyPath: WritableKeyPath<Donor, String?>) -> Binding<String> {
         Binding(
             get: { self.donor[keyPath: keyPath] ?? "" },
-            set: { self.donor[keyPath: keyPath] = $0.nillIfEmptyOrWhite }
+            set: { self.donor[keyPath: keyPath] = $0.isEmpty ? nil : $0 }
         )
+    }
+
+    /// Trims whitespace from all editable string fields, converting blank entries to nil.
+    private func normalizeFields() {
+        let keyPaths: [WritableKeyPath<Donor, String?>] = [
+            \.salutation, \.firstName, \.lastName, \.jewishName, \.company,
+            \.address, \.addl_line, \.suite, \.city, \.state, \.zip,
+            \.email, \.phone, \.notes
+        ]
+        for keyPath in keyPaths {
+            donor[keyPath: keyPath] = donor[keyPath: keyPath]?.nillIfEmptyOrWhite
+        }
     }
 
     private func saveDonor() async {
@@ -146,13 +200,19 @@ struct BatchDonorEditView: View {
         print("🔵 BatchDonorEditView: About to save donor: \(donor.fullName)")
 
         do {
-            // The `addDonor` function now correctly returns the saved donor with its ID
-            let savedDonor = try await donorObject.addDonor(donor)
-            
-            await MainActor.run {
-                isSaving = false
-                // This `savedDonor` has the database ID and is passed back.
-                onSave(savedDonor)
+            switch mode {
+            case .add:
+                let savedDonor = try await donorObject.addDonor(donor)
+                await MainActor.run {
+                    isSaving = false
+                    onSave(savedDonor)
+                }
+            case .edit:
+                try await donorObject.updateDonor(donor)
+                await MainActor.run {
+                    isSaving = false
+                    onSave(donor)
+                }
             }
         } catch {
             await MainActor.run {

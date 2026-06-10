@@ -32,6 +32,9 @@ struct BatchDonationView: View {
     @State private var showingClearAllConfirmation = false
     @State private var shouldClearOnDisappear = false
 
+    @State private var donorBeingEdited: Donor? = nil
+    @State private var editingRowID: UUID? = nil
+
     // Custom Initializer
     init() {
         do {
@@ -89,6 +92,28 @@ struct BatchDonationView: View {
             prayerNoteSheetDismissed()
         }) {
             prayerNoteSheet
+        }
+        .sheet(item: $donorBeingEdited) { donor in
+            BatchDonorEditView(
+                mode: .edit,
+                donor: Binding(
+                    get: { donorBeingEdited ?? donor },
+                    set: { donorBeingEdited = $0 }
+                ),
+                onSave: { updatedDonor in
+                    if let rowID = editingRowID {
+                        viewModel.refreshDonorDisplay(updatedDonor, for: rowID)
+                    }
+                    donorBeingEdited = nil
+                    editingRowID = nil
+                },
+                onCancel: {
+                    donorBeingEdited = nil
+                    editingRowID = nil
+                }
+            )
+            .environmentObject(donorObject)
+            .interactiveDismissDisabled()
         }
         .task {
             await campaignObject.loadCampaigns()
@@ -394,15 +419,27 @@ struct BatchDonationView: View {
                     .foregroundColor(r.isValidDonor ? .primary : (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ? .red : .secondary))
                     .lineLimit(1)
                     .frame(minWidth: 120, maxWidth: 160, alignment: .leading)
-                
+
                 if r.isValidDonor {
+                    Button("Edit Donor", systemImage: "pencil") {
+                        Task {
+                            if let donorId = r.donorID,
+                               let donor = try? await viewModel.getDonor(donorId) {
+                                editingRowID = r.id
+                                donorBeingEdited = donor
+                            }
+                        }
+                    }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderless)
+
                     Text(getDonorAddress(from: r.displayInfo))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                
+
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .leading)

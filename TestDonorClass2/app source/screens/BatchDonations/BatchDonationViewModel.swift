@@ -88,11 +88,7 @@ class BatchDonationViewModel: ObservableObject {
         do {
             if let matchedDonor = try await repository.getOne(donorID) {
                 print("Donor found: \(matchedDonor.fullName)")
-                let displayName = matchedDonor.fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (matchedDonor.company ?? "ID: \(donorID)") : matchedDonor.fullName
-                let address = [matchedDonor.address, matchedDonor.city, matchedDonor.state].compactMap { $0 }.joined(separator: ", ")
-                let fullDisplayInfo = address.isEmpty ? displayName : "\(displayName)\n\(address)"
-                
-                rows[rowIndex].displayInfo = fullDisplayInfo
+                rows[rowIndex].displayInfo = displayInfo(for: matchedDonor)
                 rows[rowIndex].lastNameSearch = ""
                 rows[rowIndex].isValidDonor = true
                 rows[rowIndex].processStatus = .none
@@ -131,10 +127,7 @@ class BatchDonationViewModel: ObservableObject {
 
         rows[rowIndex].donorID = donorID
         rows[rowIndex].lastNameSearch = ""
-        let displayName = donor.fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (donor.company ?? "ID: \(donorID)") : donor.fullName
-        let address = [donor.address, donor.city, donor.state].compactMap { $0 }.joined(separator: ", ")
-        let fullDisplayInfo = address.isEmpty ? displayName : "\(displayName)\n\(address)"
-        rows[rowIndex].displayInfo = fullDisplayInfo
+        rows[rowIndex].displayInfo = displayInfo(for: donor)
         rows[rowIndex].isValidDonor = true
         rows[rowIndex].processStatus = .none
         if !rows[rowIndex].hasDonationOverride {
@@ -214,6 +207,20 @@ class BatchDonationViewModel: ObservableObject {
 
     func getDonor(_ id: Int) async throws -> Donor? {
         try await repository.getOne(id)
+    }
+
+    func refreshDonorDisplay(_ donor: Donor, for rowID: UUID) {
+        guard let rowIndex = rows.firstIndex(where: { $0.id == rowID }) else { return }
+        rows[rowIndex].displayInfo = displayInfo(for: donor)
+    }
+
+    private func displayInfo(for donor: Donor) -> String {
+        let donorID = donor.id ?? 0
+        let displayName = donor.fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? (donor.company ?? "ID: \(donorID)")
+            : donor.fullName
+        let address = [donor.address, donor.city, donor.state].compactMap { $0 }.joined(separator: ", ")
+        return address.isEmpty ? displayName : "\(displayName)\n\(address)"
     }
 
     func addDonation(_ donation: Donation) async throws {
