@@ -28,6 +28,7 @@ struct DonorDetailView: View {
     @State private var showingTextView = false
     @State private var showingStringView = false
     @State private var showingDonationDetail = false
+    @State private var showingAddDonation = false
     @State private var selectedDonation: Donation?
     @State private var lastShownDonationId: Int? // Track which donation was shown
 
@@ -92,7 +93,7 @@ struct DonorDetailView: View {
             }
             
                 // Modified Donations section with async loading
-            Section(header: Text("Donations")) {
+            Section {
                 
                 DonationsListView(
                     isLoadingDonations: isLoadingDonations,
@@ -110,6 +111,16 @@ struct DonorDetailView: View {
                         showingDonationDetail = true
                     }
                 )
+            } header: {
+                HStack {
+                    Text("Donations")
+                    Spacer()
+                    Button("Add", systemImage: "plus") {
+                        showingAddDonation = true
+                    }
+                    .labelStyle(.titleAndIcon)
+                    .font(.subheadline)
+                }
             }
         }
         .navigationTitle("Donor Details")
@@ -190,6 +201,19 @@ struct DonorDetailView: View {
                     .environmentObject(donorObject)
                     .environmentObject(donationObject)
                     .interactiveDismissDisabled()
+            }
+        }
+        .sheet(isPresented: $showingAddDonation) {
+            NavigationView {
+                DonationEditView(donor: donor)
+            }
+            .interactiveDismissDisabled()
+        }
+        .onChange(of: showingAddDonation) { _, isPresented in
+            if !isPresented {
+                Task {
+                    await loadDonations()
+                }
             }
         }
         .onChange(of: showingDonationDetail) { isPresented in
