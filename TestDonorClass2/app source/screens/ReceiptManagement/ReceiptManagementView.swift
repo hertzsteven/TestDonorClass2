@@ -71,7 +71,7 @@ struct ReceiptManagementView: View {
             .pickerStyle(.segmented)
             .padding()
 
-            if selectedStatus == .notRequested {
+            if selectedStatus == .notRequested || selectedStatus == .digitallySent {
                 BulkUpdateBarView(
                     threshold: $bulkUpdateThreshold,
                     onSubmit: handleBulkUpdate
@@ -319,7 +319,10 @@ struct ReceiptManagementView: View {
 
     private func handleBulkUpdate(amount: Double) {
         Task {
-            bulkUpdateCount = await viewModel.bulkPromoteToRequested(minAmount: amount)
+            bulkUpdateCount = await viewModel.bulkPromoteToRequested(
+                minAmount: amount,
+                fromStatus: selectedStatus
+            )
             showingBulkUpdateAlert = true
             await viewModel.refresh(status: selectedStatus)
         }

@@ -39,11 +39,12 @@ struct EmptyReceiptsView: View {
     /// Avoids awkward double-negatives like "no not requested receipts".
     private var statusPhrase: String {
         switch status {
-        case .notRequested: return "pending"
-        case .requested:    return "requested"
-        case .queued:       return "queued"
-        case .printed:      return "printed"
-        case .failed:       return "failed"
+        case .notRequested:  return "pending"
+        case .digitallySent: return "digitally sent"
+        case .requested:     return "requested"
+        case .queued:        return "queued"
+        case .printed:       return "printed"
+        case .failed:        return "failed"
         }
     }
 }

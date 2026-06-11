@@ -167,14 +167,14 @@ extension DonationRepository {
 
             return try Donation
                 .filter(
-                    // If status is .notRequested, ignore requestPrintedReceipt
-                    // For all other statuses (requested, queued, printed, failed), check requestPrintedReceipt
-                    status == .notRequested ?
+                    // Not Requested and Digitally Sent list every donation in that
+                    // status (no printed-receipt flag required). Digitally-sent
+                    // types intentionally keep requestPrintedReceipt = false.
+                    // Requested, queued, printed, and failed require the flag.
+                    status == .notRequested || status == .digitallySent ?
                         (Donation.Columns.receiptStatus == status.rawValue && Donation.Columns.donationDate > cutoffDate) :
                         (Donation.Columns.requestPrintedReceipt == true && Donation.Columns.receiptStatus == status.rawValue)
                 )
-
-//                .filter(Donation.Columns.requestPrintedReceipt == true && Donation.Columns.receiptStatus == status.rawValue)
                 .order(Donation.Columns.donationDate.desc)
                 .fetchAll(db)
         }
@@ -188,9 +188,7 @@ extension DonationRepository {
 
             return try Donation
                 .filter(
-                    // If status is .notRequested, ignore requestPrintedReceipt
-                    // For all other statuses (requested, queued, printed, failed), check requestPrintedReceipt
-                    status == .notRequested ?
+                    status == .notRequested || status == .digitallySent ?
                         (Donation.Columns.receiptStatus == status.rawValue && Donation.Columns.donationDate > cutoffDate) :
                         (Donation.Columns.requestPrintedReceipt == true && Donation.Columns.receiptStatus == status.rawValue)
                 )
@@ -208,9 +206,13 @@ extension DonationRepository {
         try await dbPool.write { db in
             guard status == .queued else {
                 if status == .requested {
+                    // request_printed_receipt = 1 so the row appears in the
+                    // Requested tab, which filters on that flag. Needed when
+                    // promoting from Not Requested / Digitally Sent, where the
+                    // flag is still 0; harmless for printed-tab reverts.
                     try db.execute(sql: """
                         UPDATE donation
-                        SET receipt_status = ?, print_batch_id = NULL, printed_at = NULL
+                        SET receipt_status = ?, request_printed_receipt = 1, print_batch_id = NULL, printed_at = NULL
                         WHERE id = ?
                         """, arguments: [status.rawValue, donationId])
                 } else {
@@ -342,37 +344,55 @@ extension DonationRepository {
         return String(format: "R-%d-%06d", year, highestSequence + 1)
     }
     
-    /// Updates all donations with status .notRequested and amount >= minAmount to .requested
-    /// Also sets requestPrintedReceipt = true so they appear in the Requested queue
-    /// - Parameter minAmount: Minimum donation amount threshold
+    /// Updates all donations with the given source status and amount >= minAmount to .requested
+    /// Also sets requestPrintedReceipt = true so they appear in the Requested queue.
+    /// When promoting from .notRequested, auto-receipted donation types (Zelle,
+    /// website, donor organizations) are excluded as a safety net — they belong
+    /// to the Digitally Sent tab and must only be promoted from there.
+    /// - Parameters:
+    ///   - minAmount: Minimum donation amount threshold
+    ///   - fromStatus: The receipt status to promote from (.notRequested or .digitallySent)
     /// - Returns: The count of updated donations
-    func bulkUpdateToRequested(minAmount: Double) async throws -> Int {
+    func bulkUpdateToRequested(minAmount: Double, fromStatus: ReceiptStatus) async throws -> Int {
         // Create year 2000 date for filtering (same logic as getReceiptRequests)
         let calendar = Calendar(identifier: .gregorian)
         let cutoffDate = calendar.date(from: DateComponents(year: 2000, month: 1, day: 1)) ?? Date.distantPast
-        
+
+        let excludedTypes: [String] = fromStatus == .notRequested
+            ? DonationType.allCases.filter(\.receiptAlreadySent).map(\.rawValue)
+            : []
+
         return try await dbPool.write { db in
+            var filter = Donation.Columns.receiptStatus == fromStatus.rawValue &&
+                Donation.Columns.amount >= minAmount &&
+                Donation.Columns.donationDate > cutoffDate
+            if !excludedTypes.isEmpty {
+                filter = filter && !excludedTypes.contains(Donation.Columns.donationType)
+            }
             let updateCount = try Donation
-                .filter(
-                    Donation.Columns.receiptStatus == ReceiptStatus.notRequested.rawValue &&
-                    Donation.Columns.amount >= minAmount &&
-                    Donation.Columns.donationDate > cutoffDate
-                )
+                .filter(filter)
                 .fetchCount(db)
-            
-            try db.execute(sql: """
+
+            var sql = """
                 UPDATE donation
                 SET receipt_status = ?, request_printed_receipt = 1
                 WHERE receipt_status = ?
                 AND amount >= ?
                 AND donation_date > ?
-                """, arguments: [
-                    ReceiptStatus.requested.rawValue,
-                    ReceiptStatus.notRequested.rawValue,
-                    minAmount,
-                    cutoffDate
-                ])
-            
+                """
+            var arguments: [DatabaseValueConvertible] = [
+                ReceiptStatus.requested.rawValue,
+                fromStatus.rawValue,
+                minAmount,
+                cutoffDate
+            ]
+            if !excludedTypes.isEmpty {
+                let placeholders = excludedTypes.map { _ in "?" }.joined(separator: ", ")
+                sql += "\nAND donation_type NOT IN (\(placeholders))"
+                arguments += excludedTypes
+            }
+            try db.execute(sql: sql, arguments: StatementArguments(arguments))
+
             return updateCount
         }
     }

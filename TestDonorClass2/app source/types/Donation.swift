@@ -57,6 +57,16 @@ enum DonationType: String, Codable, CaseIterable {
         case .other:               "Other"
         }
     }
+
+    /// Types whose donors already received a receipt at the source
+    /// (digitally or by the organization), so a printed receipt must
+    /// never be requested for them.
+    var receiptAlreadySent: Bool {
+        switch self {
+        case .zelle, .websiteCreditCard, .websiteOrganization, .organizationDirect: true
+        case .creditCard, .check, .cash, .other: false
+        }
+    }
 }
 
 enum PaymentStatus: String, Codable, CaseIterable {
@@ -67,6 +77,7 @@ enum PaymentStatus: String, Codable, CaseIterable {
 
 enum ReceiptStatus: String, Codable, CaseIterable {
     case notRequested = "NOT_REQUESTED"
+    case digitallySent = "DIGITALLY_SENT"
     case requested = "REQUESTED"
     case queued = "QUEUED"
     case printed = "PRINTED"
@@ -75,6 +86,7 @@ enum ReceiptStatus: String, Codable, CaseIterable {
     var displayName: String {
         switch self {
         case .notRequested: return "Not Requested"
+        case .digitallySent: return "Digitally Sent"
         case .requested: return "Requested"
         case .queued: return "Queued"
         case .printed: return "Printed"
@@ -208,7 +220,9 @@ struct Donation: Identifiable, Codable, FetchableRecord, PersistableRecord, Hash
         self.paymentProcessorInfo = paymentProcessorInfo
         self.requestEmailReceipt = requestEmailReceipt
         self.requestPrintedReceipt = requestPrintedReceipt
-        self.receiptStatus = receiptStatus ?? (requestPrintedReceipt ? .requested : .notRequested)
+        self.receiptStatus = receiptStatus
+            ?? (donationType.receiptAlreadySent ? .digitallySent
+                : (requestPrintedReceipt ? .requested : .notRequested))
         self.printBatchId = printBatchId
         self.printedAt = printedAt
         self.notes = notes

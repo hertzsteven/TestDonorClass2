@@ -189,6 +189,7 @@ struct BatchDonationView: View {
                     ForEach(DonationType.allCases, id: \.self) { type in
                         Button(type.displayName) {
                             viewModel.globalDonationType = type
+                            viewModel.globalDonationTypeChanged()
                         }
                     }
                 } label: {
@@ -205,6 +206,7 @@ struct BatchDonationView: View {
                     .fixedSize()
                 Toggle("", isOn: $viewModel.globalPrintReceipt)
                     .labelsHidden()
+                    .disabled(viewModel.globalDonationType.receiptAlreadySent)
             }
             
             HStack(spacing: 8) {
@@ -492,13 +494,16 @@ struct BatchDonationView: View {
             Toggle("", isOn: row.printReceipt.animation())
                 .labelsHidden()
                 .frame(width: 60, alignment: .center)
-                .disabled(!r.isValidDonor)
+                .disabled(!r.isValidDonor || r.donationTypeOverride.receiptAlreadySent)
 
             // Donation Type Override — short, single-line label in this tight
             // column; the dropdown still lists the full display names.
             Menu {
                 ForEach(DonationType.allCases, id: \.self) { type in
-                    Button(type.displayName) { row.donationTypeOverride.wrappedValue = type }
+                    Button(type.displayName) {
+                        row.donationTypeOverride.wrappedValue = type
+                        viewModel.donationTypeChanged(for: r.id)
+                    }
                 }
             } label: {
                 HStack(spacing: 2) {

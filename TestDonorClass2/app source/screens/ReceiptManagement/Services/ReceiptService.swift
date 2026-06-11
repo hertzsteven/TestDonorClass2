@@ -50,8 +50,8 @@ final class ReceiptService {
         try await donationRepository.updateReceiptStatus(donationId: donationId, status: status)
     }
 
-    func bulkPromoteToRequested(minAmount: Double) async throws -> Int {
-        try await donationRepository.bulkUpdateToRequested(minAmount: minAmount)
+    func bulkPromoteToRequested(minAmount: Double, fromStatus: ReceiptStatus) async throws -> Int {
+        try await donationRepository.bulkUpdateToRequested(minAmount: minAmount, fromStatus: fromStatus)
     }
 
     func revertBatch(batchId: Int) async throws {

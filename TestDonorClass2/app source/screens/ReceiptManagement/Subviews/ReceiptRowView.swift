@@ -74,6 +74,7 @@ private struct StatusBadge: View {
     private var color: Color {
         switch status {
         case .notRequested: return .gray
+        case .digitallySent: return .teal
         case .requested: return .orange
         case .queued: return .blue
         case .printed: return .green

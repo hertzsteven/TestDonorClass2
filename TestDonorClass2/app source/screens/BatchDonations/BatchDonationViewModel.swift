@@ -97,7 +97,7 @@ class BatchDonationViewModel: ObservableObject {
                 }
                 rows[rowIndex].donationTypeOverride = self.globalDonationType
                 rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
-                rows[rowIndex].printReceipt = self.globalPrintReceipt
+                rows[rowIndex].printReceipt = self.globalDonationType.receiptAlreadySent ? false : self.globalPrintReceipt
                 rows[rowIndex].donationDate = self.globalDonationDate
 
                 if rowIndex == rows.count - 1 {
@@ -135,15 +135,13 @@ class BatchDonationViewModel: ObservableObject {
         }
         rows[rowIndex].donationTypeOverride = self.globalDonationType
         rows[rowIndex].paymentStatusOverride = self.globalPaymentStatus
-        rows[rowIndex].printReceipt = self.globalPrintReceipt
+        rows[rowIndex].printReceipt = self.globalDonationType.receiptAlreadySent ? false : self.globalPrintReceipt
         rows[rowIndex].donationDate = self.globalDonationDate
 
         if rowIndex == rows.count - 1 {
             addRow()
-            focusedRowID = rows.last?.id
-        } else {
-            focusedRowID = rows[rowIndex + 1].id
         }
+        focusedRowID = nil
     }
 
     func saveBatchDonations(selectedCampaignId: Int?) async -> (success: Int, failed: Int, totalAmount: Double) {
@@ -181,7 +179,7 @@ class BatchDonationViewModel: ObservableObject {
                 amount: donationAmount,
                 donationType: row.donationTypeOverride,
                 paymentStatus: row.paymentStatusOverride,
-                requestPrintedReceipt: row.printReceipt,
+                requestPrintedReceipt: row.donationTypeOverride.receiptAlreadySent ? false : row.printReceipt,
                 notes: row.prayerNoteSW ? row.prayerNote : nil,
                 donationDate: row.donationDate
             )
@@ -207,6 +205,23 @@ class BatchDonationViewModel: ObservableObject {
 
     func getDonor(_ id: Int) async throws -> Donor? {
         try await repository.getOne(id)
+    }
+
+    /// Called when a row's donation type changes. Auto-receipted types
+    /// (Zelle, website, donor organizations) already sent the donor a
+    /// receipt, so the print-receipt flag is forced off.
+    func donationTypeChanged(for rowID: UUID) {
+        guard let rowIndex = rows.firstIndex(where: { $0.id == rowID }) else { return }
+        if rows[rowIndex].donationTypeOverride.receiptAlreadySent {
+            rows[rowIndex].printReceipt = false
+        }
+    }
+
+    /// Called when the global donation type changes; mirrors the per-row rule.
+    func globalDonationTypeChanged() {
+        if globalDonationType.receiptAlreadySent {
+            globalPrintReceipt = false
+        }
     }
 
     /// Clears the amount when its field gains focus so the user types a fresh

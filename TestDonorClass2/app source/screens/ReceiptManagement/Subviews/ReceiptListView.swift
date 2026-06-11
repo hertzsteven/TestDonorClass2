@@ -74,7 +74,7 @@ struct ReceiptListView: View {
                 Button("Mark Printed") { onMarkPrinted(receipt) }
                     .tint(.green)
             }
-            if receipt.status == .printed {
+            if receipt.status == .printed || receipt.status == .notRequested || receipt.status == .digitallySent {
                 Button("Mark Requested") { onMarkRequested(receipt) }
                     .tint(.orange)
             }

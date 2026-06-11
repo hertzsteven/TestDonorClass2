@@ -131,7 +131,13 @@
                     Section(header: Text("Receipt Options")) {
                         Toggle("Request Email Receipt", isOn: $requestEmailReceipt)
                         Toggle("Request Printed Receipt", isOn: $requestPrintedReceipt)
+                            .disabled(donationType.receiptAlreadySent)
                             //                        Toggle("Anonymous Donation", isOn: $isAnonymous)
+                        if donationType.receiptAlreadySent {
+                            Text("A receipt was already sent for this donation type.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     
                     Section(header: Text("Additional Information")) {
@@ -148,6 +154,12 @@
                 
                 .toolbar {
                     toolBarCancelSave()
+                }
+
+                .onChange(of: donationType) { _, newType in
+                    if newType.receiptAlreadySent {
+                        requestPrintedReceipt = false
+                    }
                 }
                 
     //            .toolbar
@@ -283,7 +295,9 @@
                 self.twoDecimalPlaces  = settings.amount ?? 0.00
                 self.donationType = settings.donationType ?? .creditCard
                 self.requestEmailReceipt = settings.requestEmailReceipt
-                self.requestPrintedReceipt = settings.requestPrintedReceipt
+                self.requestPrintedReceipt = self.donationType.receiptAlreadySent
+                    ? false
+                    : settings.requestPrintedReceipt
                 self.campaignId = settings.campaignId
                 self.incentiveId = settings.donationIncentiveId
                 dump(settings)
@@ -322,7 +336,7 @@
                 donationType: donationType,
                 paymentStatus: .completed,
                 requestEmailReceipt: requestEmailReceipt,
-                requestPrintedReceipt: requestPrintedReceipt,
+                requestPrintedReceipt: donationType.receiptAlreadySent ? false : requestPrintedReceipt,
                 notes: notes.isEmpty ? nil : notes,
                 isAnonymous: isAnonymous,
                 donationDate: Date()

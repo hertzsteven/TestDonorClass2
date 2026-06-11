@@ -509,6 +509,32 @@ extension DatabaseManager {
             print("v7_addPrintBatch: complete")
         }
 
+        // --- Migration 8: Digitally-sent receipt status ---
+        // Donation types whose donors already received a receipt at the
+        // source (Zelle, website, donor organizations) move from
+        // NOT_REQUESTED to the dedicated DIGITALLY_SENT status so they no
+        // longer appear in the Not Requested tab. Rows already requested,
+        // queued, or printed are left untouched.
+        migrator.registerMigration("v8_digitallySentReceiptStatus") { db in
+            print("Running migration: v8_digitallySentReceiptStatus")
+
+            let autoReceiptedTypes = DonationType.allCases
+                .filter(\.receiptAlreadySent)
+                .map(\.rawValue)
+            let placeholders = autoReceiptedTypes.map { _ in "?" }.joined(separator: ", ")
+
+            try db.execute(sql: """
+                UPDATE donation
+                SET receipt_status = ?
+                WHERE receipt_status = ?
+                AND donation_type IN (\(placeholders))
+                """, arguments: StatementArguments(
+                    [ReceiptStatus.digitallySent.rawValue, ReceiptStatus.notRequested.rawValue]
+                    + autoReceiptedTypes
+                ))
+            print("v8_digitallySentReceiptStatus: moved \(db.changesCount) donation(s) to DIGITALLY_SENT")
+        }
+
         return migrator
     }
 }

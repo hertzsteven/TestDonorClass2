@@ -154,9 +154,9 @@ final class ReceiptManagementViewModel {
 
     // MARK: - Bulk operations
 
-    func bulkPromoteToRequested(minAmount: Double) async -> Int {
+    func bulkPromoteToRequested(minAmount: Double, fromStatus: ReceiptStatus) async -> Int {
         do {
-            let count = try await service.bulkPromoteToRequested(minAmount: minAmount)
+            let count = try await service.bulkPromoteToRequested(minAmount: minAmount, fromStatus: fromStatus)
             await loadStatusCounts()
             return count
         } catch {
