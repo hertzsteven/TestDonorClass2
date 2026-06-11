@@ -13,6 +13,7 @@ struct BatchDonorReadOnlyView: View {
                 LabeledContent("Last Name", value: donor.lastName ?? "—")
                 LabeledContent("Jewish Name", value: donor.jewishName ?? "—")
                 LabeledContent("Company", value: donor.company ?? "—")
+                LabeledContent("Donor Source", value: donor.donorSource.map(DonorSource.displayName(forStoredValue:)) ?? "—")
             }
 
             Section(header: Text("Address")) {

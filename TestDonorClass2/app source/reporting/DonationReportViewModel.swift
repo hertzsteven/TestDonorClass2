@@ -30,6 +30,12 @@ class DonationReportViewModel: ObservableObject {
     @Published var selectedDonorId: Int? = nil {
         didSet { scheduleFilter() }
     }
+    @Published var selectedDonorSource: DonorSource? = nil {
+        didSet { scheduleFilter() }
+    }
+    @Published var selectedDonationType: DonationType? = nil {
+        didSet { scheduleFilter() }
+    }
     @Published var minAmountString: String = "" {
         didSet { scheduleFilter() }
     }
@@ -95,6 +101,7 @@ class DonationReportViewModel: ObservableObject {
 
     // MARK: – Internal Caches
     private var donorCache: [Int:String]       = [:]
+    private var donorSourceCache: [Int:String] = [:]
     private var campaignCache: [Int:String]    = [:]
     private var allFetchedDonations: [Donation] = []
 
@@ -143,6 +150,12 @@ class DonationReportViewModel: ObservableObject {
                             let name = d.fullName.trimmingCharacters(in: .whitespacesAndNewlines)
                                 .isEmpty ? (d.company ?? "Unknown") : d.fullName
                             return (id, name)
+                        }
+                    )
+                    donorSourceCache = Dictionary(
+                        uniqueKeysWithValues: fetchedDonors.compactMap { d in
+                            guard let id = d.id, let source = d.donorSource else { return nil }
+                            return (id, source)
                         }
                     )
                     allFetchedDonations = fetchedDonations
@@ -228,6 +241,17 @@ class DonationReportViewModel: ObservableObject {
         // 3. Donor
         if let did = selectedDonorId {
             results = results.filter { $0.donorId == did }
+        }
+        // 3b. Donor Source
+        if let source = selectedDonorSource {
+            results = results.filter { donation in
+                guard let did = donation.donorId else { return false }
+                return donorSourceCache[did] == source.rawValue
+            }
+        }
+        // 3c. Donation Type
+        if let type = selectedDonationType {
+            results = results.filter { $0.donationType == type }
         }
         // 4. Amount range
         if let min = Double(minAmountString) {
@@ -352,7 +376,20 @@ class DonationReportViewModel: ObservableObject {
         do {
             // Get the fresh donation from database
             guard let updatedDonation = try await donationRepository.getOne(donationId) else {
-                print("❌ Could not find donation with ID: \(donationId)")
+                // Donation no longer exists (it was deleted) - remove it from the report
+                await MainActor.run {
+                    allFetchedDonations.removeAll { $0.id == donationId }
+                    filteredReportItems.removeAll { $0.id == donationId }
+                    
+                    // Recalculate totals
+                    filteredCount = filteredReportItems.count
+                    totalFilteredAmount = filteredReportItems.reduce(0) { $0 + $1.amount }
+                    averageFilteredAmount = filteredCount > 0
+                        ? totalFilteredAmount / Double(filteredCount)
+                        : 0
+                    
+                    print("🗑️ Removed deleted donation \(donationId) from report")
+                }
                 return
             }
             

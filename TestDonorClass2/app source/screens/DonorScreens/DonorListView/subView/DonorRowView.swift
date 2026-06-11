@@ -69,6 +69,14 @@ struct DonorRowView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DonationDeleted"))) { notification in
+            if let donorId = notification.userInfo?["donorId"] as? Int,
+               donorId == donor.id {
+                Task {
+                    await updateTotalDonations()
+                }
+            }
+        }
         .sheet(isPresented: $showingDonationSheet) {
             NavigationView {
                 DonationEditView(donor: donor)

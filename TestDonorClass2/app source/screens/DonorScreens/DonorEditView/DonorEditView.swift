@@ -31,6 +31,7 @@ struct DonorEditView: View {
     @State private var city: String = ""
     @State private var state: String = ""
     @State private var zip: String = ""
+    @State private var donorSource: DonorSource?
     @State private var notes: String = ""
     
     @State private var showValidationError = false
@@ -92,6 +93,7 @@ struct DonorEditView: View {
                 zip:        zip.nillIfEmptyOrWhite ,
                 email:      email.nillIfEmptyOrWhite ,
                 phone:      phone.nillIfEmptyOrWhite ,
+                donorSource: donorSource?.rawValue,
                 notes:      notes.nillIfEmptyOrWhite
             )
             donor = thedonor
@@ -109,6 +111,7 @@ struct DonorEditView: View {
             existingDonor.city       = city.nillIfEmptyOrWhite
             existingDonor.state      = state.nillIfEmptyOrWhite
             existingDonor.zip        = zip.nillIfEmptyOrWhite
+            existingDonor.donorSource = donorSource?.rawValue
             existingDonor.notes      = notes.nillIfEmptyOrWhite
             donor                    = existingDonor
         }
@@ -198,6 +201,7 @@ extension DonorEditView {
         city = donor.city ?? ""
         state = donor.state ?? ""
         zip = donor.zip ?? ""
+        donorSource = donor.donorSource.flatMap(DonorSource.init(rawValue:))
         notes = donor.notes ?? ""
 
         isPhoneValid = isValidPhone(phone)
@@ -272,6 +276,12 @@ extension DonorEditView {
     
     private var additionalInfoSection: some View {
         Section(header: Text("Additional Information")) {
+            Picker("Donor Source", selection: $donorSource) {
+                Text("Not Set").tag(DonorSource?.none)
+                ForEach(DonorSource.allCases, id: \.self) { source in
+                    Text(source.displayName).tag(DonorSource?.some(source))
+                }
+            }
             TextEditor(text: $notes)
                 .frame(height: 100)
         }

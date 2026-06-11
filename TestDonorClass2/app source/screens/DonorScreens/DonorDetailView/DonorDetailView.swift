@@ -56,6 +56,9 @@ struct DonorDetailView: View {
                 if let companyName = donor.company, !companyName.isEmpty {
                     LabeledContent("Company Name", value: companyName)
                 }
+                if let donorSource = donor.donorSource, !donorSource.isEmpty {
+                    LabeledContent("Donor Source", value: DonorSource.displayName(forStoredValue: donorSource))
+                }
             }
             
             Section(header: Text("Contact Information")) {
@@ -185,6 +188,7 @@ struct DonorDetailView: View {
             if let donation = selectedDonation {
                 DonationDetailView(donation: donation)
                     .environmentObject(donorObject)
+                    .environmentObject(donationObject)
                     .interactiveDismissDisabled()
             }
         }
@@ -239,7 +243,11 @@ struct DonorDetailView: View {
         do {
             // Get the fresh donation from database
             guard let updatedDonation = try await donationObject.getDonation(donationId) else {
-                print("❌ Could not find donation with ID: \(donationId)")
+                // Donation no longer exists (it was deleted) - remove it from the list
+                await MainActor.run {
+                    donorDonations.removeAll { $0.id == donationId }
+                    print("🗑️ Removed deleted donation \(donationId) from list")
+                }
                 return
             }
             

@@ -19,6 +19,7 @@ struct DonationReportView: View {
 
     @State private var showingDonorSearchView = false
     @EnvironmentObject var donorObject: DonorObjectClass // Still needed for DonorSearchSelectionView
+    @EnvironmentObject var donationObject: DonationObjectClass // Needed by DonationDetailView for delete
 
     @State private var isExportSheetPresented = false
     @State private var exportFileURL: URL?
@@ -234,6 +235,24 @@ struct DonationReportView: View {
                                 }
                             }
 
+                            // Donor Source
+                            Picker("Donor Source", selection: $viewModel.selectedDonorSource) {
+                                Text("All Sources").tag(DonorSource?.none)
+                                ForEach(DonorSource.allCases, id: \.self) { source in
+                                    Text(source.displayName).tag(source as DonorSource?)
+                                }
+                            }
+                            .pickerStyle(.menu)
+
+                            // Donation Type
+                            Picker("Donation Type", selection: $viewModel.selectedDonationType) {
+                                Text("All Types").tag(DonationType?.none)
+                                ForEach(DonationType.allCases, id: \.self) { type in
+                                    Text(type.displayName).tag(type as DonationType?)
+                                }
+                            }
+                            .pickerStyle(.menu)
+
                             // Prayer Notes Filter
                             Toggle("Show Prayer Notes Only", isOn: $viewModel.showOnlyPrayerNotes)
                                 .onChange(of: viewModel.showOnlyPrayerNotes) { _ in
@@ -434,6 +453,7 @@ struct DonationReportView: View {
             .sheet(item: $donationToShow) { donation in
                 DonationDetailView(donation: donation)
                     .environmentObject(donorObject)
+                    .environmentObject(donationObject)
                     .onAppear {
                         lastShownDonationId = donation.id
                     }

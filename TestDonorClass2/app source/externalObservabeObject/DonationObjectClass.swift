@@ -96,6 +96,14 @@
             await MainActor.run {
                 donations.removeAll { $0.id == donation.id }
             }
+            // Notify any listeners (donor rows, lists) that totals need to be updated
+            await MainActor.run {
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("DonationDeleted"),
+                    object: nil,
+                    userInfo: ["donorId": donation.donorId as Any, "donationId": donation.id as Any]
+                )
+            }
         }
             
         // MARK: - Specialized Queries

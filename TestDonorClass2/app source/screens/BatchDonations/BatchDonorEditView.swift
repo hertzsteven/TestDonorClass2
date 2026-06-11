@@ -162,9 +162,23 @@ struct BatchDonorEditView: View {
 
     private var additionalInfoSection: some View {
         Section(header: Text("Additional Information")) {
+            Picker("Donor Source", selection: donorSourceBinding) {
+                Text("Not Set").tag(DonorSource?.none)
+                ForEach(DonorSource.allCases, id: \.self) { source in
+                    Text(source.displayName).tag(DonorSource?.some(source))
+                }
+            }
             TextEditor(text: bind(\.notes))
                 .frame(height: 100)
         }
+    }
+
+    /// Bridges the donor's stored raw source string to the typed picker selection.
+    private var donorSourceBinding: Binding<DonorSource?> {
+        Binding(
+            get: { donor.donorSource.flatMap(DonorSource.init(rawValue:)) },
+            set: { donor.donorSource = $0?.rawValue }
+        )
     }
     
     // MARK: - Helper Functions

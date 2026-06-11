@@ -6,7 +6,10 @@ struct DonationDetailView: View {
     @State private var donation: Donation
     @Environment(\.dismiss) private var dismiss
     @State private var showingEditSheet = false
+    @State private var showingDeleteConfirmation = false
+    @State private var isDeleting = false
     @EnvironmentObject var donorObject: DonorObjectClass
+    @EnvironmentObject var donationObject: DonationObjectClass
     @State private var donor: Donor?
     @State private var isLoadingDonor = false
     @State private var errorMessage: String?
@@ -168,6 +171,23 @@ struct DonationDetailView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+                
+                Section {
+                    Button(role: .destructive) {
+                        showingDeleteConfirmation = true
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isDeleting {
+                                ProgressView()
+                            } else {
+                                Label("Delete Donation", systemImage: "trash")
+                            }
+                            Spacer()
+                        }
+                    }
+                    .disabled(isDeleting)
+                }
             }
             .navigationTitle("Donation Details")
             .navigationBarTitleDisplayMode(.inline)
@@ -196,6 +216,14 @@ struct DonationDetailView: View {
             }
             .interactiveDismissDisabled()
         }
+        .alert("Delete Donation?", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                performDelete()
+            }
+        } message: {
+            Text(deleteConfirmationMessage)
+        }
         .alert("Error", isPresented: .init(
             get: { errorMessage != nil },
             set: { if !$0 { errorMessage = nil } }
@@ -204,6 +232,43 @@ struct DonationDetailView: View {
         } message: {
             if let errorMessage = errorMessage {
                 Text(errorMessage)
+            }
+        }
+    }
+    
+    // Builds the confirmation message, with an extra warning if a receipt was already issued
+    private var deleteConfirmationMessage: String {
+        var message = "This will permanently delete the donation of $\(String(format: "%.2f", donation.amount)) from \(donorName) on \(dateOnlyFormatter.string(from: donation.donationDate)). This cannot be undone."
+        
+        if receiptAlreadyIssued {
+            var receiptDetail = "a receipt"
+            if let receiptNumber = donation.receiptNumber {
+                receiptDetail = "receipt #\(receiptNumber)"
+            }
+            message += "\n\nWARNING: \(receiptDetail) has already been issued for this donation. Deleting it will remove the record behind that receipt."
+        }
+        
+        return message
+    }
+    
+    private var receiptAlreadyIssued: Bool {
+        donation.receiptStatus == .printed || donation.printedAt != nil
+    }
+    
+    private func performDelete() {
+        isDeleting = true
+        Task {
+            do {
+                try await donationObject.deleteDonation(donation)
+                await MainActor.run {
+                    isDeleting = false
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    isDeleting = false
+                    errorMessage = "Failed to delete donation: \(error.localizedDescription)"
+                }
             }
         }
     }
