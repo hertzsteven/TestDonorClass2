@@ -430,30 +430,32 @@ private struct DonorSearchResultRow: View {
     let formattedName: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(formattedName.capitalized)
                     .font(.subheadline)
                     .bold()
-                Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    if let city = donor.city, let state = donor.state {
-                        Text("\(city), \(state)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    if let zip = donor.zip, !zip.isEmpty {
-                        Text(zip)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+
+                if let address = donor.address, !address.isEmpty {
+                    Text(address)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 
-            if let address = donor.address, !address.isEmpty {
-                Text(address)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 2) {
+                if let city = donor.city, let state = donor.state {
+                    Text("\(city), \(state)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if let zip = donor.zip, !zip.isEmpty {
+                    Text(zip)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .contentShape(.rect)

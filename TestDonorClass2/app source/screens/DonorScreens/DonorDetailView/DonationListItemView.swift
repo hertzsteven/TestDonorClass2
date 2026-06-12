@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DonationListItemView: View {
     let donation: Donation
+    @State private var campaignName: String?
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -18,8 +19,8 @@ struct DonationListItemView: View {
                     .foregroundColor(.blue)
                     .font(.system(size: 24))
             }
-            if let campaign = donation.campaignId {
-                Text("Campaign: #\(campaign)")
+            if let campaignId = donation.campaignId {
+                Text("Campaign: \(campaignName ?? "#\(campaignId)")")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -32,5 +33,10 @@ struct DonationListItemView: View {
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
+        .task {
+            if let campaignId = donation.campaignId {
+                campaignName = await CampaignNameService.shared.name(forCampaignId: campaignId)
+            }
+        }
     }
 }

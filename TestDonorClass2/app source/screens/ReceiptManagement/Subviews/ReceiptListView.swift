@@ -19,6 +19,7 @@ struct ReceiptListView: View {
     let onPrintRow: (ReceiptItem) -> Void
     let onMarkPrinted: (ReceiptItem) -> Void
     let onMarkRequested: (ReceiptItem) -> Void
+    let onMarkNotRequested: (ReceiptItem) -> Void
     let onRevertBatch: (PrintBatchGroup) -> Void
     let onViewDetails: (ReceiptItem) -> Void
 
@@ -73,6 +74,10 @@ struct ReceiptListView: View {
             if receipt.status != .printed {
                 Button("Mark Printed") { onMarkPrinted(receipt) }
                     .tint(.green)
+            }
+            if receipt.status == .requested {
+                Button("Not Requested") { onMarkNotRequested(receipt) }
+                    .tint(.gray)
             }
             if receipt.status == .printed || receipt.status == .notRequested || receipt.status == .digitallySent {
                 Button("Mark Requested") { onMarkRequested(receipt) }

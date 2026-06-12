@@ -105,6 +105,7 @@ struct ReceiptManagementView: View {
                 onPrintRow: printSingleRow,
                 onMarkPrinted: markRowAsPrinted,
                 onMarkRequested: markRowAsRequested,
+                onMarkNotRequested: markRowAsNotRequested,
                 onRevertBatch: prepareRevertBatch,
                 onViewDetails: { receiptForDetail = $0 },
                 onDeselectAll: { selectedReceipts.removeAll() },
@@ -227,6 +228,13 @@ struct ReceiptManagementView: View {
     private func markRowAsRequested(_ receipt: ReceiptItem) {
         Task {
             await viewModel.markAsRequested(receipt)
+            statusChangeTrigger += 1
+        }
+    }
+
+    private func markRowAsNotRequested(_ receipt: ReceiptItem) {
+        Task {
+            await viewModel.markAsNotRequested(receipt)
             statusChangeTrigger += 1
         }
     }

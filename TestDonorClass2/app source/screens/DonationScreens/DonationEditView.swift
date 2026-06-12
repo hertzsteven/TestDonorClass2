@@ -21,6 +21,7 @@
         
         @State private var amountText: String = ""
         @State private var amount               : String = ""
+        @State private var donationDate         : Date = Date()
         @State private var donationType         : DonationType = .creditCard
         @State private var notes                : String = ""
         @State private var isAnonymous          : Bool = false
@@ -107,6 +108,8 @@
                         
                         TextField("Enter amount", value: $twoDecimalPlaces, formatter: twoDecimalFormatter)
                             .keyboardType(.decimalPad)
+                        
+                        DatePicker("Date", selection: $donationDate, displayedComponents: [.date])
                         
     //                    TextField("Amount", text: formattedAmount)
     //                        .keyboardType(.decimalPad)
@@ -339,7 +342,7 @@
                 requestPrintedReceipt: donationType.receiptAlreadySent ? false : requestPrintedReceipt,
                 notes: notes.isEmpty ? nil : notes,
                 isAnonymous: isAnonymous,
-                donationDate: Date()
+                donationDate: donationDate
             )
             
             Task {

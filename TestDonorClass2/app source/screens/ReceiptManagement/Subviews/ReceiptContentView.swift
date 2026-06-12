@@ -22,6 +22,7 @@ struct ReceiptContentView: View {
     let onPrintRow: (ReceiptItem) -> Void
     let onMarkPrinted: (ReceiptItem) -> Void
     let onMarkRequested: (ReceiptItem) -> Void
+    let onMarkNotRequested: (ReceiptItem) -> Void
     let onRevertBatch: (PrintBatchGroup) -> Void
     let onViewDetails: (ReceiptItem) -> Void
 
@@ -54,6 +55,7 @@ struct ReceiptContentView: View {
                     onPrintRow: onPrintRow,
                     onMarkPrinted: onMarkPrinted,
                     onMarkRequested: onMarkRequested,
+                    onMarkNotRequested: onMarkNotRequested,
                     onRevertBatch: onRevertBatch,
                     onViewDetails: onViewDetails
                 )

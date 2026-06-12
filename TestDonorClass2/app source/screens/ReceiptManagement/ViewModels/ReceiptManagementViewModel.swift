@@ -125,6 +125,10 @@ final class ReceiptManagementViewModel {
         await updateStatus(donationId: receipt.donationId, to: .requested, refreshStatus: currentStatus)
     }
 
+    func markAsNotRequested(_ receipt: ReceiptItem) async {
+        await updateStatus(donationId: receipt.donationId, to: .notRequested, refreshStatus: currentStatus)
+    }
+
     func revertBatch(_ group: PrintBatchGroup) async {
         guard let batchId = group.batch?.id else { return }
         do {

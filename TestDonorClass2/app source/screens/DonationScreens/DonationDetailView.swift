@@ -14,6 +14,7 @@ struct DonationDetailView: View {
     @State private var isLoadingDonor = false
     @State private var errorMessage: String?
     @State private var donorName: String = "Loading..." // NEW: State to hold donor/company name
+    @State private var campaignName: String?
     
     // Date formatters to match the screenshot
     private var dateFormatter: DateFormatter {
@@ -145,7 +146,7 @@ struct DonationDetailView: View {
                         HStack {
                             Text("Campaign")
                             Spacer()
-                            Text("#\(campaignId)")
+                            Text(campaignName ?? "#\(campaignId)")
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -206,6 +207,7 @@ struct DonationDetailView: View {
             }
             .task {
                 await loadDonorName() // NEW: Load donor/company name when view appears
+                await loadCampaignName()
             }
         }
         .sheet(isPresented: $showingEditSheet) {
@@ -298,6 +300,12 @@ struct DonationDetailView: View {
             donorName = "Error Loading Donor"
             print("Error loading donor: \(error)")
         }
+    }
+    
+    // Resolves the campaign ID to its display name
+    private func loadCampaignName() async {
+        guard let campaignId = donation.campaignId else { return }
+        campaignName = await CampaignNameService.shared.name(forCampaignId: campaignId)
     }
     
     private func loadDonorAndShowEdit() {

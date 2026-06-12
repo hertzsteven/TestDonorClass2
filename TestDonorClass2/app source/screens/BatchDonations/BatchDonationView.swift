@@ -437,7 +437,8 @@ struct BatchDonationView: View {
                     .font(r.isValidDonor ? .subheadline : .caption)
                     .foregroundColor(r.isValidDonor ? .primary : (r.displayInfo.contains("Error") || r.displayInfo.contains("not found") ? .red : .secondary))
                     .lineLimit(1)
-                    .frame(minWidth: 120, maxWidth: 160, alignment: .leading)
+                    .minimumScaleFactor(0.7)
+                    .frame(minWidth: 120, maxWidth: 200, alignment: .leading)
 
                 if r.isValidDonor {
                     Button("Edit Donor", systemImage: "pencil") {
@@ -456,6 +457,7 @@ struct BatchDonationView: View {
                         .font(.body)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
@@ -464,18 +466,12 @@ struct BatchDonationView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(minHeight: 40, alignment: .center)
             .help(r.displayInfo)
-            .padding(.leading, 20)
-
-            Color.clear
-                .frame(width: 70, height: 1)
-
-            Color.clear
-                .frame(width: 70, height: 1)
 
             // RESTORE: Prayer Note Toggle (safe now with id-based binding + deferred clear)
             Toggle("Pray", isOn: row.prayerNoteSW)
                 .labelsHidden()
                 .toggleStyle(.button)
+                .frame(width: 70, alignment: .center)
                 .disabled(!r.isValidDonor)
                 .onChange(of: row.prayerNoteSW.wrappedValue) { oldValue, newValue in
                     if newValue {
@@ -493,7 +489,7 @@ struct BatchDonationView: View {
             // RESTORE: Receipt Toggle
             Toggle("", isOn: row.printReceipt.animation())
                 .labelsHidden()
-                .frame(width: 60, alignment: .center)
+                .frame(width: 70, alignment: .center)
                 .disabled(!r.isValidDonor || r.donationTypeOverride.receiptAlreadySent)
 
             // Donation Type Override — short, single-line label in this tight
