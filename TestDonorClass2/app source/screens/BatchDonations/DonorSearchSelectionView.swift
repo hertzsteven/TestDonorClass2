@@ -436,11 +436,17 @@ private struct DonorSearchResultRow: View {
                     .font(.subheadline)
                     .bold()
                 Spacer()
-                if let city = donor.city,
-                   let state = donor.state {
-                    Text("\(city), \(state)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                VStack(alignment: .trailing, spacing: 2) {
+                    if let city = donor.city, let state = donor.state {
+                        Text("\(city), \(state)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    if let zip = donor.zip, !zip.isEmpty {
+                        Text(zip)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
 
