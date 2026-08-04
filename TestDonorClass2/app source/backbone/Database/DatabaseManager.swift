@@ -535,6 +535,17 @@ extension DatabaseManager {
             print("v8_digitallySentReceiptStatus: moved \(db.changesCount) donation(s) to DIGITALLY_SENT")
         }
 
+        // --- Migration 9: Donor postal mail status ---
+        // Tracks whether a donor should receive postal mailings
+        // (active / bad address / do not mail / deceased).
+        migrator.registerMigration("v9_addDonorMailStatus") { db in
+            print("Running migration: v9_addDonorMailStatus")
+            try db.alter(table: "donor") { t in
+                t.add(column: "mail_status", .text).defaults(to: DonorMailStatus.active.rawValue)
+            }
+            print("v9_addDonorMailStatus: complete")
+        }
+
         return migrator
     }
 }

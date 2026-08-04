@@ -62,10 +62,24 @@ final class ReceiptService {
 
     /// Prints a batch of receipts in a single print job, updating each
     /// receipt's status based on the outcome.
-    /// Returns a tuple of (printed, cancelled, failed).
+    /// Donors whose mail status does not allow postal mail are hard-skipped;
+    /// their receipt status is left unchanged.
     @MainActor
-    func batchPrint(_ receipts: [ReceiptItem]) async -> (printed: Int, cancelled: Int, failed: Int, receiptNumbers: [String]) {
-        for receipt in receipts {
+    func batchPrint(_ receipts: [ReceiptItem]) async -> (
+        printed: Int,
+        cancelled: Int,
+        failed: Int,
+        skipped: Int,
+        receiptNumbers: [String]
+    ) {
+        let printable = receipts.filter(\.allowsPostalMail)
+        let skippedCount = receipts.count - printable.count
+
+        guard !printable.isEmpty else {
+            return (printed: 0, cancelled: 0, failed: 0, skipped: skippedCount, receiptNumbers: [])
+        }
+
+        for receipt in printable {
             do {
                 try await updateStatus(donationId: receipt.donationId, to: .queued)
             } catch {
@@ -75,7 +89,7 @@ final class ReceiptService {
 
         var donationInfos: [DonationInfo] = []
         var assignedReceiptNumbers: [String] = []
-        for receipt in receipts {
+        for receipt in printable {
             if let info = await donationInfo(for: receipt) {
                 donationInfos.append(info)
                 if let number = info.receiptNumber, !number.isEmpty {
@@ -85,10 +99,16 @@ final class ReceiptService {
         }
 
         guard !donationInfos.isEmpty else {
-            for receipt in receipts {
+            for receipt in printable {
                 try? await updateStatus(donationId: receipt.donationId, to: .failed)
             }
-            return (printed: 0, cancelled: 0, failed: receipts.count, receiptNumbers: [])
+            return (
+                printed: 0,
+                cancelled: 0,
+                failed: printable.count,
+                skipped: skippedCount,
+                receiptNumbers: []
+            )
         }
 
         let success = await printingService.printReceipts(
@@ -99,20 +119,32 @@ final class ReceiptService {
         if success {
             do {
                 _ = try await printBatchRepository.createBatch(
-                    donationIds: receipts.map(\.donationId),
+                    donationIds: printable.map(\.donationId),
                     label: nil
                 )
             } catch {
-                for receipt in receipts {
+                for receipt in printable {
                     try? await updateStatus(donationId: receipt.donationId, to: .printed)
                 }
             }
-            return (printed: receipts.count, cancelled: 0, failed: 0, receiptNumbers: assignedReceiptNumbers)
+            return (
+                printed: printable.count,
+                cancelled: 0,
+                failed: 0,
+                skipped: skippedCount,
+                receiptNumbers: assignedReceiptNumbers
+            )
         } else {
-            for receipt in receipts {
+            for receipt in printable {
                 try? await updateStatus(donationId: receipt.donationId, to: .requested)
             }
-            return (printed: 0, cancelled: receipts.count, failed: 0, receiptNumbers: assignedReceiptNumbers)
+            return (
+                printed: 0,
+                cancelled: printable.count,
+                failed: 0,
+                skipped: skippedCount,
+                receiptNumbers: assignedReceiptNumbers
+            )
         }
     }
 
@@ -141,7 +173,8 @@ final class ReceiptService {
         var items: [ReceiptItem] = []
         items.reserveCapacity(donations.count)
         for donation in donations {
-            let donorName = await donorDisplayName(for: donation)
+            let donor = await donor(for: donation)
+            let donorName = Self.displayName(for: donor, isAnonymous: donation.isAnonymous)
             let campaignName = await campaignDisplayName(for: donation)
             items.append(
                 ReceiptItem(
@@ -152,16 +185,23 @@ final class ReceiptService {
                     campaignName: campaignName,
                     status: donation.receiptStatus,
                     printBatchId: donation.printBatchId,
-                    printedAt: donation.printedAt
+                    printedAt: donation.printedAt,
+                    donorMailStatus: donor?.resolvedMailStatus ?? .active
                 )
             )
         }
         return items
     }
 
-    private func donorDisplayName(for donation: Donation) async -> String {
-        guard let donorId = donation.donorId, !donation.isAnonymous,
-              let donor = try? await donationRepository.getDonorForDonation(donorId: donorId) else {
+    private func donor(for donation: Donation) async -> Donor? {
+        guard let donorId = donation.donorId, !donation.isAnonymous else {
+            return nil
+        }
+        return try? await donationRepository.getDonorForDonation(donorId: donorId)
+    }
+
+    private static func displayName(for donor: Donor?, isAnonymous: Bool) -> String {
+        guard let donor, !isAnonymous else {
             return "Anonymous"
         }
         let combined = "\(donor.firstName ?? "") \(donor.lastName ?? "")"
@@ -181,8 +221,12 @@ final class ReceiptService {
     }
 
     /// Builds the full DonationInfo (including donor address) for printing.
-    /// Returns nil if the underlying donation cannot be loaded.
+    /// Returns nil if the underlying donation cannot be loaded, or if the
+    /// donor is not eligible for postal mail.
     private func donationInfo(for receipt: ReceiptItem) async -> DonationInfo? {
+        guard receipt.allowsPostalMail else {
+            return nil
+        }
         guard let donation = try? await donationRepository.getOne(receipt.donationId) else {
             return nil
         }
@@ -196,6 +240,9 @@ final class ReceiptService {
 
         if let donorId = donation.donorId, !donation.isAnonymous,
            let donor = try? await donationRepository.getDonorForDonation(donorId: donorId) {
+            guard donor.allowsPostalMail else {
+                return nil
+            }
             let combined = "\(donor.firstName ?? "") \(donor.lastName ?? "")"
             let trimmed = combined.trimmingCharacters(in: .whitespaces)
             donorName = trimmed.isEmpty ? (donor.company ?? "Unknown") : trimmed

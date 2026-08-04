@@ -28,10 +28,20 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
     var phone: String?
     var donorSource: String?
     var notes: String?
+    /// Postal mail eligibility. Stored as `DonorMailStatus` raw value; nil treated as active.
+    var mailStatus: String?
     var createdAt: Date
     var updatedAt: Date
-    
+
     // MARK: - Computed Properties
+    var resolvedMailStatus: DonorMailStatus {
+        DonorMailStatus.resolve(mailStatus)
+    }
+
+    var allowsPostalMail: Bool {
+        resolvedMailStatus.allowsPostalMail
+    }
+
     var fullName: String {
         if let company = company {
             return "\(firstName ?? "")  \(lastName ?? "")\n\(company)"
@@ -62,6 +72,7 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
         static let phone = Column("phone")
         static let donorSource = Column("donor_source")
         static let notes = Column("notes")
+        static let mailStatus = Column("mail_status")
         static let createdAt = Column("created_at")
         static let updatedAt = Column("updated_at")
     }
@@ -75,6 +86,7 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
         case address, addl_line, suite ,city, state, zip, email, phone
         case donorSource = "donor_source"
         case notes
+        case mailStatus = "mail_status"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
@@ -97,6 +109,7 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
         phone: String? = nil,
         donorSource: String? = nil,
         notes: String? = nil,
+        mailStatus: String? = DonorMailStatus.active.rawValue,
         createdAt: Date = Date(),
         updatedAt: Date = Date()) {
                 //        self.id = id
@@ -116,6 +129,7 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
             self.phone = phone
             self.donorSource = donorSource
             self.notes = notes
+            self.mailStatus = mailStatus
             self.createdAt = createdAt
             self.updatedAt = updatedAt
         }

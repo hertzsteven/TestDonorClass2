@@ -300,16 +300,22 @@ struct ReceiptManagementView: View {
         selectedReceipts.removeAll()
         viewModel.selectedReceipt = nil
 
-        if outcome.wasCancelled {
-            pendingPrintAlertMessage = "Print cancelled. No receipts were marked as printed."
+        let skippedSuffix = outcome.skipped > 0
+            ? " \(outcome.skipped) skipped (do not mail)."
+            : ""
+
+        if outcome.wasAllSkipped {
+            pendingPrintAlertMessage = "No receipts printed. \(outcome.skipped) skipped (do not mail)."
+        } else if outcome.wasCancelled {
+            pendingPrintAlertMessage = "Print cancelled. No receipts were marked as printed.\(skippedSuffix)"
         } else if outcome.failed == 0 {
             pendingPrintAlertMessage = hasRemainder
-                ? "Successfully printed \(outcome.printed) receipt(s). \(remaining) more receipt(s) remaining."
-                : "Successfully printed \(outcome.printed) receipt(s)"
+                ? "Successfully printed \(outcome.printed) receipt(s). \(remaining) more receipt(s) remaining.\(skippedSuffix)"
+                : "Successfully printed \(outcome.printed) receipt(s).\(skippedSuffix)"
         } else {
             pendingPrintAlertMessage = hasRemainder
-                ? "Printed \(outcome.printed) receipt(s). Failed to print \(outcome.failed) receipt(s). \(remaining) more receipt(s) remaining."
-                : "Printed \(outcome.printed) receipt(s). Failed to print \(outcome.failed) receipt(s)."
+                ? "Printed \(outcome.printed) receipt(s). Failed to print \(outcome.failed) receipt(s). \(remaining) more receipt(s) remaining.\(skippedSuffix)"
+                : "Printed \(outcome.printed) receipt(s). Failed to print \(outcome.failed) receipt(s).\(skippedSuffix)"
         }
 
         Task { await viewModel.refresh(status: selectedStatus) }

@@ -90,6 +90,10 @@ struct DonorDetailView: View {
                 if let zip = donor.zip {
                     LabeledContent("ZIP", value: zip)
                 }
+                LabeledContent("Mail Status") {
+                    Text(donor.resolvedMailStatus.displayName)
+                        .foregroundStyle(donor.allowsPostalMail ? Color.primary : Color.orange)
+                }
             }
             
                 // Modified Donations section with async loading
@@ -105,7 +109,7 @@ struct DonorDetailView: View {
                         }
                     },
                     onDonationSelected: { donation in
-                        print("🔥 Donation selected: \(donation)")
+                        print("?? Donation selected: \(donation)")
                         selectedDonation = donation
                         lastShownDonationId = donation.id
                         showingDonationDetail = true
@@ -219,7 +223,7 @@ struct DonorDetailView: View {
         .onChange(of: showingDonationDetail) { isPresented in
             // When the donation detail sheet is dismissed, refresh that specific donation
             if !isPresented, let donationId = lastShownDonationId {
-                print("🔄 Donation detail sheet dismissed, updating donation \(donationId)...")
+                print("?? Donation detail sheet dismissed, updating donation \(donationId)...")
                 Task {
                     await updateSingleDonation(donationId)
                 }
@@ -270,7 +274,7 @@ struct DonorDetailView: View {
                 // Donation no longer exists (it was deleted) - remove it from the list
                 await MainActor.run {
                     donorDonations.removeAll { $0.id == donationId }
-                    print("🗑️ Removed deleted donation \(donationId) from list")
+                    print("??? Removed deleted donation \(donationId) from list")
                 }
                 return
             }
@@ -279,11 +283,11 @@ struct DonorDetailView: View {
                 // Find and update the donation in our local array
                 if let index = donorDonations.firstIndex(where: { $0.id == donationId }) {
                     donorDonations[index] = updatedDonation
-                    print("✅ Updated single donation: \(updatedDonation.amount)")
+                    print("? Updated single donation: \(updatedDonation.amount)")
                 }
             }
         } catch {
-            print("💥 Error updating single donation: \(error)")
+            print("?? Error updating single donation: \(error)")
         }
     }
 

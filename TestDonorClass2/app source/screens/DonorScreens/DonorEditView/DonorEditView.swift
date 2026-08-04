@@ -32,6 +32,7 @@ struct DonorEditView: View {
     @State private var state: String = ""
     @State private var zip: String = ""
     @State private var donorSource: DonorSource?
+    @State private var mailStatus: DonorMailStatus = .active
     @State private var notes: String = ""
     
     @State private var showValidationError = false
@@ -94,7 +95,8 @@ struct DonorEditView: View {
                 email:      email.nillIfEmptyOrWhite ,
                 phone:      phone.nillIfEmptyOrWhite ,
                 donorSource: donorSource?.rawValue,
-                notes:      notes.nillIfEmptyOrWhite
+                notes:      notes.nillIfEmptyOrWhite,
+                mailStatus: mailStatus.rawValue
             )
             donor = thedonor
         case .edit(var existingDonor):
@@ -113,6 +115,7 @@ struct DonorEditView: View {
             existingDonor.zip        = zip.nillIfEmptyOrWhite
             existingDonor.donorSource = donorSource?.rawValue
             existingDonor.notes      = notes.nillIfEmptyOrWhite
+            existingDonor.mailStatus = mailStatus.rawValue
             donor                    = existingDonor
         }
         
@@ -202,6 +205,7 @@ extension DonorEditView {
         state = donor.state ?? ""
         zip = donor.zip ?? ""
         donorSource = donor.donorSource.flatMap(DonorSource.init(rawValue:))
+        mailStatus = donor.resolvedMailStatus
         notes = donor.notes ?? ""
 
         isPhoneValid = isValidPhone(phone)
@@ -280,6 +284,11 @@ extension DonorEditView {
                 Text("Not Set").tag(DonorSource?.none)
                 ForEach(DonorSource.allCases, id: \.self) { source in
                     Text(source.displayName).tag(DonorSource?.some(source))
+                }
+            }
+            Picker("Mail Status", selection: $mailStatus) {
+                ForEach(DonorMailStatus.allCases, id: \.self) { status in
+                    Text(status.displayName).tag(status)
                 }
             }
             TextEditor(text: $notes)

@@ -19,6 +19,11 @@ struct ReceiptItem: Identifiable, Hashable, Sendable {
     let status: ReceiptStatus
     let printBatchId: Int?
     let printedAt: Date?
+    let donorMailStatus: DonorMailStatus
+
+    var allowsPostalMail: Bool {
+        donorMailStatus.allowsPostalMail
+    }
 
     init(
         id: UUID = UUID(),
@@ -29,7 +34,8 @@ struct ReceiptItem: Identifiable, Hashable, Sendable {
         campaignName: String?,
         status: ReceiptStatus,
         printBatchId: Int? = nil,
-        printedAt: Date? = nil
+        printedAt: Date? = nil,
+        donorMailStatus: DonorMailStatus = .active
     ) {
         self.id = id
         self.donationId = donationId
@@ -40,5 +46,6 @@ struct ReceiptItem: Identifiable, Hashable, Sendable {
         self.status = status
         self.printBatchId = printBatchId
         self.printedAt = printedAt
+        self.donorMailStatus = donorMailStatus
     }
 }

@@ -363,28 +363,28 @@ extension DonationRepository {
             : []
 
         return try await dbPool.write { db in
-            var filter = Donation.Columns.receiptStatus == fromStatus.rawValue &&
-                Donation.Columns.amount >= minAmount &&
-                Donation.Columns.donationDate > cutoffDate
-            if !excludedTypes.isEmpty {
-                filter = filter && !excludedTypes.contains(Donation.Columns.donationType)
-            }
-            let updateCount = try Donation
-                .filter(filter)
-                .fetchCount(db)
-
+            // Exclude donors whose mail_status is not ACTIVE so they never
+            // enter the postal print queue.
             var sql = """
                 UPDATE donation
                 SET receipt_status = ?, request_printed_receipt = 1
                 WHERE receipt_status = ?
                 AND amount >= ?
                 AND donation_date > ?
+                AND (
+                    donor_id IS NULL
+                    OR donor_id IN (
+                        SELECT id FROM donor
+                        WHERE mail_status IS NULL OR mail_status = ?
+                    )
+                )
                 """
             var arguments: [DatabaseValueConvertible] = [
                 ReceiptStatus.requested.rawValue,
                 fromStatus.rawValue,
                 minAmount,
-                cutoffDate
+                cutoffDate,
+                DonorMailStatus.active.rawValue
             ]
             if !excludedTypes.isEmpty {
                 let placeholders = excludedTypes.map { _ in "?" }.joined(separator: ", ")
@@ -393,7 +393,7 @@ extension DonationRepository {
             }
             try db.execute(sql: sql, arguments: StatementArguments(arguments))
 
-            return updateCount
+            return db.changesCount
         }
     }
 }

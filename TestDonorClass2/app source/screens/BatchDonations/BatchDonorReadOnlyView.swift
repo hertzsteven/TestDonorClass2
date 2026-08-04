@@ -23,6 +23,7 @@ struct BatchDonorReadOnlyView: View {
                 LabeledContent("City", value: donor.city ?? "—")
                 LabeledContent("State", value: donor.state ?? "—")
                 LabeledContent("ZIP", value: donor.zip ?? "—")
+                LabeledContent("Mail Status", value: donor.resolvedMailStatus.displayName)
             }
 
             Section(header: Text("Contact Information")) {

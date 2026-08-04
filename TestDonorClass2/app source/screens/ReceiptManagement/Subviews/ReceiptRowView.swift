@@ -49,6 +49,16 @@ struct ReceiptRowView: View {
                     PrintedBatchChipView(printedAt: receipt.printedAt)
                 }
 
+                if !receipt.allowsPostalMail {
+                    Text(receipt.donorMailStatus.displayName)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.orange.opacity(0.2))
+                        .foregroundStyle(.orange)
+                        .clipShape(.capsule)
+                }
+
                 Text("Donation ID: \(receipt.donationId)")
                     .font(.caption2)
                     .foregroundStyle(.secondary)

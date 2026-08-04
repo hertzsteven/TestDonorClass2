@@ -168,6 +168,11 @@ struct BatchDonorEditView: View {
                     Text(source.displayName).tag(DonorSource?.some(source))
                 }
             }
+            Picker("Mail Status", selection: mailStatusBinding) {
+                ForEach(DonorMailStatus.allCases, id: \.self) { status in
+                    Text(status.displayName).tag(status)
+                }
+            }
             TextEditor(text: bind(\.notes))
                 .frame(height: 100)
         }
@@ -178,6 +183,13 @@ struct BatchDonorEditView: View {
         Binding(
             get: { donor.donorSource.flatMap(DonorSource.init(rawValue:)) },
             set: { donor.donorSource = $0?.rawValue }
+        )
+    }
+
+    private var mailStatusBinding: Binding<DonorMailStatus> {
+        Binding(
+            get: { donor.resolvedMailStatus },
+            set: { donor.mailStatus = $0.rawValue }
         )
     }
     

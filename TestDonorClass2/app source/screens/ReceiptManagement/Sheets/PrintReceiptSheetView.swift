@@ -92,6 +92,7 @@ struct PrintReceiptSheetView: View {
             printed: result.printed,
             cancelled: result.cancelled,
             failed: result.failed,
+            skipped: result.skipped,
             totalRequested: receipts.count,
             receiptNumbers: result.receiptNumbers
         )
@@ -143,8 +144,11 @@ struct PrintBatchOutcome {
     let printed: Int
     let cancelled: Int
     let failed: Int
+    let skipped: Int
     let totalRequested: Int
     var receiptNumbers: [String] = []
 
     var wasCancelled: Bool { cancelled > 0 && printed == 0 && failed == 0 }
+
+    var wasAllSkipped: Bool { skipped > 0 && printed == 0 && cancelled == 0 && failed == 0 }
 }
