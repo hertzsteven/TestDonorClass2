@@ -73,6 +73,10 @@ protocol DonationSpecificRepositoryProtocol: RepositoryProtocol where Model == D
     func countReceiptsByStatus(_ status: ReceiptStatus) async throws -> Int
     
     func generateReceiptNumber() async throws -> String
+
+    /// Existing import keys on `transaction_number`, so a re-run of the same
+    /// external-donation file is a no-op.
+    func existingTransactionNumbers(_ keys: [String]) async throws -> Set<String>
     
 //    private func getReceiptCountForYear(_ year: Int) async throws -> Int
 }

@@ -562,6 +562,17 @@ extension DatabaseManager {
             print("v10_addDonorPreviousAddress: complete")
         }
 
+        // Speeds up external-donation re-import lookups by transaction_number.
+        migrator.registerMigration("v11_addDonationTransactionNumberIndex") { db in
+            print("Running migration: v11_addDonationTransactionNumberIndex")
+            try db.create(
+                index: "idx_donation_transaction_number",
+                on: "donation",
+                columns: ["transaction_number"]
+            )
+            print("v11_addDonationTransactionNumberIndex: complete")
+        }
+
         return migrator
     }
 }

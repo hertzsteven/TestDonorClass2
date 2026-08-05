@@ -156,6 +156,22 @@ class DonationRepository: DonationSpecificRepositoryProtocol {
                 .fetchAll(db)
         }
     }
+
+    func existingTransactionNumbers(_ keys: [String]) async throws -> Set<String> {
+        guard !keys.isEmpty else { return [] }
+        do {
+            return try await dbPool.read { db in
+                let found = try Donation
+                    .filter(keys.contains(Donation.Columns.transactionNumber))
+                    .fetchAll(db)
+                    .compactMap(\.transactionNumber)
+                return Set(found)
+            }
+        } catch {
+            handleError(error, context: "Looking up existing transaction numbers")
+            throw RepositoryError.fetchFailed(error.localizedDescription)
+        }
+    }
 }
 extension DonationRepository {
     func getReceiptRequests(status: ReceiptStatus) async throws -> [Donation] {

@@ -90,6 +90,12 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Donation Imports") {
+                    NavigationLink(destination: ExternalDonationImportView()) {
+                        Label("External Donations", systemImage: "tray.and.arrow.down")
+                    }
+                }
+
                 Section("Receipt Printing") {
                     Picker("Receipt output", selection: $receiptOutputModeSelection) {
                         ForEach(ReceiptOutputMode.allCases) { mode in
