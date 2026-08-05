@@ -120,6 +120,22 @@ class DonorRepository: DonorSpecificRepositoryProtocol {
         }
     }
     
+    /// One transaction for the whole set, so a bulk address import either lands
+    /// completely or not at all.
+    func updateBatch(_ donors: [Donor]) async throws {
+        guard !donors.isEmpty else { return }
+        do {
+            try await dbPool.write { db in
+                for donor in donors {
+                    try donor.update(db)
+                }
+            }
+        } catch {
+            handleError(error, context: "Updating \(donors.count) donors in one transaction")
+            throw RepositoryError.updateFailed(error.localizedDescription)
+        }
+    }
+
     func delete(_ donor: Donor) async throws  {
         do {
             try await dbPool.write { db in

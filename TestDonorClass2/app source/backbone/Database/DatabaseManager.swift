@@ -546,6 +546,22 @@ extension DatabaseManager {
             print("v9_addDonorMailStatus: complete")
         }
 
+        // --- Migration 10: Previous donor address snapshot ---
+        // Retains the address that was current immediately before the most
+        // recent address change, so returned mail can be traced.
+        migrator.registerMigration("v10_addDonorPreviousAddress") { db in
+            print("Running migration: v10_addDonorPreviousAddress")
+            try db.alter(table: "donor") { t in
+                t.add(column: "previous_address", .text)
+                t.add(column: "previous_addl_line", .text)
+                t.add(column: "previous_suite", .text)
+                t.add(column: "previous_city", .text)
+                t.add(column: "previous_state", .text)
+                t.add(column: "previous_zip", .text)
+            }
+            print("v10_addDonorPreviousAddress: complete")
+        }
+
         return migrator
     }
 }

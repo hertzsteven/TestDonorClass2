@@ -95,6 +95,10 @@ struct DonorDetailView: View {
                         .foregroundStyle(donor.allowsPostalMail ? Color.primary : Color.orange)
                 }
             }
+
+            if let priorAddress = donor.priorAddress {
+                PreviousAddressSectionView(address: priorAddress)
+            }
             
                 // Modified Donations section with async loading
             Section {

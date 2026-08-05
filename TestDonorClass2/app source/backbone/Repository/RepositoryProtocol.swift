@@ -40,6 +40,10 @@ protocol DonorSpecificRepositoryProtocol: RepositoryProtocol where Model == Dono
     //        func getTotalDonationsAmount(forDonorId id: Int) async throws -> Double
     // Add new method for searching by ID
     func getDonorById(_ id: Int) async throws -> Donor?
+
+    /// Update many donors as one unit, so a failure part way through leaves
+    /// none of them changed.
+    func updateBatch(_ donors: [Donor]) async throws
     
     // Rename existing search method for clarity
 //        func findByName(_ name: String) async throws -> [Donor]

@@ -30,6 +30,14 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
     var notes: String?
     /// Postal mail eligibility. Stored as `DonorMailStatus` raw value; nil treated as active.
     var mailStatus: String?
+    /// Snapshot of the address that was current before the most recent address
+    /// change. Maintained automatically; never edited directly by staff.
+    var previousAddress: String?
+    var previousAddlLine: String?
+    var previousSuite: String?
+    var previousCity: String?
+    var previousState: String?
+    var previousZip: String?
     var createdAt: Date
     var updatedAt: Date
 
@@ -40,6 +48,51 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
 
     var allowsPostalMail: Bool {
         resolvedMailStatus.allowsPostalMail
+    }
+
+    /// The address mail is currently sent to.
+    var currentAddress: DonorAddress {
+        get {
+            DonorAddress(
+                street: address,
+                additionalLine: addl_line,
+                suite: suite,
+                city: city,
+                state: state,
+                zip: zip
+            )
+        }
+        set {
+            address = newValue.street
+            addl_line = newValue.additionalLine
+            suite = newValue.suite
+            city = newValue.city
+            state = newValue.state
+            zip = newValue.zip
+        }
+    }
+
+    /// The retained prior address, or nil when this donor has never moved.
+    var priorAddress: DonorAddress? {
+        get {
+            let stored = DonorAddress(
+                street: previousAddress,
+                additionalLine: previousAddlLine,
+                suite: previousSuite,
+                city: previousCity,
+                state: previousState,
+                zip: previousZip
+            )
+            return stored.isEmpty ? nil : stored
+        }
+        set {
+            previousAddress = newValue?.street
+            previousAddlLine = newValue?.additionalLine
+            previousSuite = newValue?.suite
+            previousCity = newValue?.city
+            previousState = newValue?.state
+            previousZip = newValue?.zip
+        }
     }
 
     var fullName: String {
@@ -73,6 +126,12 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
         static let donorSource = Column("donor_source")
         static let notes = Column("notes")
         static let mailStatus = Column("mail_status")
+        static let previousAddress = Column("previous_address")
+        static let previousAddlLine = Column("previous_addl_line")
+        static let previousSuite = Column("previous_suite")
+        static let previousCity = Column("previous_city")
+        static let previousState = Column("previous_state")
+        static let previousZip = Column("previous_zip")
         static let createdAt = Column("created_at")
         static let updatedAt = Column("updated_at")
     }
@@ -87,6 +146,12 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
         case donorSource = "donor_source"
         case notes
         case mailStatus = "mail_status"
+        case previousAddress = "previous_address"
+        case previousAddlLine = "previous_addl_line"
+        case previousSuite = "previous_suite"
+        case previousCity = "previous_city"
+        case previousState = "previous_state"
+        case previousZip = "previous_zip"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
@@ -110,6 +175,12 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
         donorSource: String? = nil,
         notes: String? = nil,
         mailStatus: String? = DonorMailStatus.active.rawValue,
+        previousAddress: String? = nil,
+        previousAddlLine: String? = nil,
+        previousSuite: String? = nil,
+        previousCity: String? = nil,
+        previousState: String? = nil,
+        previousZip: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()) {
                 //        self.id = id
@@ -130,6 +201,12 @@ struct Donor: Identifiable, Codable, Hashable, FetchableRecord, PersistableRecor
             self.donorSource = donorSource
             self.notes = notes
             self.mailStatus = mailStatus
+            self.previousAddress = previousAddress
+            self.previousAddlLine = previousAddlLine
+            self.previousSuite = previousSuite
+            self.previousCity = previousCity
+            self.previousState = previousState
+            self.previousZip = previousZip
             self.createdAt = createdAt
             self.updatedAt = updatedAt
         }

@@ -234,10 +234,11 @@ struct BatchDonorEditView: View {
                     onSave(savedDonor)
                 }
             case .edit:
-                try await donorObject.updateDonor(donor)
+                let savedDonor = try await donorObject.updateDonor(donor)
                 await MainActor.run {
                     isSaving = false
-                    onSave(donor)
+                    donor = savedDonor
+                    onSave(savedDonor)
                 }
             }
         } catch {

@@ -80,6 +80,16 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section("Address Updates") {
+                    NavigationLink(destination: NCOAImportView()) {
+                        Label("NCOA Address Import", systemImage: "mappin.and.ellipse")
+                    }
+
+                    NavigationLink(destination: NCOADeletionImportView()) {
+                        Label("NCOA Undeliverable", systemImage: "mappin.slash")
+                    }
+                }
+
                 Section("Receipt Printing") {
                     Picker("Receipt output", selection: $receiptOutputModeSelection) {
                         ForEach(ReceiptOutputMode.allCases) { mode in

@@ -48,6 +48,22 @@ class MockDonorRepository: DonorSpecificRepositoryProtocol {
         mockDonors[index] = donor
     }
     
+    func updateBatch(_ donors: [Donor]) async throws {
+        // Resolve every index before mutating so a missing donor leaves the
+        // store untouched, matching the real transactional behavior.
+        var pending: [(index: Int, donor: Donor)] = []
+        for donor in donors {
+            guard let index = mockDonors.firstIndex(where: { $0.id == donor.id }) else {
+                throw RepositoryError.updateFailed("Donor with id \(donor.id ?? -1) not found")
+            }
+            pending.append((index, donor))
+        }
+
+        for entry in pending {
+            mockDonors[entry.index] = entry.donor
+        }
+    }
+
     func delete(_ donor: Donor) async throws {
         mockDonors.removeAll { $0.id == donor.id }
     }

@@ -8,11 +8,16 @@ class DonorObjectClass: ObservableObject {
     @Published var lastUpdatedDonor: Donor? = nil  // Add this property
     
     private var repository: any DonorSpecificRepositoryProtocol
-       
+    private let addressUpdateService: DonorAddressUpdateService
+
     // --- CHANGE 1: Designated Initializer ---
     // Requires the repository protocol, doesn't throw
-    init(repository: any DonorSpecificRepositoryProtocol) {
+    init(
+        repository: any DonorSpecificRepositoryProtocol,
+        addressUpdateService: DonorAddressUpdateService = DonorAddressUpdateService()
+    ) {
         self.repository = repository
+        self.addressUpdateService = addressUpdateService
     }
     
     // --- CHANGE 2: Convenience Initializer ---
@@ -208,9 +213,20 @@ extension DonorObjectClass {
         return savedDonor
     }
     
-    func updateDonor(_ donor: Donor) async throws {
+    /// Saves donor edits, applying the address-change policy first.
+    /// Returns the record that was actually persisted so callers can adopt any
+    /// automatic changes (prior-address snapshot, mail-status reset).
+    @discardableResult
+    func updateDonor(_ donor: Donor) async throws -> Donor {
         try await reconnectIfNeeded()
-        try await repository.update(donor)
+
+        var donorToSave = donor
+        if let id = donor.id, let stored = try await repository.getOne(id) {
+            donorToSave = addressUpdateService.donorForSaving(edited: donor, stored: stored)
+        }
+
+        try await repository.update(donorToSave)
+        return donorToSave
     }
     
     func deleteDonor(_ donor: Donor) async throws {

@@ -26,6 +26,10 @@ struct BatchDonorReadOnlyView: View {
                 LabeledContent("Mail Status", value: donor.resolvedMailStatus.displayName)
             }
 
+            if let priorAddress = donor.priorAddress {
+                PreviousAddressSectionView(address: priorAddress)
+            }
+
             Section(header: Text("Contact Information")) {
                 LabeledContent("Email", value: donor.email ?? "—")
                 LabeledContent("Phone", value: donor.phone ?? "—")

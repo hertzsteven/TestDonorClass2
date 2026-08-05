@@ -129,7 +129,9 @@ struct DonorEditView: View {
             if isAdd {
                 try await donorObject.addDonor(donor)
             } else {
-                try await donorObject.updateDonor(donor)
+                // Adopt the saved record so an automatic prior-address snapshot
+                // or mail-status reset is reflected immediately.
+                donor = try await donorObject.updateDonor(donor)
             }
         } catch {
             // Handle specific error cases
