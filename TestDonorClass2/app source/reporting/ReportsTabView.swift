@@ -26,6 +26,8 @@ struct ReportsTabView: View {
             switch selectedMode {
             case .donations:
                 DonationReportView()
+            case .donors:
+                DonorsReportView()
             case .topDonors:
                 TopDonorsReportView()
             }
@@ -34,6 +36,7 @@ struct ReportsTabView: View {
 
     enum ReportMode: String, CaseIterable, Identifiable {
         case donations = "Donations"
+        case donors = "Donors"
         case topDonors = "Top Donors"
 
         var id: String { rawValue }
